@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 """
 
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,12 +21,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '&7uwuj**o)m0uq$x)c+0*qy1b9-o$e7fuy_xkc$8ok(7c&3)g_'
+SECRET_KEY = os.environ['GAMECHANGER_SECRET_KEY']
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = True #False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['www.gamechanger.eco']
 
 
 # Application definition
