@@ -26,7 +26,7 @@ SECRET_KEY = os.environ['GAMECHANGER_SECRET_KEY']
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True #False
 
-ALLOWED_HOSTS = ['www.gamechanger.eco']
+ALLOWED_HOSTS = ['www.gamechanger.eco', '127.0.0.1']
 
 
 # Application definition
