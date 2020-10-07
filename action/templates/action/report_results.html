@@ -1,0 +1,29 @@
+<h1>Report Results for {{ place_name }}</h1>
+
+{% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+
+<form action="{% url 'action:report_results' reg_id %}" method="post">
+  {% csrf_token %}
+  <input type="date" name="date" value="{{ date|default:today }}" onchange="this.form.submit()"/>
+</form>
+{% if date %}
+  <form action="{% url 'action:report_date' reg_id date %}" method="post">
+    {% csrf_token %}
+    <p>Number of Participants:</p><br/>
+    <input type="number" name="participants" value="{{ prev_participants }}" min="1" max="99999"/>
+    <p>URL to photo from event that we can share with the world: (optional)</p><br/>
+    <input type="url" name="url" value="{{ prev_url }}">
+    <input type="submit" value="Report Result">
+  </form>
+{% endif %}
+<h2>Reports</h2>
+{% if gathering_list %}
+  <ul>
+  {% for witness in gathering_list %}
+    <li>{{ witness.date|date:"Y-m-d" }} : <a href="/action/report_results/date/{{ reg_id }}/{{ witness.date|date:'Y-m-d' }}/">
+      {{ witness.participants }}</a></li>
+  {% endfor %}
+  </ul>
+{% else %}
+  <p>No results registered yet.</p>
+{% endif %}

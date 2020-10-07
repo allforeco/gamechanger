@@ -32,6 +32,7 @@ ALLOWED_HOSTS = ['www.gamechanger.eco', '127.0.0.1']
 # Application definition
 
 INSTALLED_APPS = [
+    'action.apps.ActionConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -76,8 +77,12 @@ WSGI_APPLICATION = 'gamechanger.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.environ['GAMECHANGER_DB_NAME'],
+        'USER': os.environ['GAMECHANGER_DB_USER'],
+        'PASSWORD': os.environ['GAMECHANGER_DB_PASS'],
+        'HOST': os.environ['GAMECHANGER_DB_HOST'],
+        'PORT': os.environ['GAMECHANGER_DB_PORT'],
     }
 }
 

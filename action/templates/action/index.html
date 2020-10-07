@@ -1,0 +1,9 @@
+{% if latest_report_list %}
+  <ul>
+  {% for witness in latest_gathering_list %}
+    <li><a href="/action/{{ witness.id }}/{{ witness.date }}/report_results/">{{ witness.gathering.name }} @ {{ witness.date }} : {{ witness.participants }}</a></li>
+  {% endfor %}
+  </ul>
+{% else %}
+  <p>No gatherings are available yet.</p>
+{% endif %}
