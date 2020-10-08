@@ -1,0 +1,12 @@
+<h1>Upload RegIDs</h1>
+
+{% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+
+<form action="{% url 'action:upload_post' %}" method="post" enctype="multipart/form-data" >
+  {% csrf_token %}
+  <label for="token">Token:</label>
+  <input type="text" id="token" name="token" value=""/>
+  <label for="regfile">RegID file:</label>
+  <input type="file" id="regfile" name="regfile"><br><br>
+  <input type="submit">
+</form>

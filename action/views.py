@@ -1,4 +1,4 @@
-import datetime
+import datetime, io, csv
 
 from django.shortcuts import render
 from django.template import loader
@@ -85,3 +85,31 @@ def report_date(request, reg_id, date):
     prev_participants=prev_participants, 
     prev_url=prev_url, 
     error_message=error_message)
+
+def upload_reg(request, error_message=None):
+  context = {
+    'error_message': error_message,
+  }
+  template = loader.get_template('action/upload_reg.html')
+  return HttpResponse(template.render(context, request))
+
+def upload_post(request):
+  try:
+    token = request.POST['token']
+    regfile = request.FILES['regfile']
+  except KeyError:
+    # Redisplay the form
+    print(20)
+    return upload_reg(request, error_message="You must specify a RegID file")
+
+  if token != '47':
+    return upload_reg(request, error_message="You must specify a valid RegID file")
+
+  response_file = io.StringIO(regfile.read().decode('utf-8'))
+  response_reader = csv.reader(response_file, delimiter=',')
+  response_list = list(response_reader)
+
+  count = len(response_list)
+  print(response_list)
+
+  return upload_reg(request, error_message=f"{count} place definitions successfully uploaded")

@@ -9,11 +9,23 @@
 {% if date %}
   <form action="{% url 'action:report_date' reg_id date %}" method="post">
     {% csrf_token %}
-    <p>Number of Participants:</p><br/>
-    <input type="number" name="participants" value="{{ prev_participants }}" min="1" max="99999"/>
-    <p>URL to photo from event that we can share with the world: (optional)</p><br/>
-    <input type="url" name="url" value="{{ prev_url }}">
-    <input type="submit" value="Report Result">
+    <table>
+      <tr>
+        <td><legend>Participants</legend></td>
+        <td><input type="number" name="participants" value="{{ prev_participants }}" min="1" max="99999"/></td>
+      </tr>
+      <tr>
+        <td/>
+        <td><p>You are welcome to share a photo from the event (optional) that we can show the world.</p></td>
+      </tr>
+      <tr>
+        <td><legend>URL to Photo</legend></td>
+        <td><input type="url" name="url" value="{{ prev_url }}" size="60"/></td>
+      </tr>
+      <tr>
+        <td><input type="submit" value="Report Result"/></td>
+      </tr>
+    </table>
   </form>
 {% endif %}
 <h2>Reports</h2>
@@ -21,7 +33,9 @@
   <ul>
   {% for witness in gathering_list %}
     <li>{{ witness.date|date:"Y-m-d" }} : <a href="/action/report_results/date/{{ reg_id }}/{{ witness.date|date:'Y-m-d' }}/">
-      {{ witness.participants }}</a></li>
+      {{ witness.participants }}</a>
+      {% if witness.proof_url %}  <a href="{{ witness.proof_url }}">Photo</a>{% endif %}
+    </li>
   {% endfor %}
   </ul>
 {% else %}
