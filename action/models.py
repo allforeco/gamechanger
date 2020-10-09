@@ -21,7 +21,7 @@ class Location(models.Model):
     return self.name
 
   name = models.CharField(max_length=25)
-  in_country = models.ForeignKey(Country, on_delete=models.PROTECT)
+  #in_country = models.ForeignKey(Country, on_delete=models.PROTECT)
   in_location = models.ForeignKey('Location', on_delete=models.PROTECT, blank=True, null=True)
   zip_code = models.CharField(max_length=12, blank=True)
   lat = models.FloatField(blank=True, null=True)

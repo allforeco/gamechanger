@@ -7,6 +7,7 @@ from django.template import loader
 
 from django.http import HttpResponse
 from .models import Gathering, Gathering_Witness
+from . import update_reg
 
 def get_place_name(reg_id):
   place_map = {
@@ -108,8 +109,6 @@ def upload_post(request):
   response_file = io.StringIO(regfile.read().decode('utf-8'))
   response_reader = csv.reader(response_file, delimiter=',')
   response_list = list(response_reader)
-
-  count = len(response_list)
-  print(response_list)
-
-  return upload_reg(request, error_message=f"{count} place definitions successfully uploaded")
+  count = update_reg.update_reg(response_list)
+  count_of = len(response_list)
+  return upload_reg(request, error_message=f"{count}/{count_of} place definitions successfully uploaded")
