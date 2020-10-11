@@ -106,8 +106,8 @@ class Gathering(models.Model):
   regid = models.CharField(primary_key=True, max_length=8, editable=False)
   gathering_type = models.CharField(max_length=4, choices=_gathering_type_choices, default=STRIKE)
   location = models.ForeignKey(Location, on_delete=models.SET_NULL, blank=True, null=True)
-  start_date_time = models.DateTimeField()
-  end_date_time = models.DateTimeField(blank=True)
+  start_date = models.DateField(blank=True,null=True)
+  end_date = models.DateField(blank=True,null=True)
   duration = models.DurationField(blank=True, null=True)
   expected_participants = models.IntegerField(blank=True, null=True)
 
@@ -127,4 +127,5 @@ class Gathering_Witness(models.Model):
   date = models.DateField()
   participants = models.IntegerField(default=0)
   proof_url = models.URLField(max_length=200, blank=True)
-  creation_date = models.DateTimeField(auto_now_add=True, editable=False)
+  creation_time = models.DateTimeField(auto_now_add=True, editable=False)
+  updated = models.DateTimeField(auto_now_add=True, null=True, editable=False)

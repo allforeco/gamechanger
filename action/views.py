@@ -1,4 +1,4 @@
-import datetime, io, csv
+import datetime, io, csv, os
 
 from django.shortcuts import render
 from django.template import loader
@@ -29,8 +29,8 @@ def index(request):
   return HttpResponse(template.render(context, request))
 
 def overview(request, regid, date=None, prev_participants=None, prev_url=None, error_message=None):
+  regid = get_canonical_regid(regid)
   try:
-    regid = get_canonical_regid(regid)
     gathering_list = Gathering_Witness.objects.filter(gathering=regid).order_by('-date')
   except Gathering_Witness.DoesNotExist:
     gathering_list = []
@@ -64,10 +64,7 @@ def report_date(request, regid, date):
     participants = request.POST['participants']
     proof_url = request.POST['url']
 
-    gathering = Gathering(regid=regid, 
-      start_date_time=datetime.datetime.today(),
-      end_date_time=datetime.datetime.today())
-    gathering.save()
+    gathering = Gathering.objects.filter(regid=regid).first()
     try:
       Gathering_Witness.objects.filter(gathering=regid, date=date).delete()
     except:
@@ -76,7 +73,8 @@ def report_date(request, regid, date):
       gathering = gathering,
       date = date,
       participants = participants,
-      proof_url = proof_url)
+      proof_url = proof_url,
+      updated = datetime.datetime.now())
     witness.save()
     error_message = f"Report for {date} Saved!"
   except Exception as e:
@@ -111,7 +109,7 @@ def upload_post(request):
     print(20)
     return upload_reg(request, error_message="You must specify a RegID file")
 
-  if token != '47':
+  if token != os.environ['GAMECHANGER_UPLOAD_TOKEN']:
     return upload_reg(request, error_message="You must specify a valid RegID file")
 
   response_file = io.StringIO(regfile.read().decode('utf-8'))
