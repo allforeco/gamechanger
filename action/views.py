@@ -6,14 +6,19 @@ from django.template import loader
 # Create your views here.
 
 from django.http import HttpResponse
-from .models import Gathering, Gathering_Witness
+from .models import Gathering, Gathering_Belong, Gathering_Witness
 from . import update_reg
 
-def get_place_name(reg_id):
-  place_map = {
-    '11111111': 'Stockholm'
-  }
-  return place_map.get(reg_id, "Unknown Place")
+def get_place_name(regid):
+  try:
+    gatherings = Gathering.objects.filter(regid=regid)
+    return gatherings.first().location.name
+  except:
+    return "Unknown Place"
+
+def get_canonical_regid(regid):
+  canonical_regid = Gathering_Belong.objects.filter(regid=regid).first().gathering.regid
+  return canonical_regid
 
 def index(request):
   latest_gathering_list = Gathering_Witness.objects.order_by('-creation_date')[:5]
@@ -23,17 +28,18 @@ def index(request):
   }
   return HttpResponse(template.render(context, request))
 
-def overview(request, reg_id, date=None, prev_participants=None, prev_url=None, error_message=None):
+def overview(request, regid, date=None, prev_participants=None, prev_url=None, error_message=None):
   try:
-    gathering_list = Gathering_Witness.objects.filter(gathering=reg_id).order_by('-date')
+    regid = get_canonical_regid(regid)
+    gathering_list = Gathering_Witness.objects.filter(gathering=regid).order_by('-date')
   except Gathering_Witness.DoesNotExist:
     gathering_list = []
 
   context = {
-    'place_name': get_place_name(reg_id),
+    'place_name': get_place_name(regid),
     'error_message': error_message,
     'date': date,
-    'reg_id': reg_id,
+    'regid': regid,
     'gathering_list': gathering_list,
     'prev_participants': prev_participants,
     'prev_url': prev_url,
@@ -42,26 +48,28 @@ def overview(request, reg_id, date=None, prev_participants=None, prev_url=None, 
   template = loader.get_template('action/report_results.html')
   return HttpResponse(template.render(context, request))
 
-def report_results(request, reg_id):
+def report_results(request, regid):
+  regid = get_canonical_regid(regid)
   try:
     date = request.POST['date']
   except KeyError:
     # Redisplay the form
-    return overview(request, reg_id, error_message="You must select a date for your results report.")
-  return report_date(request, reg_id, date)
+    return overview(request, regid, error_message="You must select a date for your results report.")
+  return report_date(request, regid, date)
 
-def report_date(request, reg_id, date):
+def report_date(request, regid, date):
+  regid = get_canonical_regid(regid)
   error_message = ""
   try:
     participants = request.POST['participants']
     proof_url = request.POST['url']
 
-    gathering = Gathering(regid=reg_id, 
+    gathering = Gathering(regid=regid, 
       start_date_time=datetime.datetime.today(),
       end_date_time=datetime.datetime.today())
     gathering.save()
     try:
-      Gathering_Witness.objects.filter(gathering=reg_id, date=date).delete()
+      Gathering_Witness.objects.filter(gathering=regid, date=date).delete()
     except:
       pass
     witness = Gathering_Witness(
@@ -75,13 +83,13 @@ def report_date(request, reg_id, date):
     # Initially
     pass
   try:
-    witness = Gathering_Witness.objects.get(gathering=reg_id, date=date)
+    witness = Gathering_Witness.objects.get(gathering=regid, date=date)
     prev_participants = witness.participants
     prev_url = witness.proof_url
   except:
     prev_participants = 0
     prev_url = ""
-  return overview(request, reg_id, 
+  return overview(request, regid, 
     date=date, 
     prev_participants=prev_participants, 
     prev_url=prev_url, 

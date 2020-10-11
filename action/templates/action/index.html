@@ -1,9 +1,18 @@
-{% if latest_report_list %}
-  <ul>
-  {% for witness in latest_gathering_list %}
-    <li><a href="/action/{{ witness.id }}/{{ witness.date }}/report_results/">{{ witness.gathering.name }} @ {{ witness.date }} : {{ witness.participants }}</a></li>
-  {% endfor %}
-  </ul>
-{% else %}
-  <p>No gatherings are available yet.</p>
-{% endif %}
+<!doctype html>
+{% load static %}
+<html lang="en">
+  <head>
+    <title>Gamechanger.eco</title>
+    <link rel="shortcut icon" type="image/png" href="{% static 'favicon.ico' %}"/>
+    <!--link rel="shortcut icon" type="image/png" href="/static/favicon.ico"/-->
+  </head>
+  {% if latest_report_list %}
+    <ul>
+    {% for witness in latest_gathering_list %}
+      <li><a href="/action/{{ witness.id }}/{{ witness.date }}/report_results/">{{ witness.gathering.name }} @ {{ witness.date }} : {{ witness.participants }}</a></li>
+    {% endfor %}
+    </ul>
+  {% else %}
+    <p>No gatherings are available yet.</p>
+  {% endif %}
+</html>

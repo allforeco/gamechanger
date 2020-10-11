@@ -15,9 +15,14 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import include, path
+from django.conf.urls.static import static
+from django.conf import settings
 
 urlpatterns = [
     path('action/', include('action.urls')),
     path('admin/', admin.site.urls),
     path('', include('home.urls')),
 ]
+
+#if settings.DEBUG:
+#urlpatterns += static('/', document_root='static/')

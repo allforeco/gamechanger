@@ -2,12 +2,12 @@
 
 {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
 
-<form action="{% url 'action:report_results' reg_id %}" method="post">
+<form action="{% url 'action:report_results' regid %}" method="post">
   {% csrf_token %}
   <input type="date" name="date" value="{{ date|default:today }}" onchange="this.form.submit()"/>
 </form>
 {% if date %}
-  <form action="{% url 'action:report_date' reg_id date %}" method="post">
+  <form action="{% url 'action:report_date' regid date %}" method="post">
     {% csrf_token %}
     <table>
       <tr>
@@ -32,7 +32,7 @@
 {% if gathering_list %}
   <ul>
   {% for witness in gathering_list %}
-    <li>{{ witness.date|date:"Y-m-d" }} : <a href="/action/report_results/date/{{ reg_id }}/{{ witness.date|date:'Y-m-d' }}/">
+    <li>{{ witness.date|date:"Y-m-d" }} : <a href="/action/report_results/date/{{ regid }}/{{ witness.date|date:'Y-m-d' }}/">
       {{ witness.participants }}</a>
       {% if witness.proof_url %}  <a href="{{ witness.proof_url }}">Photo</a>{% endif %}
     </li>

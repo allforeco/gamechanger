@@ -20,7 +20,7 @@ class Location(models.Model):
   def __str__(self):
     return self.name
 
-  name = models.CharField(max_length=25)
+  name = models.CharField(max_length=100)
   #in_country = models.ForeignKey(Country, on_delete=models.PROTECT)
   in_location = models.ForeignKey('Location', on_delete=models.PROTECT, blank=True, null=True)
   zip_code = models.CharField(max_length=12, blank=True)
@@ -111,9 +111,16 @@ class Gathering(models.Model):
   duration = models.DurationField(blank=True, null=True)
   expected_participants = models.IntegerField(blank=True, null=True)
 
+class Gathering_Belong(models.Model):
+  def __str__(self):
+    return str(self.regid) + "=>" + str(self.gathering.regid)
+
+  regid = models.CharField(primary_key=True, max_length=8, editable=False)
+  gathering = models.ForeignKey(Gathering, on_delete=models.CASCADE)
+
 class Gathering_Witness(models.Model):
   def __str__(self):
-    return str(self.gathering) + ":" + str(date)
+    return str(self.gathering) + ":" + str(self.date)
 
   witness = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True, editable=False)
   gathering = models.ForeignKey(Gathering, on_delete=models.SET_NULL, null=True, editable=False)
