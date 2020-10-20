@@ -1,0 +1,12 @@
+<h1>Download Updates</h1>
+
+{% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+
+<form action="{% url 'action:download_post' %}" method="post" enctype="multipart/form-data" >
+  {% csrf_token %}
+  <label for="token">Token:</label>
+  <input type="text" id="token" name="token" value=""/>
+  <label for="start_datetime">Start date and time:</label>
+  <input type="text" id="start_datetime" name="start_datetime" value=""/>
+  <input type="submit">
+</form>

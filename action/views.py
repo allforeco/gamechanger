@@ -118,3 +118,37 @@ def upload_post(request):
   count = update_reg.update_reg(response_list)
   count_of = len(response_list)
   return upload_reg(request, error_message=f"{count}/{count_of} place definitions successfully uploaded")
+
+def download_upd(request, error_message=None):
+  context = {
+    'error_message': error_message,
+  }
+  template = loader.get_template('action/download_upd.html')
+  return HttpResponse(template.render(context, request))
+
+def download_post(request):
+  try:
+    token = request.POST['token']
+    start_datetime = request.POST['start_datetime']
+  except KeyError:
+    # Redisplay the form
+    return download_upd(request, error_message="You must specify a start date and time")
+
+  if token != os.environ['GAMECHANGER_UPLOAD_TOKEN']:
+    return download_upd(request, error_message="You must specify a valid start date and time")
+
+  try:
+    t = datetime.datetime.fromisoformat(start_datetime+"+00:00")
+    gupdates = Gathering_Witness.objects.filter(updated__gte=t)
+
+    with io.StringIO(newline='') as csvfile:
+      content = csv.writer(csvfile, quoting=csv.QUOTE_MINIMAL)
+      for gupdate in gupdates:
+        content.writerow(['Witness', 
+          gupdate.gathering, gupdate.date, 
+          gupdate.participants, gupdate.proof_url, 
+          gupdate.creation_time, gupdate.updated])
+      return HttpResponse(csvfile.getvalue(), content_type="text/plain")
+  except Exception as e:
+    print(f"Download exception: {e}")
+    return download_upd(request, error_message="Download failed")
