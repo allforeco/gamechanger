@@ -2,6 +2,7 @@ import datetime, io, csv, os
 
 from django.shortcuts import render
 from django.template import loader
+from django.views.decorators.csrf import csrf_exempt
 
 # Create your views here.
 
@@ -126,6 +127,7 @@ def download_upd(request, error_message=None):
   template = loader.get_template('action/download_upd.html')
   return HttpResponse(template.render(context, request))
 
+@csrf_exempt
 def download_post(request):
   try:
     token = request.POST['token']
