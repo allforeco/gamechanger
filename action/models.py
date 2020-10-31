@@ -1,6 +1,20 @@
-from django.db import models
+#   Gamechanger Action Models
+#   Copyright (C) 2020 Jan Lindblad
+# 
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+# 
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+# 
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-# Create your models here.
+from django.db import models
 
 class Verification(models.Model):
   created_by = models.ForeignKey('User', on_delete=models.PROTECT, editable=False)
@@ -125,7 +139,7 @@ class Gathering_Witness(models.Model):
   witness = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True, editable=False)
   gathering = models.ForeignKey(Gathering, on_delete=models.SET_NULL, null=True, editable=False)
   date = models.DateField()
-  participants = models.IntegerField(default=0)
+  participants = models.IntegerField(blank=True, null=True, default=0)
   proof_url = models.URLField(max_length=200, blank=True)
   creation_time = models.DateTimeField(auto_now_add=True, editable=False)
   updated = models.DateTimeField(auto_now_add=True, null=True, editable=False)

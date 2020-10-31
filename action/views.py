@@ -1,14 +1,33 @@
-import datetime, io, csv, os
+#   Gamechanger Action Views
+#   Copyright (C) 2020 Jan Lindblad
+# 
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+# 
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+# 
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+import datetime, io, csv, os, threading
 
 from django.shortcuts import render
 from django.template import loader
+from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 
-# Create your views here.
-
-from django.http import HttpResponse
+from action.spooler import action_spooler
 from .models import Gathering, Gathering_Belong, Gathering_Witness
-from . import update_reg
+
+def spool_update_reg(response_file_bytes):
+  print(f"INIT uwsgi req {len(response_file_bytes)}")
+  action_spooler.spool(task=b'upload', body=response_file_bytes)
+  print(f"INIT uwsgi spooled")
 
 def get_place_name(regid):
   try:
@@ -18,8 +37,11 @@ def get_place_name(regid):
     return "Unknown Place"
 
 def get_canonical_regid(regid):
-  canonical_regid = Gathering_Belong.objects.filter(regid=regid).first().gathering.regid
-  return canonical_regid
+  try:
+    canonical_regid = Gathering_Belong.objects.filter(regid=regid).first().gathering.regid
+    return canonical_regid
+  except:
+    return None
 
 def index(request):
   latest_gathering_list = Gathering_Witness.objects.order_by('-creation_date')[:5]
@@ -29,8 +51,15 @@ def index(request):
   }
   return HttpResponse(template.render(context, request))
 
+def bad_link(request, error_message):
+  template = loader.get_template('action/bad_link.html')
+  context = { 'error_message': error_message }
+  return HttpResponse(template.render(context, request))
+
 def overview(request, regid, date=None, prev_participants=None, prev_url=None, error_message=None):
   regid = get_canonical_regid(regid)
+  if not regid:
+    return bad_link(request, "Something went wrong with this link (#21)")
   try:
     gathering_list = Gathering_Witness.objects.filter(gathering=regid).order_by('-date')
   except Gathering_Witness.DoesNotExist:
@@ -51,6 +80,8 @@ def overview(request, regid, date=None, prev_participants=None, prev_url=None, e
 
 def report_results(request, regid):
   regid = get_canonical_regid(regid)
+  if not regid:
+    return bad_link(request, "Something went wrong with this link. (#31)")
   try:
     date = request.POST['date']
   except KeyError:
@@ -59,33 +90,44 @@ def report_results(request, regid):
   return report_date(request, regid, date)
 
 def report_date(request, regid, date):
+  print(f"RDST report_date {regid} {date}")
   regid = get_canonical_regid(regid)
-  error_message = ""
+  if not regid:
+    print("RDNO No regid")
+    return bad_link(request, "Something went wrong with this link. (#33)")
   try:
-    participants = request.POST['participants']
-    proof_url = request.POST['url']
+    error_message = ""
+    participants = request.POST.get('participants')
+    proof_url = request.POST.get('url')
+    print(f"RDPP partricpants={participants} proof={proof_url}")
 
     gathering = Gathering.objects.filter(regid=regid).first()
-    try:
-      Gathering_Witness.objects.filter(gathering=regid, date=date).delete()
-    except:
-      pass
-    witness = Gathering_Witness(
-      gathering = gathering,
-      date = date,
-      participants = participants,
-      proof_url = proof_url,
-      updated = datetime.datetime.now())
-    witness.save()
-    error_message = f"Report for {date} Saved!"
+    if gathering and participants != None and proof_url != None:
+      try:
+        Gathering_Witness.objects.filter(gathering=regid, date=date).delete()
+        print(f"RDDL Deleted old Witness")
+      except:
+        pass
+      witness = Gathering_Witness(
+        gathering = gathering,
+        date = date,
+        participants = participants,
+        proof_url = proof_url,
+        updated = datetime.datetime.now())
+      witness.save()
+      error_message = f"Report for {date} Saved!"
+      print(f"RDUP Updated witness {witness} {witness.__dict__}")
+    else:
+      print(f"RDNC No change")
   except Exception as e:
-    # Initially
+    print(f"RDXX Got Exception {e}")
     pass
   try:
     witness = Gathering_Witness.objects.get(gathering=regid, date=date)
     prev_participants = witness.participants
     prev_url = witness.proof_url
   except:
+    print(f"RDNW No witness {witness} {witness.__dict__}")
     prev_participants = 0
     prev_url = ""
   return overview(request, regid, 
@@ -101,24 +143,27 @@ def upload_reg(request, error_message=None):
   template = loader.get_template('action/upload_reg.html')
   return HttpResponse(template.render(context, request))
 
+@csrf_exempt
 def upload_post(request):
   try:
     token = request.POST['token']
     regfile = request.FILES['regfile']
   except KeyError:
     # Redisplay the form
-    print(20)
     return upload_reg(request, error_message="You must specify a RegID file")
 
   if token != os.environ['GAMECHANGER_UPLOAD_TOKEN']:
     return upload_reg(request, error_message="You must specify a valid RegID file")
 
-  response_file = io.StringIO(regfile.read().decode('utf-8'))
-  response_reader = csv.reader(response_file, delimiter=',')
-  response_list = list(response_reader)
-  count = update_reg.update_reg(response_list)
-  count_of = len(response_list)
-  return upload_reg(request, error_message=f"{count}/{count_of} place definitions successfully uploaded")
+  response_file_bytes = regfile.read()
+
+  print(f"UPSP Spooling {len(response_file_bytes)} bytes to upload worker")
+  try:
+    spool_update_reg(response_file_bytes)
+  except Exception as e:
+    print(f"Spooling exception {e}")
+  print(f"UPSP Spooled {len(response_file_bytes)} bytes")
+  return upload_reg(request, error_message=f"{len(response_file_bytes)} bytes successfully uploaded")
 
 def download_upd(request, error_message=None):
   context = {
@@ -152,5 +197,5 @@ def download_post(request):
           gupdate.creation_time, gupdate.updated])
       return HttpResponse(csvfile.getvalue(), content_type="text/plain")
   except Exception as e:
-    print(f"Download exception: {e}")
+    print(f"DPXX Download exception: {e}")
     return download_upd(request, error_message="Download failed")
