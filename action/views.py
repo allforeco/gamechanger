@@ -127,7 +127,7 @@ def report_date(request, regid, date):
     prev_participants = witness.participants
     prev_url = witness.proof_url
   except:
-    print(f"RDNW No witness {witness} {witness.__dict__}")
+    print(f"RDNW No witness")
     prev_participants = 0
     prev_url = ""
   return overview(request, regid, 
@@ -157,12 +157,12 @@ def upload_post(request):
 
   response_file_bytes = regfile.read()
 
-  print(f"UPSP Spooling {len(response_file_bytes)} bytes to upload worker")
+  print(f"UPSP Spooling len {len(response_file_bytes)} sample {str(response_file_bytes)[:100]}...")
   try:
     spool_update_reg(response_file_bytes)
   except Exception as e:
     print(f"Spooling exception {e}")
-  print(f"UPSP Spooled {len(response_file_bytes)} bytes")
+  print(f"UPSD Spooled {len(response_file_bytes)} bytes")
   return upload_reg(request, error_message=f"{len(response_file_bytes)} bytes successfully uploaded")
 
 def download_upd(request, error_message=None):

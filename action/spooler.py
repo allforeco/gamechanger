@@ -30,6 +30,8 @@ def action_spooler(req):
   task = req.get('task')
   print(f"SPOL Gamechanger spooler running, got {task} job")
   body = req.get('body')
+  if body:
+    print(f"SSMP Body len {len(body)} sample '{str(body)[:100]}'...")
   if task == 'upload' and body:
     task_update_reg(body)
   else:
