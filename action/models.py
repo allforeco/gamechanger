@@ -15,9 +15,10 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from django.db import models
+#from django.contrib.auth.models import User
 
 class Verification(models.Model):
-  created_by = models.ForeignKey('User', on_delete=models.PROTECT, editable=False)
+  created_by = models.ForeignKey('UserHome', on_delete=models.PROTECT, editable=False)
   created_on = models.TimeField(auto_now_add=True, editable=False)
   updated_on = models.TimeField(auto_now=True, editable=False)
   claim = models.FloatField(default=1, editable=False)
@@ -50,7 +51,7 @@ class Organization(models.Model):
   email = models.EmailField(blank=True)
   #verified = models.ForeignKey(Verification, on_delete=models.CASCADE, editable=False)
 
-class User(models.Model):
+class UserHome(models.Model):
   def __str__(self):
     return self.callsign
 
@@ -67,6 +68,7 @@ class User(models.Model):
     (OPENBOOK, "+ Phone and contact notes")
   ]
 
+  #baseuser = models.ForeignKey(User, on_delete=models.PROTECT, blank=True)
   callsign = models.CharField(max_length=25)
   home_country = models.ForeignKey(Country, on_delete=models.PROTECT, blank=True)
   home_state = models.ForeignKey(Location, on_delete=models.PROTECT, blank=True)
@@ -87,10 +89,10 @@ class Initiative(models.Model):
 
   name = models.CharField(max_length=25)
   creation_date = models.DateTimeField(auto_now_add=True, editable=False)
-  creator = models.ForeignKey(User, related_name="initiatives_creator", on_delete=models.CASCADE, editable=False)
+  creator = models.ForeignKey(UserHome, related_name="initiatives_creator", on_delete=models.CASCADE, editable=False)
   description = models.CharField(max_length=2000)
-  crew_users = models.ManyToManyField(User, related_name="initiatives_crew", blank=True)
-  interested_users = models.ManyToManyField(User, related_name="initiatives_interest", blank=True)
+  crew_users = models.ManyToManyField(UserHome, related_name="initiatives_crew", blank=True)
+  interested_users = models.ManyToManyField(UserHome, related_name="initiatives_interest", blank=True)
 
 class Action(models.Model):
   def __str__(self):
@@ -99,10 +101,10 @@ class Action(models.Model):
   name = models.CharField(max_length=25)
   registration_source = models.CharField(max_length=50, editable=False)
   creation_date = models.DateTimeField(auto_now_add=True, editable=False)
-  creator = models.ForeignKey(User, related_name="actions_creator", on_delete=models.SET_NULL, blank=True, null=True, editable=False)
+  creator = models.ForeignKey(UserHome, related_name="actions_creator", on_delete=models.SET_NULL, blank=True, null=True, editable=False)
   description = models.CharField(max_length=2000)
-  crew_users = models.ManyToManyField(User, related_name="actions_crew", blank=True)
-  interested_users = models.ManyToManyField(User, related_name="actions_interest", blank=True)
+  crew_users = models.ManyToManyField(UserHome, related_name="actions_crew", blank=True)
+  interested_users = models.ManyToManyField(UserHome, related_name="actions_interest", blank=True)
   action_link = models.URLField(max_length=200)
 
 class Gathering(models.Model):
@@ -136,7 +138,7 @@ class Gathering_Witness(models.Model):
   def __str__(self):
     return str(self.gathering) + ":" + str(self.date)
 
-  witness = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True, editable=False)
+  witness = models.ForeignKey(UserHome, on_delete=models.SET_NULL, blank=True, null=True, editable=False)
   gathering = models.ForeignKey(Gathering, on_delete=models.SET_NULL, null=True, editable=False)
   date = models.DateField()
   participants = models.IntegerField(blank=True, null=True, default=0)
