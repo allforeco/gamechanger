@@ -7,12 +7,35 @@
   <input type="date" name="date" value="{{ date|default:today }}" onchange="this.form.submit()"/>
 </form>
 {% if date %}
-  <form action="{% url 'action:report_date' regid date %}" method="post">
+  <form action="{% url 'action:report_date' regid date %}" method="post" id="form">
     {% csrf_token %}
+    <input type="hidden" id="prev_participants" value="{{ prev_participants }}"/>
+    <input type="hidden" id="prev_url" value="{{ prev_url }}"/>
+    <script type="text/javascript">
+      // For XHTML: <![CDATA[
+      function show_unsaved(show) {
+        if(show) {
+          document.getElementById("save_changes").style.display = "block";
+          document.getElementById("form").style.backgroundColor = "#ffeeee";
+        } else {
+          document.getElementById("save_changes").style.display = "none";
+          document.getElementById("form").style.backgroundColor = "";
+        }
+      }
+      function check_unsaved() {
+        if(document.getElementById("prev_participants").value == document.getElementById("participants").value &&
+           document.getElementById("prev_url").value == document.getElementById("url").value) {
+          show_unsaved(false);
+        } else {
+          show_unsaved(true);
+        }
+      }
+      // For XHTML: ]]>
+    </script>
     <table>
       <tr>
         <td><legend>Participants</legend></td>
-        <td><input type="number" name="participants" value="{{ prev_participants }}" min="1" max="99999"/></td>
+        <td><input type="number" id="participants" name="participants" value="{{ prev_participants }}" min="1" max="99999" oninput="check_unsaved()" onchange="check_unsaved()"/></td>
       </tr>
       <tr>
         <td/>
@@ -20,10 +43,15 @@
       </tr>
       <tr>
         <td><legend>URL to Photo</legend></td>
-        <td><input type="url" name="url" value="{{ prev_url }}" size="60"/></td>
+        <td><input type="url" id="url" name="url" value="{{ prev_url }}" size="60" oninput="check_unsaved()" onchange="check_unsaved()"/></td>
       </tr>
       <tr>
-        <td><input type="submit" value="Report Result"/></td>
+        <td style="white-space:nowrap;">
+          <input type="submit" value="Report Result" style="display: inline-block;"/>
+        </td>
+        <td>
+          <div style="color:red; display: none;" id="save_changes">&nbsp;&nbsp;&nbsp;↤&nbsp;&nbsp;Save Your Changes</div>
+        </td>
       </tr>
     </table>
   </form>
@@ -32,9 +60,9 @@
 {% if gathering_list %}
   <ul>
   {% for witness in gathering_list %}
-    <li>{{ witness.date|date:"Y-m-d" }} : <a href="/action/report_results/date/{{ regid }}/{{ witness.date|date:'Y-m-d' }}/">
-      {{ witness.participants }}</a>
-      {% if witness.proof_url %}  <a href="{{ witness.proof_url }}">Photo</a>{% endif %}
+    <li><a href="/action/report_results/date/{{ regid }}/{{ witness.date|date:'Y-m-d' }}/">{{ witness.date|date:"Y-m-d" }}</a>
+      : {{ witness.participants }}
+      {% if witness.proof_url %}  <a href="{{ witness.proof_url }}">View Photo</a>{% endif %}
     </li>
   {% endfor %}
   </ul>
