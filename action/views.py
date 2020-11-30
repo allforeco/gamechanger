@@ -14,7 +14,7 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import datetime, io, csv, os, threading
+import datetime, io, csv, os, threading, html
 
 from django.shortcuts import render
 from django.template import loader
@@ -26,7 +26,8 @@ try:
 except:
   action_spooler = None
   print(f"SIMP No uwsgi spooler environment")
-from .models import Gathering, Gathering_Belong, Gathering_Witness
+from .models import Gathering, Gathering_Belong, Gathering_Witness, UserHome
+from django.contrib.auth.models import User
 
 def spool_update_reg(response_file_bytes):
   print(f"INIT uwsgi req {len(response_file_bytes)}")
@@ -203,3 +204,56 @@ def download_post(request):
   except Exception as e:
     print(f"DPXX Download exception: {e}")
     return download_upd(request, error_message="Download failed")
+
+def join_us(request):
+  error_message=None
+  context = { 'error_message': error_message }
+  template = loader.get_template('action/join_us.html')
+  if error_message or not request.POST.get('screenname'):
+    return HttpResponse(template.render(context, request))
+  raw_screenname = request.POST['screenname']
+  if " " in raw_screenname:
+    context = {'error_message': f"No spaces in the Callsign, please."}
+    return HttpResponse(template.render(context, request))
+  if len(raw_screenname) < 5:
+    context = {'error_message': f"Pick a longer Callsign, please. At least 5 characters."}
+    return HttpResponse(template.render(context, request))
+  max_length = UserHome._meta.get_field('callsign').max_length
+  if len(raw_screenname) > 25:
+    context = {'error_message': f"Pick a shorter Callsign, please."}
+    return HttpResponse(template.render(context, request))
+
+  password = request.POST['password']
+  if len(password) < 10:
+    context = {'error_message': f"Please pick a longer password."}
+    return HttpResponse(template.render(context, request))
+
+  visibility = request.POST['visibility']
+  if visibility not in [UserHome.CALLSIGN, UserHome.PRIVATE, UserHome.FRIENDS, UserHome.PUBLIC, UserHome.OPENBOOK]:
+    context = {'error_message': f"Please select your desired visibility level."}
+    return HttpResponse(template.render(context, request))
+
+  screenname = html.escape(raw_screenname)
+  callsign = html.escape(raw_screenname).lower()
+  if UserHome.objects.filter(callsign=callsign):
+    context = {'error_message': f"Callsign '{screenname}' is already taken. Please try another one."}
+    return HttpResponse(template.render(context, request))
+
+  try:
+    loginuser = User(
+      username = callsign,
+      password = password)
+    loginuser.save()
+  except Exception as e:
+    loginuser = User.objects.get(username=callsign)
+    print(f"JOIX Login user creation exception: {e}")
+
+  userhome = UserHome(
+    callsign = callsign, 
+    screenname = screenname,
+    loginuser = loginuser,
+    visibility_level = visibility,
+  )
+  userhome.save()
+  context = {'error_message': f"Callsign '{screenname}' successfully created."}
+  return HttpResponse(template.render(context, request))

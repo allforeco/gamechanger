@@ -5,6 +5,7 @@ from . import views
 app_name = 'action'
 
 urlpatterns = [
+  path('join_us', views.join_us, name='join_us'),
   path('', views.index, name='index'),
   path('report_results/<str:regid>', views.overview, name='overview'),
   path('report_results/<str:regid>/', views.overview, name='overview'),

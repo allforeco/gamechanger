@@ -69,14 +69,15 @@ class UserHome(models.Model):
   ]
 
   callsign = models.CharField(primary_key=True, max_length=25)
+  screenname = models.CharField(max_length=25, blank=True, null=True)
   loginuser = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True, editable=False)
-  home_country = models.ForeignKey(Country, on_delete=models.PROTECT, blank=True)
-  home_state = models.ForeignKey(Location, on_delete=models.PROTECT, blank=True)
-  home_zip = models.CharField(max_length=12, blank=True)
-  phone_number = models.CharField(max_length=25, blank=True)
+  home_country = models.ForeignKey(Country, on_delete=models.PROTECT, blank=True, null=True)
+  home_state = models.ForeignKey(Location, on_delete=models.PROTECT, blank=True, null=True)
+  home_zip = models.CharField(max_length=12, blank=True, null=True)
+  phone_number = models.CharField(max_length=25, blank=True, null=True)
   visibility_level = models.CharField(max_length=4, choices=_visibility_level_choices, default=CALLSIGN)
-  contact_notes = models.CharField(max_length=200, blank=True)
-  organizations = models.ManyToManyField(Organization, blank=True)
+  contact_notes = models.CharField(max_length=200, blank=True, null=True)
+  organizations = models.ManyToManyField(Organization, blank=True, null=True)
   #verified = models.ForeignKey(Verification, on_delete=models.CASCADE, editable=False)
   #reputation
   #interests

@@ -7,7 +7,7 @@
    <div style="display: inline-block;">Welcome, {{ user.get_username }}</div>
    <div style="display: inline-block;">&nbsp;&nbsp;&nbsp;<a href="{% url 'action:logout' %}?next={{request.path}}">Logout</a></div>
  {% else %}
-   <div style="display: inline-block;">Hello, Stranger!&nbsp;&nbsp;&nbsp;<a href="{% url 'action:login' %}?next={{request.path}}">Login</a> or JoinUs</a></div>
+   <div style="display: inline-block;">Hello, Stranger!&nbsp;&nbsp;&nbsp;<a href="{% url 'action:login' %}?next={{request.path}}">Login</a> or <a href="{% url 'action:join_us' %}?next={{request.path}}">Join Us</a></div>
  {% endif %} 
 </div>
 
