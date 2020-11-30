@@ -15,7 +15,7 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from django.db import models
-#from django.contrib.auth.models import User
+from django.contrib.auth.models import User
 
 class Verification(models.Model):
   created_by = models.ForeignKey('UserHome', on_delete=models.PROTECT, editable=False)
@@ -68,13 +68,12 @@ class UserHome(models.Model):
     (OPENBOOK, "+ Phone and contact notes")
   ]
 
-  #baseuser = models.ForeignKey(User, on_delete=models.PROTECT, blank=True)
-  callsign = models.CharField(max_length=25)
+  callsign = models.CharField(primary_key=True, max_length=25)
+  loginuser = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True, editable=False)
   home_country = models.ForeignKey(Country, on_delete=models.PROTECT, blank=True)
   home_state = models.ForeignKey(Location, on_delete=models.PROTECT, blank=True)
   home_zip = models.CharField(max_length=12, blank=True)
   phone_number = models.CharField(max_length=25, blank=True)
-  email = models.EmailField(unique=True)
   visibility_level = models.CharField(max_length=4, choices=_visibility_level_choices, default=CALLSIGN)
   contact_notes = models.CharField(max_length=200, blank=True)
   organizations = models.ManyToManyField(Organization, blank=True)
