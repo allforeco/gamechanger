@@ -21,7 +21,11 @@ from django.template import loader
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 
-from action.spooler import action_spooler
+try:
+  from action.spooler import action_spooler
+except:
+  action_spooler = None
+  print(f"SIMP No uwsgi spooler environment")
 from .models import Gathering, Gathering_Belong, Gathering_Witness
 
 def spool_update_reg(response_file_bytes):

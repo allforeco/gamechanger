@@ -1,3 +1,19 @@
+{% extends "base_generic.html" %}
+
+{% block navbar %}
+
+<div style="background-color:#cccccc; white-space:nowrap;">
+ {% if user.is_authenticated %}
+   <div style="display: inline-block;">Welcome, {{ user.get_username }}</div>
+   <div style="display: inline-block;">&nbsp;&nbsp;&nbsp;<a href="{% url 'action:logout' %}?next={{request.path}}">Logout</a></div>
+ {% else %}
+   <div style="display: inline-block;">Hello, Stranger!&nbsp;&nbsp;&nbsp;<a href="{% url 'action:login' %}?next={{request.path}}">Login</a> or JoinUs</a></div>
+ {% endif %} 
+</div>
+
+{% endblock %}
+{% block content %}
+
 <h1>Report Results for {{ place_name }}</h1>
 
 {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
@@ -69,3 +85,4 @@
 {% else %}
   <p>No results registered yet.</p>
 {% endif %}
+{% endblock %}
