@@ -17,6 +17,7 @@
 import datetime, io, csv
 from uwsgidecorators import spool
 from .models import Location, Gathering, Gathering_Belong, Gathering_Witness
+from .push_notifier import Push_Notifier
 
 try:
   import uwsgi
@@ -88,11 +89,12 @@ def update_reg(regs):
       max_length = Location._meta.get_field('name').max_length
       loc_name = rec.get('GLOC','')[:max_length]
       if not loc_name:
-        location = Location.objects.filter(name = 'Unknown Place')
+        loc_name = 'Unknown Place'
+        location = Location.objects.filter(name = loc_name).first()
         if not location:
-          location = Location(name = 'Unknown Place')
+          location = Location(name = loc_name)
           location.save()
-        print(f"URUL {lineno} {regid} Unknown location")
+        print(f"URUL {lineno} {regid} {loc_name}")
       else:
         location = Location.objects.filter(name = loc_name).first()
         if not location:
@@ -153,3 +155,14 @@ def update_reg(regs):
     except Exception as e:
       print(f"URXX === Exception on {lineno} updated recs:\n{e}")
   print(f"URDN {lineno} records results: {counter}")
+  if lineno:
+    if counter['Completed'] < lineno * 0.90:
+      Push_Notifier.push(
+        title="Gamechanger failed update",
+        message=f"{lineno} records resulted in {counter}",
+      )
+    else:
+      Push_Notifier.push(
+        title="Gamechanger updated",
+        message=f"{lineno} records resulted in {counter}",
+    )
