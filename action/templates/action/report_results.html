@@ -1,20 +1,9 @@
 {% extends "base_generic.html" %}
 
-{% block navbar %}
-
-<div style="background-color:#cccccc; white-space:nowrap;">
- {% if user.is_authenticated %}
-   <div style="display: inline-block;">Welcome, {{ user.get_username }}</div>
-   <div style="display: inline-block;">&nbsp;&nbsp;&nbsp;<a href="{% url 'action:logout' %}?next={{request.path}}">Logout</a></div>
- {% else %}
-   <div style="display: inline-block;">Hello, Stranger!&nbsp;&nbsp;&nbsp;<a href="{% url 'action:login' %}?next={{request.path}}">Login</a> or <a href="{% url 'action:join_us' %}?next={{request.path}}">Join Us</a></div>
- {% endif %} 
-</div>
-
-{% endblock %}
 {% block content %}
 
-<h1>Report Results for {{ place_name }}</h1>
+<p>Report Results for{% if favorite_location == 'True' %} favorite location{% endif %}</p>
+<h1>{{ place_name }}</h1>
 
 {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
 
@@ -31,11 +20,13 @@
       // For XHTML: <![CDATA[
       function show_unsaved(show) {
         if(show) {
-          document.getElementById("save_changes").style.display = "block";
+          document.getElementById("save_changes").style.display = "inline-block";
           document.getElementById("form").style.backgroundColor = "#ffeeee";
+          document.getElementById("favorite").style.display = "none";
         } else {
           document.getElementById("save_changes").style.display = "none";
           document.getElementById("form").style.backgroundColor = "";
+          document.getElementById("favorite").style.display = "inline-block";
         }
       }
       function check_unsaved() {
@@ -65,8 +56,16 @@
         <td style="white-space:nowrap;">
           <input type="submit" value="Report Result" style="display: inline-block;"/>
         </td>
-        <td>
+        <td style="white-space:nowrap;">
           <div style="color:red; display: none;" id="save_changes">&nbsp;&nbsp;&nbsp;↤&nbsp;&nbsp;Save Your Changes</div>
+          <div style="color:red; display: inline-block;" id="favorite">&nbsp;&nbsp;&nbsp;
+            {% if favorite_location == 'True' %}
+              <input type="submit" name="favorite" value="Remove from Favorites" style="color:red; display: inline-block;"/>
+            {% endif %}
+            {% if favorite_location == 'False' %}
+              <input type="submit" name="favorite" value="Add to Favorites" style="color:green; display: inline-block;"/>
+            {% endif %}
+          </div>
         </td>
       </tr>
     </table>

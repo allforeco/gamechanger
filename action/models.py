@@ -77,7 +77,9 @@ class UserHome(models.Model):
   phone_number = models.CharField(max_length=25, blank=True, null=True)
   visibility_level = models.CharField(max_length=4, choices=_visibility_level_choices, default=CALLSIGN)
   contact_notes = models.CharField(max_length=200, blank=True, null=True)
-  organizations = models.ManyToManyField(Organization, blank=True, null=True)
+  organizations = models.ManyToManyField(Organization, blank=True)
+  favorite_locations = models.ManyToManyField(Location, blank=True, related_name='favorite_of_user')
+  recent_locations = models.ManyToManyField(Location, blank=True, related_name='recent_of_user')
   #verified = models.ForeignKey(Verification, on_delete=models.CASCADE, editable=False)
   #reputation
   #interests
