@@ -27,6 +27,7 @@ from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth.decorators import login_required, permission_required
 from django import forms
+from dal import autocomplete
 try:
   from action.spooler import action_spooler
 except:
@@ -34,6 +35,36 @@ except:
   print(f"SIMP No uwsgi spooler environment")
 from .models import Gathering, Gathering_Belong, Gathering_Witness, Location, UserHome
 from django.contrib.auth.models import User
+
+class LocationAutocomplete(autocomplete.Select2QuerySetView):
+  def get_queryset(self):
+    print(f"AUTO Entered")
+    #if not self.request.user.is_authenticated:
+    #  return Location.objects.none()
+    qs = Location.objects.all()
+    print(f"AUTO {len(qs)} locations")
+    if self.q:
+      qs = qs.filter(name__istartswith=self.q)
+    return qs
+
+class GatheringSearchForm(forms.ModelForm):
+  class Meta:
+    model = Gathering
+    fields = ['gathering_type', 'location', 'start_date']
+    print(f"GSF1 ")
+    widgets = {
+      'location': autocomplete.ModelSelect2(url='/action/location-autocomplete/')
+    }
+  def get_success_url(self):
+    return reverse_lazy('action:overview', kwargs={'regid': '11111111'})
+
+class GatheringSearch(FormView):
+  template_name = 'action/gathering_search.html'
+  form_class = GatheringSearchForm
+  success_url = '/thanks/'
+
+  def form_valid(self, form):
+    return super().form_valid(form)
 
 class GatheringCreate(CreateView):
   model = Gathering
@@ -59,9 +90,16 @@ def home_view(request):
 
   if request.user.is_authenticated:
     userhome = UserHome.objects.get(callsign=request.user.username)
-    favorites_list = [{"name": loc.name, "total":0, "last_week":0, "regid": "11111111"} for loc in userhome.favorite_locations.all()]
+    favorites_list = [{
+        "name": loc.name, 
+        "total":0, 
+        "last_week":0, 
+        "regid": Gathering.objects.filter(location=loc).first().regid,
+      } for loc in userhome.favorite_locations.all()]
 
   context = {
+    'userhome': userhome,
+    'visibility': userhome.get_visibility_str(),
     'error_message': '',
     'favorites_list': favorites_list,
     'recents_list': recents_list,

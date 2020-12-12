@@ -5,10 +5,11 @@
   {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
 
   {% if user.is_authenticated %}
-    <h1>Home of {{ user.get_username }}</h1>
+    <p>Home of</p>
+    <h1>{{ userhome.screenname }}</h1>
     <h2>Your Stats</h2>
     <table>
-      <tr><td>Visibility level:</td><td>CALLSIGN</td></tr>
+      <tr><td>Visibility:</td><td>{{ visibility }}</td></tr>
       <tr><td>Level:</td><td>1</td></tr>
       <tr><td>Reports:</td><td>47</td></tr>
       <tr><td>Trust:</td><td>10</td></tr>
@@ -30,7 +31,7 @@
                 <tr>
                   <td>{{ loc.total }}</td>
                   <td>{{ loc.last_week }}</td>
-                  <td><a href="{% url 'action:report_results' loc.regid %}/">{{ loc.name }}</a></td>
+                  <td><a href="{% url 'action:report_results' loc.regid %}">{{ loc.name }}</a></td>
                 </tr>
               {% endfor %}
             </table>
@@ -38,7 +39,8 @@
             <p>No favorite locations yet.</p>
           {% endif %}
         </td>
-        <td>&nbsp;&nbsp;&nbsp;</td>
+      </tr>
+      <tr>
         <td>
           <h2>Recent Locations</h2>
           {% if recents_list %}
@@ -52,13 +54,19 @@
                 <tr>
                   <td>{{ loc.total }}</td>
                   <td>{{ loc.last_week }}</td>
-                  <td><a href="{% url 'action:report_results' loc.regid %}/">{{ loc.name }}</a></td>
+                  <td><a href="{% url 'action:report_results' loc.regid %}">{{ loc.name }}</a></td>
                 </tr>
               {% endfor %}
             </table>
           {% else %}
             <p>No recent locations yet.</p>
           {% endif %}
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <h2>Location Search</h2>
+            <p><a href="{% url 'action:gathering_search' %}">Start Search</a></p>
         </td>
       </tr>
     </table>

@@ -39,6 +39,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'jquery',
+    'dal', # django-autocomplete-light
+    'dal_select2', # django-autocomplete-light
 ]
 
 MIDDLEWARE = [
@@ -124,3 +127,4 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
 STATIC_URL = '/static/'
+STATIC_ROOT = '/var/www/gamechanger.eco/static/'

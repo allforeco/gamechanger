@@ -1,0 +1,21 @@
+{% extends "base_generic.html" %}
+
+{% load static %}
+
+{% block content %}
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+  <script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/css/select2.min.css" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/js/select2.full.js"></script>
+  <h1>Search for Event</h1>
+  <img src="{% static 'action/banner.jpg' %}" alt="Banner image">
+    
+  <form action="" method="post">
+    {% csrf_token %}
+    <table>
+      {{ form.as_table }}
+      {{ form.media }}
+    </table>
+    <input type="submit" value="Open">
+  </form>
+{% endblock %}

@@ -61,12 +61,15 @@ class UserHome(models.Model):
   PUBLIC   = 'PUBL' # + Email to all
   OPENBOOK = 'OPEN' # + Phone, contact notes
   _visibility_level_choices = [
-    (CALLSIGN, "Only callsign"), 
-    (PRIVATE,  "+ Country, State, Zip, Organizations"),
-    (FRIENDS,  "+ Email (to friends and trusted organizations)"), 
-    (PUBLIC,   "+ Email (to the world)"), 
-    (OPENBOOK, "+ Phone and contact notes")
+    (CALLSIGN, "Callsign only"), 
+    (PRIVATE,  "Callsign, Country, State, Zip, Organizations"),
+    (FRIENDS,  "Callsign, Country, State, Zip, Organizations, Closed Email (to friends and trusted organizations only)"), 
+    (PUBLIC,   "Callsign, Country, State, Zip, Organizations, Open Email (to the world)"), 
+    (OPENBOOK, "Callsign, Country, State, Zip, Organizations, Open Email, Phone and contact notes"),
   ]
+
+  def get_visibility_str(self):
+    return {key:val for (key, val) in UserHome._visibility_level_choices}[self.visibility_level]
 
   callsign = models.CharField(primary_key=True, max_length=25)
   screenname = models.CharField(max_length=25, blank=True, null=True)

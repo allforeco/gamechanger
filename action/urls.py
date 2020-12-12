@@ -1,5 +1,5 @@
 from django.urls import include, path
-
+from django.conf.urls import url
 from . import views
 
 app_name = 'action'
@@ -23,5 +23,8 @@ urlpatterns = [
   #path('location/create', views.location_create, name='location_create'),
   #path('location/<int:pk>/update', views.location_update, name='location_update'),
   path('gathering/create', views.GatheringCreate.as_view(), name='gathering_create'),
+  path('gathering/search', views.GatheringSearch.as_view(), name='gathering_search'),
   path('home', views.home_view, name='home'),
+  #url(r'^location-autocomplete/$', views.LocationAutocomplete.as_view(), name='location-autocomplete'),
+  path('location-autocomplete/', views.LocationAutocomplete.as_view(), name='location-autocomplete'),
 ]
