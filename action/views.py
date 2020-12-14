@@ -36,15 +36,91 @@ except:
 from .models import Gathering, Gathering_Belong, Gathering_Witness, Location, UserHome
 from django.contrib.auth.models import User
 
+class HomeView(FormView):
+  class LocationSearchForm(forms.Form):
+    #location = forms.CharField(widget=autocomplete.ModelSelect2(url='/action/location-autocomplete/'))
+    location = forms.ModelChoiceField(
+      queryset=Location.objects.all(),
+      widget=autocomplete.ModelSelect2(url='/action/location-autocomplete/')
+    )
+
+    def get_success_url(self):
+      return reverse_lazy('action:overview', kwargs={'regid': '11111111'})
+
+  template_name = 'action/home.html'
+  form_class = LocationSearchForm
+  success_url = '/thanks/'
+
+  def form_valid(self, form):
+    return super().form_valid(form)
+
+  def get_context_data(self, **kwargs):
+    context = super().get_context_data(**kwargs)
+    print(f"HMVW {context}")
+    #context['form'] = LocationSearchForm()
+    context = self.home_view2(self.request, context)
+    return context
+
+  def home_view2(self, request, context):
+    print(f"HOME2")
+    favorites_list = []
+    recents_list = []
+    userhome = None
+    template = loader.get_template('action/home.html')
+
+    if request.user.is_authenticated:
+      userhome = UserHome.objects.get(callsign=request.user.username)
+      favorites_list = [{
+          "name": loc.name, 
+          "total":0, 
+          "last_week":0, 
+          "regid": Gathering.objects.filter(location=loc).first().regid,
+        } for loc in userhome.favorite_locations.all()]
+
+    context = {
+      'userhome': userhome,
+      'visibility': userhome.get_visibility_str(),
+      'error_message': '',
+      'favorites_list': favorites_list,
+      'recents_list': recents_list,
+      **context,
+    }
+    return context
+    #return HttpResponse(template.render(context, request))
+def home_view(request):
+  print(f"HOME1")
+  favorites_list = []
+  recents_list = []
+  template = loader.get_template('action/home.html')
+
+  if request.user.is_authenticated:
+    userhome = UserHome.objects.get(callsign=request.user.username)
+    favorites_list = [{
+        "name": loc.name, 
+        "total":0, 
+        "last_week":0, 
+        "regid": Gathering.objects.filter(location=loc).first().regid,
+      } for loc in userhome.favorite_locations.all()]
+
+  context = {
+    'userhome': userhome,
+    'visibility': userhome.get_visibility_str(),
+    'error_message': '',
+    'favorites_list': favorites_list,
+    'recents_list': recents_list,
+  }
+  return HttpResponse(template.render(context, request))
+
+
 class LocationAutocomplete(autocomplete.Select2QuerySetView):
   def get_queryset(self):
     print(f"AUTO Entered")
-    #if not self.request.user.is_authenticated:
-    #  return Location.objects.none()
+    if not self.request.user.is_authenticated:
+      return Location.objects.none()
     qs = Location.objects.all()
     print(f"AUTO {len(qs)} locations")
     if self.q:
-      qs = qs.filter(name__istartswith=self.q)
+      qs = qs.filter(name__icontains=self.q)
     return qs
 
 class GatheringSearchForm(forms.ModelForm):
@@ -82,29 +158,6 @@ def spool_update_reg(response_file_bytes):
   print(f"INIT uwsgi req {len(response_file_bytes)}")
   action_spooler.spool(task=b'upload', body=response_file_bytes)
   print(f"INIT uwsgi spooled")
-
-def home_view(request):
-  favorites_list = []
-  recents_list = []
-  template = loader.get_template('action/home.html')
-
-  if request.user.is_authenticated:
-    userhome = UserHome.objects.get(callsign=request.user.username)
-    favorites_list = [{
-        "name": loc.name, 
-        "total":0, 
-        "last_week":0, 
-        "regid": Gathering.objects.filter(location=loc).first().regid,
-      } for loc in userhome.favorite_locations.all()]
-
-  context = {
-    'userhome': userhome,
-    'visibility': userhome.get_visibility_str(),
-    'error_message': '',
-    'favorites_list': favorites_list,
-    'recents_list': recents_list,
-  }
-  return HttpResponse(template.render(context, request))
 
 def get_place_name(regid):
   try:

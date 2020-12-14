@@ -24,7 +24,8 @@ urlpatterns = [
   #path('location/<int:pk>/update', views.location_update, name='location_update'),
   path('gathering/create', views.GatheringCreate.as_view(), name='gathering_create'),
   path('gathering/search', views.GatheringSearch.as_view(), name='gathering_search'),
-  path('home', views.home_view, name='home'),
+  #path('home', views.home_view, name='home'),
+  path('home', views.HomeView.as_view(), name='home'),
   #url(r'^location-autocomplete/$', views.LocationAutocomplete.as_view(), name='location-autocomplete'),
   path('location-autocomplete/', views.LocationAutocomplete.as_view(), name='location-autocomplete'),
 ]
