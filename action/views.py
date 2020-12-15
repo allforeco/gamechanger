@@ -27,6 +27,7 @@ from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth.decorators import login_required, permission_required
 from django import forms
+from django.db.models import Sum
 from dal import autocomplete
 try:
   from action.spooler import action_spooler
@@ -38,38 +39,37 @@ from django.contrib.auth.models import User
 
 class HomeView(FormView):
   class LocationSearchForm(forms.Form):
-    #location = forms.CharField(widget=autocomplete.ModelSelect2(url='/action/location-autocomplete/'))
     location = forms.ModelChoiceField(
       queryset=Location.objects.all(),
-      widget=autocomplete.ModelSelect2(url='/action/location-autocomplete/')
+      widget=autocomplete.ModelSelect2(
+        url='/action/location-autocomplete/',
+        attrs={'data-minimum-input-length': 3}),
+      label='',
+      required=False,
     )
-
-    def get_success_url(self):
-      return reverse_lazy('action:overview', kwargs={'regid': '11111111'})
 
   template_name = 'action/home.html'
   form_class = LocationSearchForm
-  success_url = '/thanks/'
+
+  def get_success_url(self):
+    print(f"HOMS {self.clean_location}")
+    return reverse_lazy('action:overview_by_name')+"?location="+str(self.clean_location)
 
   def form_valid(self, form):
+    self.clean_location = form.cleaned_data['location']
+    print(f"HOMV {self.clean_location}")
     return super().form_valid(form)
 
   def get_context_data(self, **kwargs):
     context = super().get_context_data(**kwargs)
-    print(f"HMVW {context}")
-    #context['form'] = LocationSearchForm()
-    context = self.home_view2(self.request, context)
-    return context
-
-  def home_view2(self, request, context):
-    print(f"HOME2")
+    print(f"HOMC {context}")
     favorites_list = []
     recents_list = []
     userhome = None
     template = loader.get_template('action/home.html')
 
-    if request.user.is_authenticated:
-      userhome = UserHome.objects.get(callsign=request.user.username)
+    if self.request.user.is_authenticated:
+      userhome = UserHome.objects.get(callsign=self.request.user.username)
       favorites_list = [{
           "name": loc.name, 
           "total":0, 
@@ -86,31 +86,6 @@ class HomeView(FormView):
       **context,
     }
     return context
-    #return HttpResponse(template.render(context, request))
-def home_view(request):
-  print(f"HOME1")
-  favorites_list = []
-  recents_list = []
-  template = loader.get_template('action/home.html')
-
-  if request.user.is_authenticated:
-    userhome = UserHome.objects.get(callsign=request.user.username)
-    favorites_list = [{
-        "name": loc.name, 
-        "total":0, 
-        "last_week":0, 
-        "regid": Gathering.objects.filter(location=loc).first().regid,
-      } for loc in userhome.favorite_locations.all()]
-
-  context = {
-    'userhome': userhome,
-    'visibility': userhome.get_visibility_str(),
-    'error_message': '',
-    'favorites_list': favorites_list,
-    'recents_list': recents_list,
-  }
-  return HttpResponse(template.render(context, request))
-
 
 class LocationAutocomplete(autocomplete.Select2QuerySetView):
   def get_queryset(self):
@@ -184,6 +159,48 @@ def index(request):
 def bad_link(request, error_message):
   template = loader.get_template('action/bad_link.html')
   context = { 'error_message': error_message }
+  return HttpResponse(template.render(context, request))
+
+def overview_by_name(request):
+  loc_name = request.GET.get('location','')
+  if not loc_name:
+    return bad_link(request, "Something went wrong with this link (#11)")
+
+  locations = []
+  max_entries = 100
+  location_list = Location.objects.filter(name__icontains=loc_name)
+  for loc in location_list[:max_entries]:
+    gatherings = Gathering.objects.filter(location=loc).order_by('-start_date')
+    uniqe_gatherings = {}
+    for gat in gatherings:
+      cregid = gat.get_canonical_regid()
+      gat = Gathering.objects.get(regid=cregid)
+      if cregid not in uniqe_gatherings:
+        events = Gathering_Witness.objects.filter(gathering=cregid).count()
+        participants = Gathering_Witness.objects.filter(gathering=cregid).aggregate(Sum('participants'))
+        photos = Gathering_Witness.objects.filter(gathering=cregid).exclude(proof_url__exact='').count()
+        uniqe_gatherings[cregid]=1
+        locations += [{
+            'name':html.escape(loc.name), 
+            'gatherings': [{
+                'regid': gat.regid, 
+                'gathering_type': gat.get_gathering_type_str(), 
+                'start_date':gat.start_date,
+                'count': events,
+                'participants': participants.get('participants__sum'),
+                'photos': photos,
+              } for gat in gatherings[:max_entries]],
+          }]
+  truncated = None
+  if len(locations) == max_entries:
+    truncated = f"... (search limited to {max_entries} entries) ..."
+  context = {
+    'error_message': '',
+    'locations': locations,
+    'truncated': truncated
+  }
+  template = loader.get_template('action/location_overview.html')
+  #{% url 'action:overview' gat.regid %}
   return HttpResponse(template.render(context, request))
 
 def overview(request, regid, date=None, prev_participants=None, prev_url=None, error_message=None):

@@ -132,6 +132,15 @@ class Gathering(models.Model):
   duration = models.DurationField(blank=True, null=True)
   expected_participants = models.IntegerField(blank=True, null=True)
 
+  def get_gathering_type_str(self):
+    return {key:val for (key, val) in Gathering._gathering_type_choices}[self.gathering_type]
+
+  def get_canonical_regid(self):
+    try:
+      return Gathering_Belong.objects.get(regid=self.regid).gathering.regid
+    except:
+      return None
+  
 class Gathering_Belong(models.Model):
   def __str__(self):
     return str(self.regid) + "=>" + str(self.gathering.regid)

@@ -7,12 +7,13 @@
   <script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/css/select2.min.css" rel="stylesheet" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/js/select2.full.js"></script>
-
+  <style>
+    div.searchform > p {display: inline-block;}
+  </style>
   {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
 
   {% if user.is_authenticated %}
-    <p>Home of</p>
-    <h1>{{ userhome.screenname }}</h1>
+    <h1><span style="font-size:0.5em;">Home of</span><br/>{{ userhome.screenname }}</h1>
     <h2>Your Stats</h2>
     <table>
       <tr><td>Visibility:</td><td>{{ visibility }}</td></tr>
@@ -74,9 +75,11 @@
           <h2>Location Search</h2>
           <form action="" method="post">
             {% csrf_token %}
-            {{ form.as_p }}
-            {{ form.media }}
-            <input type="submit" value="Open">
+            <div class="searchform" style="white-space:nowrap; display:inline-block;">
+              <input style="white-space:nowrap; display:inline-block;" type="submit" value="Show location">
+              {{ form.as_p }}
+              {{ form.media }}
+            </div>
           </form>
           <p><a href="{% url 'action:gathering_search' %}">Advanced Search</a></p>
           <p><a href="{% url 'action:gathering_create' %}">Register new Event</a></p>
