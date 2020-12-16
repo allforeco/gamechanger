@@ -79,7 +79,7 @@ class HomeView(FormView):
 
     context = {
       'userhome': userhome,
-      'visibility': userhome.get_visibility_str(),
+      'visibility': userhome.get_visibility_str() if userhome else None,
       'error_message': '',
       'favorites_list': favorites_list,
       'recents_list': recents_list,
@@ -380,6 +380,10 @@ def join_us(request):
   template = loader.get_template('action/join_us.html')
   if error_message or not request.POST.get('screenname'):
     return HttpResponse(template.render(context, request))
+  raw_invitation_code = request.POST['invitation_code']
+  if "🐥" not in raw_invitation_code:
+    context = {'error_message': f"This invitation code is fake, expired or already used. Please ask your inviter for a new one."}
+    return HttpResponse(template.render(context, request))
   raw_screenname = request.POST['screenname']
   if " " in raw_screenname:
     context = {'error_message': f"No spaces in the Callsign, please."}
@@ -409,9 +413,8 @@ def join_us(request):
     return HttpResponse(template.render(context, request))
 
   try:
-    loginuser = User(
-      username = callsign,
-      password = password)
+    loginuser = User(username = callsign)
+    loginuser.set_password(password)
     loginuser.save()
   except Exception as e:
     loginuser = User.objects.get(username=callsign)

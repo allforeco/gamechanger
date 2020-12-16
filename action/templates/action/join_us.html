@@ -27,6 +27,11 @@
     {% csrf_token %}
     <table>
       <tr>
+        <td><legend>Invitation Code</legend></td>
+        <td><input type="text" name="invitation_code" value="" required minlength="5" maxlength="10"/></td>
+        <td><p>The personal code you got from whoever invited you.</p></td>
+      </tr>
+      <tr>
         <td><legend>Pick a Callsign</legend></td>
         <td><input type="text" name="screenname" value="" required minlength="5" maxlength="25"/><!--oninput="check_available()"--></td>
         <td><p>The name you want to be called on this site. At least 5 characters, no spaces. E.g. "Nemo-the-fish" or "Hubei"</p></td>
