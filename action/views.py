@@ -44,9 +44,12 @@ class HomeView(FormView):
       widget=autocomplete.ModelSelect2(
         url='/action/location-autocomplete/',
         attrs={'data-minimum-input-length': 3}),
-      label='',
+      label='Select Particular',
       required=False,
     )
+    freetext = forms.CharField(
+      label='Freetext Search',
+      required=False)
 
   template_name = 'action/home.html'
   form_class = LocationSearchForm
@@ -56,7 +59,10 @@ class HomeView(FormView):
     return reverse_lazy('action:overview_by_name')+"?location="+str(self.clean_location)
 
   def form_valid(self, form):
-    self.clean_location = form.cleaned_data['location']
+    self.clean_location = form.cleaned_data.get('location')
+    self.clean_freetext = form.cleaned_data.get('freetext')
+    if not self.clean_location:
+      self.clean_location = self.clean_freetext
     print(f"HOMV {self.clean_location}")
     return super().form_valid(form)
 
@@ -185,26 +191,35 @@ def overview_by_name(request):
     uniqe_gatherings = {}
     for gat in gatherings:
       cregid = gat.get_canonical_regid()
+      if not cregid:
+        print(f"OVBN Missing cregid {loc} {cregid} '{gat}'")
+        break
       gat = Gathering.objects.get(regid=cregid)
-      if cregid not in uniqe_gatherings:
-        events = Gathering_Witness.objects.filter(gathering=cregid).count()
-        participants = Gathering_Witness.objects.filter(gathering=cregid).aggregate(Sum('participants'))
-        photos = Gathering_Witness.objects.filter(gathering=cregid).exclude(proof_url__exact='').count()
-        uniqe_gatherings[cregid]=1
-        locations += [{
-            'name':html.escape(loc.name), 
-            'gatherings': [{
-                'regid': gat.regid, 
-                'gathering_type': gat.get_gathering_type_str(), 
-                'start_date':gat.start_date,
-                'count': events,
-                'participants': participants.get('participants__sum'),
-                'photos': photos,
-              } for gat in gatherings[:max_entries]],
-          }]
+      print(f"OVBN gat {loc} {cregid} '{gat}'")
+      try:
+        if cregid not in uniqe_gatherings:
+          events = Gathering_Witness.objects.filter(gathering=cregid).count()
+          participants = Gathering_Witness.objects.filter(gathering=cregid).aggregate(Sum('participants'))
+          photos = Gathering_Witness.objects.filter(gathering=cregid).exclude(proof_url__exact='').count()
+          uniqe_gatherings[cregid]=1
+          locations += [{
+              'name':html.escape(loc.name), 
+              'gatherings': [{
+                  'regid': gat.regid, 
+                  'gathering_type': gat.get_gathering_type_str(), 
+                  'start_date':gat.start_date,
+                  'count': events,
+                  'participants': participants.get('participants__sum'),
+                  'photos': photos,
+                } for gat in gatherings[:max_entries]],
+            }]
+      except Exception as e:
+        pass
+        print(f"OVBN Exception looking up {loc} {cregid} '{gat}': {e}")
+
   truncated = None
   if len(locations) == max_entries:
-    truncated = f"... (search limited to {max_entries} entries) ..."
+    truncated = f"... (search limited to {max_entries} results) ..."
   context = {
     'error_message': '',
     'locations': locations,
