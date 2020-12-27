@@ -69,13 +69,24 @@ class HomeView(FormView):
     template = loader.get_template('action/home.html')
 
     if self.request.user.is_authenticated:
-      userhome = UserHome.objects.get(callsign=self.request.user.username)
-      favorites_list = [{
-          "name": loc.name, 
-          "total":0, 
-          "last_week":0, 
-          "regid": Gathering.objects.filter(location=loc).first().regid,
-        } for loc in userhome.favorite_locations.all()]
+      try:
+        userhome = UserHome.objects.get(callsign=self.request.user.username)
+        favorites_list = []
+        for loc in userhome.favorite_locations.all():
+          regid = Gathering.objects.filter(location=loc).first().regid
+          events = [w.participants for w in Gathering_Witness.objects.filter(gathering=regid)]
+          last_week = [w.participants for w in Gathering_Witness.objects.filter(gathering=regid, 
+            date__gte=datetime.date.today()-datetime.timedelta(days=7))]
+          favorites_list += [{
+            "name": loc.name, 
+            "events": len(events), 
+            "participants": sum(events),
+            "last_week": sum(last_week),
+            "regid": regid,
+          }]
+      except:
+        print(f"HOMF No userhome object for user {self.request.user.username}")
+        userhome = None
 
     context = {
       'userhome': userhome,
@@ -224,30 +235,39 @@ def overview(request, regid, date=None, prev_participants=None, prev_url=None, e
     'favorite_location': None,
   }
 
+  if request.POST.get('favorite'):
+    print(f"FAVV {request.POST.get('favorite')}")
+    handle_favorite(request, regid)
+
   if request.user.is_authenticated:
-    userhome = UserHome.objects.get(callsign=request.user.username)
-    gathering = Gathering.objects.get(regid=regid)
-    context['favorite_location'] = str(gathering.location.id in [loc.id for loc in userhome.favorite_locations.all()])
-    print(f"FAVQ {context['favorite_location']} {gathering.location.id} {userhome.favorite_locations.all()}")
+    print(f"FAVU User {request.user.username}")
+    try:
+      userhome = UserHome.objects.get(callsign=request.user.username)
+      gathering = Gathering.objects.get(regid=regid)
+      context['favorite_location'] = str(gathering.location.id in [loc.id for loc in userhome.favorite_locations.all()])
+      print(f"FAVQ {context['favorite_location']} {gathering.location.id} {userhome.favorite_locations.all()}")
+    except:
+      print(f"FAVF No userhome object for user {request.user.username}")
+      userhome = None
 
   template = loader.get_template('action/report_results.html')
   return HttpResponse(template.render(context, request))
 
-def handle_favorite(request, regid, date):
+def handle_favorite(request, regid):
   print(f"FAVH {regid}")
   if request.user.is_authenticated:
     print(f"FAVX Authenticated")
     userhome = UserHome.objects.get(callsign=request.user.username)
     print(f"FAVU {request.user.username}")
     gathering = Gathering.objects.get(regid=regid)
-    if UserHome.objects.filter(favorite_locations__id=gathering.location.id).count() == 0:
+    if userhome.favorite_locations.filter(id=gathering.location.id).count() == 0:
       print(f"FAVA {gathering.location.id}")
       userhome.favorite_locations.add(gathering.location.id)
     else:
-      print(f"FAVR {gathering.location.id}")
+      print(f"FAVR {gathering.location.id} {UserHome.objects.filter(favorite_locations__id=gathering.location.id)} {UserHome.favorite_locations.__dict__}")
       userhome.favorite_locations.remove(gathering.location.id)
     userhome.save()
-    print(f"FAVS Saved")
+    print(f"FAVS Saved {UserHome.favorite_locations} {UserHome.objects.filter(favorite_locations__id=gathering.location.id)}")
 
 def report_results(request, regid):
   regid = get_canonical_regid(regid)
@@ -269,7 +289,7 @@ def report_date(request, regid, date):
   try:
     error_message = ""
     if request.POST.get('favorite'):
-      handle_favorite(request, regid, date)
+      pass
     else:
       participants = request.POST.get('participants')
       proof_url = request.POST.get('url')

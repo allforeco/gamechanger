@@ -2,8 +2,27 @@
 
 {% block content %}
 
-<p>Report Results for{% if favorite_location == 'True' %} favorite location{% endif %}</p>
-<h1>{{ place_name }}</h1>
+<style>
+  div.favoriteform > input {display: inline-block;}
+</style>
+
+{% if date %}
+  <form action="{% url 'action:report_date' regid date %}" method="post">
+{% else %}
+  <form action="{% url 'action:report_results' regid %}" method="post">
+{% endif %}
+  {% csrf_token %}
+  <div class="favoriteform" style="white-space:nowrap; display:inline-block;">
+    <p>Report Results for{% if favorite_location == 'True' %} favorite location{% endif %}</p>
+    <h1 style="display: inline-block;">{{ place_name }}</h1>
+    {% if favorite_location == 'True' %}
+      <input type="submit" name="favorite" id="favorite" value="Remove from Favorites" style="color:red; display: inline-block;"/>
+    {% endif %}
+    {% if favorite_location == 'False' %}
+      <input type="submit" name="favorite" id="favorite" value="Add to Favorites" style="color:green; display: inline-block;"/>
+    {% endif %}
+  </div>
+</form>
 
 {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
 
@@ -58,14 +77,6 @@
         </td>
         <td style="white-space:nowrap;">
           <div style="color:red; display: none;" id="save_changes">&nbsp;&nbsp;&nbsp;↤&nbsp;&nbsp;Save Your Changes</div>
-          <div style="color:red; display: inline-block;" id="favorite">&nbsp;&nbsp;&nbsp;
-            {% if favorite_location == 'True' %}
-              <input type="submit" name="favorite" value="Remove from Favorites" style="color:red; display: inline-block;"/>
-            {% endif %}
-            {% if favorite_location == 'False' %}
-              <input type="submit" name="favorite" value="Add to Favorites" style="color:green; display: inline-block;"/>
-            {% endif %}
-          </div>
         </td>
       </tr>
     </table>

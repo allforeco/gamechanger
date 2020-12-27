@@ -4,7 +4,7 @@
 
 {% block content %}
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
-  <script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+  <script src="https://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/css/select2.min.css" rel="stylesheet" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/js/select2.full.js"></script>
   <style>
@@ -30,13 +30,15 @@
           {% if favorites_list %}
             <table>
               <thead>
-                <td>Total</td>
+                <td>Events</td>
+                <td>Participants</td>
                 <td>Last Week</td>
                 <td>Location</td>
               </thead>
               {% for loc in favorites_list %}
                 <tr>
-                  <td>{{ loc.total }}</td>
+                  <td>{{ loc.events }}</td>
+                  <td>{{ loc.participants }}</td>
                   <td>{{ loc.last_week }}</td>
                   <td><a href="{% url 'action:report_results' loc.regid %}">{{ loc.name }}</a></td>
                 </tr>
@@ -53,13 +55,15 @@
           {% if recents_list %}
             <table>
               <thead>
-                <td>Total</td>
+                <td>Events</td>
+                <td>Participants</td>
                 <td>Last Week</td>
                 <td>Location</td>
               </thead>
               {% for loc in recents_list %}
                 <tr>
-                  <td>{{ loc.total }}</td>
+                  <td>{{ loc.events }}</td>
+                  <td>{{ loc.participants }}</td>
                   <td>{{ loc.last_week }}</td>
                   <td><a href="{% url 'action:report_results' loc.regid %}">{{ loc.name }}</a></td>
                 </tr>

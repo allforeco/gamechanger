@@ -156,6 +156,6 @@ class Gathering_Witness(models.Model):
   gathering = models.ForeignKey(Gathering, on_delete=models.SET_NULL, null=True, editable=False)
   date = models.DateField()
   participants = models.IntegerField(blank=True, null=True, default=0)
-  proof_url = models.URLField(max_length=200, blank=True)
+  proof_url = models.URLField(max_length=500, blank=True)
   creation_time = models.DateTimeField(auto_now_add=True, editable=False)
   updated = models.DateTimeField(auto_now_add=True, null=True, editable=False)
