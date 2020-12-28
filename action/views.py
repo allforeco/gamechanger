@@ -238,11 +238,14 @@ def overview(request, regid, date=None, prev_participants=None, prev_url=None, e
   except Gathering_Witness.DoesNotExist:
     gathering_list = []
 
+  gat = Gathering.objects.get(regid=regid)
   context = {
     'place_name': get_place_name(regid),
     'error_message': error_message,
     'date': date,
     'regid': regid,
+    'gat': gat,
+    'gat_type': gat.get_gathering_type_str(),
     'gathering_list': gathering_list,
     'prev_participants': prev_participants,
     'prev_url': prev_url,

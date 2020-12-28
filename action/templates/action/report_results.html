@@ -22,6 +22,15 @@
       <input type="submit" name="favorite" id="favorite" value="Add to Favorites" style="color:green; display: inline-block;"/>
     {% endif %}
   </div>
+  <p>{{ gat_type }}
+    {% if gat.end_date %}
+      {% if gat.start_date == gat.end_date %} started {{ gat.start_date }}
+      {% else %} since {{ gat.start_date }} until {{ gat.end_date }}{% endif %}
+    {% else %}
+      {{ gat.start_date }}
+    {% endif %}
+    {% if gat.duration %} each time for {{ gat.duration }} hours{% endif %}
+  </p>
 </form>
 
 {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
