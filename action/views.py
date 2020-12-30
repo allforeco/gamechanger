@@ -115,18 +115,17 @@ class LocationAutocomplete(autocomplete.Select2QuerySetView):
       qs = qs.filter(name__icontains=self.q)
     return qs
 
-class GatheringSearchForm(forms.ModelForm):
-  class Meta:
-    model = Gathering
-    fields = ['gathering_type', 'location', 'start_date']
-    print(f"GSF1 ")
-    widgets = {
-      'location': autocomplete.ModelSelect2(url='/action/location-autocomplete/')
-    }
-  def get_success_url(self):
-    return reverse_lazy('action:overview', kwargs={'regid': '11111111'})
-
 class GatheringSearch(FormView):
+  class GatheringSearchForm(forms.ModelForm):
+    class Meta:
+      model = Gathering
+      fields = ['gathering_type', 'location', 'start_date']
+      print(f"GSF1 ")
+      widgets = {
+        'location': autocomplete.ModelSelect2(url='/action/location-autocomplete/')
+      }
+    def get_success_url(self):
+      return reverse_lazy('action:overview', kwargs={'regid': '11111111'})
   template_name = 'action/gathering_search.html'
   form_class = GatheringSearchForm
   success_url = '/thanks/'
@@ -134,16 +133,39 @@ class GatheringSearch(FormView):
   def form_valid(self, form):
     return super().form_valid(form)
 
-class GatheringCreate(CreateView):
-  model = Gathering
-  fields = ['gathering_type', 'location', 'start_date', 'end_date', 'duration', 'expected_participants']
+class GatheringCreate(FormView):
+  class GatheringCreateForm0(forms.ModelForm):
+    class Meta:
+      model = Gathering
+      fields = ['gathering_type', 'location', 'start_date', 'end_date', 'duration', 'expected_participants']
+      print(f"GCV1 ")
+      widgets = {
+        'location': autocomplete.ModelSelect2(url='/action/location-autocomplete/')
+      }
 
-  def get_success_url(self):
-    return reverse_lazy('action:overview', kwargs={'regid': '11111111'})
+    def get_success_url(self):
+      return reverse_lazy('action:overview', kwargs={'regid': '11111111'})
+
+    def form_valid(self, form):
+      print(f"FORM valid")
+      #form.send_email()
+      return super().form_valid(form)
+
+  class ActionGatheringCreateForm(forms.Form):
+    location = forms.ModelChoiceField(
+      queryset=Location.objects.all(),
+      widget=autocomplete.ModelSelect2(
+        url='/action/location-autocomplete/',
+        attrs={'data-minimum-input-length': 3}),
+      label='Select Particular',
+      required=True,
+    )
+
+  template_name = 'action/gathering_form.html'
+  form_class = ActionGatheringCreateForm
+  success_url = '/thanks/'
 
   def form_valid(self, form):
-    print(f"FORM valid")
-    #form.send_email()
     return super().form_valid(form)
 
 def spool_update_reg(response_file_bytes):
@@ -195,7 +217,6 @@ def overview_by_name(request):
         print(f"OVBN Missing cregid {loc} {cregid} '{gat}'")
         break
       gat = Gathering.objects.get(regid=cregid)
-      print(f"OVBN gat {loc} {cregid} '{gat}'")
       try:
         if cregid not in uniqe_gatherings:
           events = Gathering_Witness.objects.filter(gathering=cregid).count()

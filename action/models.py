@@ -110,7 +110,7 @@ class Action(models.Model):
   description = models.CharField(max_length=2000)
   crew_users = models.ManyToManyField(UserHome, related_name="actions_crew", blank=True)
   interested_users = models.ManyToManyField(UserHome, related_name="actions_interest", blank=True)
-  action_link = models.URLField(max_length=200)
+  action_link = models.URLField(max_length=500)
 
 class Gathering(models.Model):
   def __str__(self):
