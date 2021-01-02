@@ -25,4 +25,5 @@ urlpatterns = [
   path('gathering/search', views.GatheringSearch.as_view(), name='gathering_search'),
   path('home', views.HomeView.as_view(), name='home'),
   path('location-autocomplete/', views.LocationAutocomplete.as_view(), name='location-autocomplete'),
+  path('organization-autocomplete/', views.OrganizationAutocomplete.as_view(), name='organization-autocomplete'),
 ]

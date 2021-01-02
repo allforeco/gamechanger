@@ -14,7 +14,7 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import datetime, io, csv, os, threading, html
+import datetime, io, csv, os, threading, html, base64, hashlib
 
 from django.shortcuts import render
 from django.template import loader
@@ -34,7 +34,7 @@ try:
 except:
   action_spooler = None
   print(f"SIMP No uwsgi spooler environment")
-from .models import Gathering, Gathering_Belong, Gathering_Witness, Location, UserHome
+from .models import Gathering, Gathering_Belong, Gathering_Witness, Location, UserHome, Organization
 from django.contrib.auth.models import User
 
 class HomeView(FormView):
@@ -106,11 +106,22 @@ class HomeView(FormView):
 
 class LocationAutocomplete(autocomplete.Select2QuerySetView):
   def get_queryset(self):
-    print(f"AUTO Entered")
+    print(f"AUTL Entered")
     if not self.request.user.is_authenticated:
       return Location.objects.none()
     qs = Location.objects.all()
-    print(f"AUTO {len(qs)} locations")
+    print(f"AUTL {len(qs)} locations")
+    if self.q:
+      qs = qs.filter(name__icontains=self.q)
+    return qs
+
+class OrganizationAutocomplete(autocomplete.Select2QuerySetView):
+  def get_queryset(self):
+    print(f"AUTO Entered")
+    if not self.request.user.is_authenticated:
+      return Organization.objects.none()
+    qs = Organization.objects.all()
+    print(f"AUTO {len(qs)} organizations")
     if self.q:
       qs = qs.filter(name__icontains=self.q)
     return qs
@@ -133,6 +144,11 @@ class GatheringSearch(FormView):
   def form_valid(self, form):
     return super().form_valid(form)
 
+def rid_generator(rtime, cemail):
+  if not(rtime) or not(cemail):
+    return
+  return base64.urlsafe_b64encode(hashlib.md5(str(rtime+':'+cemail).encode()).digest()).decode()[:8]
+
 class GatheringCreate(FormView):
   class GatheringCreateForm0(forms.ModelForm):
     class Meta:
@@ -152,21 +168,74 @@ class GatheringCreate(FormView):
       return super().form_valid(form)
 
   class ActionGatheringCreateForm(forms.Form):
-    location = forms.ModelChoiceField(
+    location = forms.ModelChoiceField(#    FFF_GS_Dataformat.ELOCATION:
       queryset=Location.objects.all(),
       widget=autocomplete.ModelSelect2(
         url='/action/location-autocomplete/',
         attrs={'data-minimum-input-length': 3}),
-      label='Select Particular',
+      label='Location',
       required=True,
     )
+    #FFF_GS_Dataformat.RTIME:   generated
+    #FFF_GS_Dataformat.RSOURCE: Action.registration_source generated
+    #FFF_GS_Dataformat.CEMAIL:  generated
+    #FFF_GS_Dataformat.CNAME:   Action.creator User.name
+    organization = forms.ModelChoiceField( #FFF_GS_Dataformat.CORG2:   item['CORG1'],
+      queryset=Organization.objects.all(),
+      widget=autocomplete.ModelSelect2(
+        url='/action/organization-autocomplete/',
+        #attrs={'data-minimum-input-length': 3}
+      ),
+      label='Organization',
+      empty_label="(None)",
+      required=False,
+    )
+    #FFF_GS_Dataformat.CSPOKE:  UserHome.visibility
+    #FFF_GS_Dataformat.ECOUNTRY:Gathering.location.name derived
+    #FFF_GS_Dataformat.ECITY:   Gathering.location.name
+    gathering_type = forms.ChoiceField(label="Event Type", choices=Gathering._gathering_type_choices) #FFF_GS_Dataformat.ETYPE:   Gathering.gathering_type    
+    gathering_start_time = forms.TimeField(label="Start Time") #FFF_GS_Dataformat.ETIME:
+    gathering_start_date = forms.DateField(label="Start Date") #FFF_GS_Dataformat.EDATE:   Gathering.start_date
+    gathering_duration = forms.DurationField(label="Duration")
+    #gathering_frequency = forms.ModelChoiceField() #FFF_GS_Dataformat.EFREQ:   
+    gathering_action_link = forms.URLField(label="Action URL", max_length=500) #FFF_GS_Dataformat.ELINK:   Action.action_link
+    #FFF_GS_Dataformat.AAPPROVE:'y', generated based on Gathering_Witness(gathering=gathering, witness)
+    #    FFF_GS_Dataformat.GLOC:    Gathering.location.name
+    #    FFF_GS_Dataformat.GLAT:    Gathering.location.glat
+    #    FFF_GS_Dataformat.GLON:    Gathering.location.glon
 
   template_name = 'action/gathering_form.html'
   form_class = ActionGatheringCreateForm
-  success_url = '/thanks/'
+  #success_url = '/thanks/'
 
   def form_valid(self, form):
+    self.form = form
     return super().form_valid(form)
+
+  def get_success_url(self):
+    self.callsign = UserHome.objects.get(loginuser_id=self.request.user.id).callsign
+    print(f"AGCF {self.callsign}")
+    self.rtime = str(datetime.datetime.now())
+    self.cemail = self.callsign + "@gamechanger.eco"
+    self.regid = rid_generator(self.rtime, self.cemail)
+    print(f"AGCF {self.regid, self.form.__dict__}")
+    print(f"AGCF {self.regid, self.form['gathering_start_date'].value()}")
+
+    gathering = Gathering(
+      regid=self.regid,
+      gathering_type=self.form['gathering_type'].value(),
+      location=Location.objects.get(id=self.form['location'].value()),
+      start_date=self.form['gathering_start_date'].value(),
+      end_date=self.form['gathering_start_date'].value())
+    #print(f"Adding gathering {gathering}")
+    gathering.save() 
+
+    gathering_belong = Gathering_Belong(
+      regid=self.regid,
+      gathering=gathering)
+    gathering_belong.save() 
+
+    return reverse_lazy('action:report_date', kwargs={'regid': self.regid, 'date': self.form['gathering_start_date'].value()})
 
 def spool_update_reg(response_file_bytes):
   print(f"INIT uwsgi req {len(response_file_bytes)}")
@@ -210,19 +279,25 @@ def overview_by_name(request):
   location_list = Location.objects.filter(name__icontains=loc_name)
   for loc in location_list[:max_entries]:
     gatherings = Gathering.objects.filter(location=loc).order_by('-start_date')
+    print(f"OVX0 Gatherings {gatherings}")
     uniqe_gatherings = {}
     for gat in gatherings:
+      print(f"OVX1 Gathering {gat}")
       cregid = gat.get_canonical_regid()
       if not cregid:
         print(f"OVBN Missing cregid {loc} {cregid} '{gat}'")
-        break
+        continue
       gat = Gathering.objects.get(regid=cregid)
+      print(f"OVX2 Gathering => {gat}")
       try:
+        print(f"OVX3 Unique {cregid} {cregid not in uniqe_gatherings} {uniqe_gatherings}")
         if cregid not in uniqe_gatherings:
+          print(f"OVX4 Unique {gat}")
           events = Gathering_Witness.objects.filter(gathering=cregid).count()
           participants = Gathering_Witness.objects.filter(gathering=cregid).aggregate(Sum('participants'))
           photos = Gathering_Witness.objects.filter(gathering=cregid).exclude(proof_url__exact='').count()
           uniqe_gatherings[cregid]=1
+          print(f"OVX5 Unique {cregid} {cregid not in uniqe_gatherings} {uniqe_gatherings}")
           locations += [{
               'name':html.escape(loc.name), 
               'gatherings': [{
@@ -232,7 +307,7 @@ def overview_by_name(request):
                   'count': events,
                   'participants': participants.get('participants__sum'),
                   'photos': photos,
-                } for gat in gatherings[:max_entries]],
+                }],# for gat in gatherings[:max_entries]],
             }]
       except Exception as e:
         pass
