@@ -38,7 +38,7 @@ class Location(models.Model):
   name = models.CharField(max_length=100)
   #in_country = models.ForeignKey(Country, on_delete=models.PROTECT)
   in_location = models.ForeignKey('Location', on_delete=models.PROTECT, blank=True, null=True)
-  zip_code = models.CharField(max_length=12, blank=True)
+  zip_code = models.CharField(max_length=12, blank=True, null=True)
   lat = models.FloatField(blank=True, null=True)
   lon = models.FloatField(blank=True, null=True)
   #verified = models.ForeignKey(Verification, on_delete=models.CASCADE, editable=False)
@@ -141,6 +141,16 @@ class Gathering(models.Model):
     except:
       return None
   
+  def get_place_name(self):
+    if not self.location:
+      return "Unknown Place"
+    return self.location.name
+
+  def get_in_location(self):
+    if not self.location:
+      return None
+    return self.location.in_location
+
 class Gathering_Belong(models.Model):
   def __str__(self):
     return str(self.regid) + "=>" + str(self.gathering.regid)

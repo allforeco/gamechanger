@@ -89,7 +89,9 @@ class HomeView(FormView):
             "participants": sum(events),
             "last_week": sum(last_week),
             "regid": regid,
+            "in_location": loc.in_location,
           }]
+          print(f"HOM2 {loc.name} in {loc.in_location}")
       except:
         print(f"HOMF No userhome object for user {self.request.user.username}")
         userhome = None
@@ -242,18 +244,13 @@ def spool_update_reg(response_file_bytes):
   action_spooler.spool(task=b'upload', body=response_file_bytes)
   print(f"INIT uwsgi spooled")
 
-def get_place_name(regid):
-  try:
-    gatherings = Gathering.objects.filter(regid=regid)
-    return gatherings.first().location.name
-  except:
-    return "Unknown Place"
-
 def get_canonical_regid(regid):
   try:
     canonical_regid = Gathering_Belong.objects.filter(regid=regid).first().gathering.regid
     return canonical_regid
-  except:
+  except Exception as ex:
+    count_regid = Gathering_Belong.objects.filter(regid=regid).count()
+    print(f"GCRN {count_regid} canonical regid for '{regid}': {ex}")
     return None
 
 def index(request):
@@ -271,14 +268,28 @@ def bad_link(request, error_message):
 
 def overview_by_name(request):
   loc_name = request.GET.get('location','')
-  if not loc_name:
+  loc_exact = request.GET.get('exact','')
+  loc_id = request.GET.get('locid','')
+  if not loc_name and not loc_id:
     return bad_link(request, "Something went wrong with this link (#11)")
 
   locations = []
   max_entries = 100
-  location_list = Location.objects.filter(name__icontains=loc_name)
+  sublocations = []
+  sublocation_parent = None
+  if loc_id:
+    location_list = Location.objects.filter(id=int(loc_id))
+    sublocation_parent = location_list.first()
+  elif loc_exact:
+    location_list = Location.objects.filter(name=loc_name)
+    sublocation_parent = location_list.first()
+  else:
+    location_list = Location.objects.filter(name__icontains=loc_name)
+  if sublocation_parent:
+    sublocations = list(Location.objects.filter(in_location=sublocation_parent).order_by('name'))
+
   for loc in location_list[:max_entries]:
-    gatherings = Gathering.objects.filter(location=loc).order_by('-start_date')
+    gatherings = Gathering.objects.filter(location=loc)#.order_by('location.name')#'-start_date')
     print(f"OVX0 Gatherings {gatherings}")
     uniqe_gatherings = {}
     for gat in gatherings:
@@ -300,6 +311,7 @@ def overview_by_name(request):
           print(f"OVX5 Unique {cregid} {cregid not in uniqe_gatherings} {uniqe_gatherings}")
           locations += [{
               'name':html.escape(loc.name), 
+              'in_location': loc.in_location, 
               'gatherings': [{
                   'regid': gat.regid, 
                   'gathering_type': gat.get_gathering_type_str(), 
@@ -307,19 +319,29 @@ def overview_by_name(request):
                   'count': events,
                   'participants': participants.get('participants__sum'),
                   'photos': photos,
-                }],# for gat in gatherings[:max_entries]],
+                }],
             }]
       except Exception as e:
         pass
         print(f"OVBN Exception looking up {loc} {cregid} '{gat}': {e}")
 
+  if not sublocations and len(locations) == 1:
+    print(f"OVBN shortcut {loc_name}")
+    regid = locations[0]['gatherings'][0]['regid']
+    return overview(request, regid, date=None, prev_participants=None, prev_url=None, error_message=None)
+  else:
+    print(f"OVBN No shortcut: {len(sublocations)} {len(locations)}")
+
   truncated = None
   if len(locations) == max_entries:
     truncated = f"... (search limited to {max_entries} results) ..."
+  locations.sort(key=lambda e: e['name'])
   context = {
     'error_message': '',
     'locations': locations,
-    'truncated': truncated
+    'truncated': truncated,
+    'sublocation_parent': sublocation_parent,
+    'sublocations': sublocations,
   }
   template = loader.get_template('action/location_overview.html')
   #{% url 'action:overview' gat.regid %}
@@ -336,7 +358,8 @@ def overview(request, regid, date=None, prev_participants=None, prev_url=None, e
 
   gat = Gathering.objects.get(regid=regid)
   context = {
-    'place_name': get_place_name(regid),
+    'place_name': gat.get_place_name(),
+    'in_location': gat.get_in_location(),
     'error_message': error_message,
     'date': date,
     'regid': regid,

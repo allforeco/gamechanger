@@ -22,7 +22,8 @@
       <input type="submit" name="favorite" id="favorite" value="Add to Favorites" style="color:green; display: inline-block;"/>
     {% endif %}
   </div>
-  <p>{{ gat_type }}
+  <p>{% if in_location %} in <a href="{% url 'action:overview_by_name' %}?locid={{ in_location.id }}">{{ in_location.name }}</a>. {% endif %}
+    {{ gat_type }}
     {% if gat.end_date %}
       {% if gat.start_date == gat.end_date %} started {{ gat.start_date }}
       {% else %} since {{ gat.start_date }} until {{ gat.end_date }}{% endif %}
@@ -96,7 +97,7 @@
   <ul>
   {% for witness in gathering_list %}
     <li><a href="/action/report_results/date/{{ regid }}/{{ witness.date|date:'Y-m-d' }}/">{{ witness.date|date:"Y-m-d" }}</a>
-      : {{ witness.participants }}
+      : {% if witness.participants %}{{ witness.participants }}{% else %}?{% endif %}
       {% if witness.proof_url %}  <a href="{{ witness.proof_url }}">View Photo</a>{% endif %}
     </li>
   {% endfor %}
