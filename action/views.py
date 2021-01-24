@@ -270,6 +270,9 @@ def overview_by_name(request):
   loc_name = request.GET.get('location','')
   loc_exact = request.GET.get('exact','')
   loc_id = request.GET.get('locid','')
+  return _overview_by_name(request, loc_name, loc_exact, loc_id)
+
+def _overview_by_name(request, loc_name='', loc_exact='', loc_id=''):
   if not loc_name and not loc_id:
     return bad_link(request, "Something went wrong with this link (#11)")
 
@@ -284,7 +287,53 @@ def overview_by_name(request):
     location_list = Location.objects.filter(name=loc_name)
     sublocation_parent = location_list.first()
   else:
-    location_list = Location.objects.filter(name__icontains=loc_name)
+    if "," not in loc_name:
+      # Simple search for a name
+      location_list = Location.objects.filter(name__icontains=loc_name)
+      sublocation_parent = location_list.first()
+    else:
+      # Name is something like "Colorado Blvd, Denver, CO, USA"
+      location_levels = [name.strip() for name in loc_name.split(",")]
+      loc_name = location_levels[0]
+      print(f"CLS0 loc_name {loc_name}")
+      cand_locations = Location.objects.filter(name__icontains=loc_name)
+      location_list = []
+      print(f"CLS1 {len(cand_locations)} to be matched against {location_levels}")
+      for cand_location in cand_locations:
+        # Only spend CPU time searching if there is any hope of a match
+        print(f"CLSS -- {cand_location.name} --")
+        is_candidate = True
+        in_area = cand_location
+        loc_in_list = location_levels
+        watchdog = 5
+        while loc_in_list:
+          watchdog -= 1
+          if watchdog < 0:
+            print(f"CLSX {loc_in_list}")
+            break
+          print(f"CLST - {loc_in_list} -")
+          if loc_in_list[0] in in_area.name:
+            print(f"CLS2 {loc_in_list[0]} passed {in_area.name}")
+            loc_in_list = loc_in_list[1:]
+            continue
+          if in_area == cand_location.in_location:
+            print(f"CLSY still on {cand_location.in_location.name}")
+          in_area = in_area.in_location
+          if not in_area:
+            is_candidate = False
+            print(f"CLS4 no more parent areas")
+            break
+          print(f"CLS3 try parent area {in_area.name}")
+        if not loc_in_list:#is_candidate:
+          print(f"CLS5 candidate added {cand_location.name} in {in_area}")
+          for parent_loc_name in [name.strip() for name in cand_location.name.split(",")]:
+            parent_loc = Location.objects.filter(name=parent_loc_name).first()
+            if parent_loc:
+              sublocation_parent = parent_loc
+              break
+          print(f"CLS6 {sublocation_parent} taken from {cand_location.name}")
+          location_list += [cand_location]
+      print(f"CLS9 location_list {location_list}")
   if sublocation_parent:
     sublocations = list(Location.objects.filter(in_location=sublocation_parent).order_by('name'))
 
@@ -329,13 +378,20 @@ def overview_by_name(request):
     print(f"OVBN shortcut {loc_name}")
     regid = locations[0]['gatherings'][0]['regid']
     return overview(request, regid, date=None, prev_participants=None, prev_url=None, error_message=None)
+  elif sublocation_parent and sublocation_parent.in_location and not sublocations and not locations:
+    # This is going to be a boring page, let's show the parent instead
+    print(f"OVBP boring, switching to loc_id {sublocation_parent.in_location.id}")
+    return _overview_by_name(request, loc_id=sublocation_parent.in_location.id)
+
   else:
-    print(f"OVBN No shortcut: {len(sublocations)} {len(locations)}")
+    print(f"OVBN No shortcut: {len(sublocations)} {len(locations)} {sublocation_parent} {sublocation_parent.in_location if sublocation_parent else None}")
 
   truncated = None
   if len(locations) == max_entries:
     truncated = f"... (search limited to {max_entries} results) ..."
   locations.sort(key=lambda e: e['name'])
+
+
   context = {
     'error_message': '',
     'locations': locations,
