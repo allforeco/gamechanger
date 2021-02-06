@@ -16,7 +16,7 @@
 
 import datetime, io, csv
 from uwsgidecorators import spool
-from .models import Location, Gathering, Gathering_Belong, Gathering_Witness
+from .models import Country, Location, Gathering, Gathering_Belong, Gathering_Witness
 from .push_notifier import Push_Notifier
 
 try:
@@ -54,6 +54,58 @@ def task_update_reg(body):
   print(f"URLN {count_of} place definitions to process")
   update_reg(reg_list)
   print(f"URES place definitions processed")
+  print(f"UCLN unused places cleanup")
+  try:
+    cleanup_locations()
+  except Exception as ex:
+    print(f"UCLN top level exception: {ex}")
+  print(f"UCLN unused places cleanup done")
+
+def cleanup_locations():
+  last_cleanup_log_name = "/var/log/gamechanger-spooler/last_cleanup.log"
+  with open(last_cleanup_log_name, "w") as last_cleanup_log:
+    print(f"Action spooler cleanup log taken on {datetime.datetime.ctime(datetime.datetime.utcnow())}", file=last_cleanup_log)
+
+    # Initally all locations are candidates for dropping
+    dropset = set(Location.objects.all())
+    # Keep all locations that have gatherings in them
+    print(f"UCRG go through {Gathering.objects.count()} gatherings")
+    print(f"UCRG go through {Gathering.objects.count()} gatherings", file=last_cleanup_log)
+    for gat in Gathering.objects.all():
+      loc = gat.location
+      # Keep all locations that are parents of the location with a gathering
+      max_depth = 20
+      while loc and loc in dropset:
+        dropset.remove(loc)
+        loc = loc.in_location
+        max_depth -= 1
+        if max_depth <= 0:
+          print(f"UCRG location loop detected for {loc}")
+          print(f"UCRG location loop detected for {loc}", file=last_cleanup_log)
+          break
+
+    print(f"UCRG {len(dropset)} locations are not referenced by any gatherings")
+    print(f"UCRG {len(dropset)} locations are not referenced by any gatherings", file=last_cleanup_log)
+
+    while dropset:
+      print(f"UCRS Starting drop round with {len(dropset)} locations remaining", file=last_cleanup_log)
+      next_dropset = set()
+      progress = False
+      for droploc in dropset:
+        try:
+          droploc.delete()
+          print(f"UCRD dropped {droploc}", file=last_cleanup_log)
+          progress = True
+        except:
+          print(f"UCRR {droploc} still referenced, dropping later", file=last_cleanup_log)
+          next_dropset.add(droploc)
+      if not progress:
+        print(f"UCRX no progress with {len(dropset)} locations remaining", file=last_cleanup_log)
+        break
+      dropset = next_dropset
+
+    print(f"UCRG done")
+    print(f"UCRG done", file=last_cleanup_log)
 
 def get_update_timestamp(timestr):
   if timestr:
@@ -124,6 +176,10 @@ def split_location_name(loc_name):
       if contains_number(word):
         zip_code += word
         continue
+      # Remove certain words from place names
+      # (in order to remove duplicate locations with and without this word)
+      if word.casefold() in ["municipality", "county"]: 
+        continue
       words += [word]
     clean_parts += [" ".join(words)]
   if not zip_code:
@@ -155,139 +211,164 @@ def split_location_name(loc_name):
 
 def update_reg(regs):
   print("UREG Updating regid registry")
+  last_import_log_name = "/var/log/gamechanger-spooler/last_import.log"
+  with open(last_import_log_name, "w") as last_import_log:
+    print(f"Action spooler update_reg log taken on {datetime.datetime.ctime(datetime.datetime.utcnow())}", file=last_import_log)
+    print(f"ULOG Writing update_reg log to {last_import_log_name}")
 
-  headers = regs[0] # RID,RUPD,GLOC,EDATE,EENDDATE,REVNUM,REVPROOF
-  print(f"URHD Read headers {headers}")
-  line_count = len(regs)
-  counter = {'Completed':0, 'Country':0, 'State':0, 'Region':0, 'Place':0,
-             'Coords':0, 'Gathering':0, 'Gathering_Belong':0, 
-             'Gathering_Witness':0, 'Witness Updated':0, 'Witness Not Updated':0}
-  for lineno, line in enumerate(regs[1:], 1):
-    if lineno % 1000 == 1:
-      print(f"URCT {lineno-1} {counter}")
+    headers = regs[0] # RID,RUPD,GLOC,EDATE,EENDDATE,REVNUM,REVPROOF
+    print(f"URHD Read headers {headers}")
+    line_count = len(regs)
+    counter = {'Completed':0, 'Country':0, 'State':0, 'Region':0, 'Place':0,
+               'Coords':0, 'Gathering':0, 'Gathering_Belong':0, 
+               'Gathering_Witness':0, 'Witness Updated':0, 'Witness Not Updated':0}
+    for lineno, line in enumerate(regs[1:], 1):
+      if lineno % 1000 == 1:
+        print(f"URCT {lineno-1} {counter}")
 
-    rec = {}
-    for col, val in enumerate(line):
-      rec[headers[col]] = val
-    regid = rec.get('RID', None)
-    edate = rec.get('EDATE', None)
-    if not regid or not edate:
-      print(f"URBR Skipping record {lineno} {regid} {edate}")
-      continue
+      rec = {}
+      for col, val in enumerate(line):
+        rec[headers[col]] = val
+      regid = rec.get('RID', None)
+      edate = rec.get('EDATE', None)
+      if not regid or not edate:
+        print(f"{lineno} missing regid {regid} or edate {edate}", file=last_import_log)
+        print(f"URBR Skipping record {lineno} {regid} {edate}")
+        continue
 
-    try:
-      location = None
-      max_length = Location._meta.get_field('name').max_length
-      loc_name = rec.get('GLOC','')[:max_length]
-      if not loc_name:
-        loc_name = 'Unknown Place'
-        location = Location.objects.filter(name = loc_name).first()
-        if not location:
-          location = Location(name = loc_name)
-          location.save()
-        print(f"URUL {lineno} {regid} {loc_name}")
-      else:
-        (country_name, state_name, region_name, place_name, zip_code) = split_location_name(loc_name)
-        country = Location.objects.filter(name=country_name).first()
-        if not country:
-          # Allow for now, close country creation soon
-          country = Country(name=country_name)
-          country.save()
-          try:
-            country = Location(name=country_name)
+      try:
+        location = None
+        country = None
+        state = None
+        region = None
+        place = None
+        max_length = Location._meta.get_field('name').max_length
+        loc_name = rec.get('GLOC','')[:max_length]
+        if not loc_name:
+          loc_name = 'Unknown Place'
+          location = Location.objects.filter(name = loc_name).first()
+          if not location:
+            location = Location(name = loc_name)
+            location.save()
+          print(f"{lineno} {regid} new location {location}", file=last_import_log)
+          print(f"URUL {lineno} {regid} {loc_name}")
+        else:
+          (country_name, state_name, region_name, place_name, zip_code) = split_location_name(loc_name)
+          country = Location.objects.filter(name=country_name, in_location__isnull=True).first()
+          if not country:
+            # Allow for now, close country creation soon
+            country = Country(name=country_name)
             country.save()
-            counter['Country'] += 1
-          except:
-            pass
-        parent_loc = country
-        if state_name:
-          state = Location.objects.filter(name=state_name).first()
-          if not state:
-            # Allow for now, close state creation soon
-            state = Location(name=state_name, in_location=parent_loc)
-            state.save()
-            counter['State'] += 1
-          parent_loc = state
-        if region_name:
-          region = Location.objects.filter(name=region_name).first()
-          if not region:
-            region = Location(name=region_name, in_location=parent_loc)
-            region.save()
-            counter['Region'] += 1
-          parent_loc = region
-        if place_name:
-          place = Location.objects.filter(name=place_name).first()
-          if not place:
-            place = Location(name=place_name, in_location=parent_loc)
-            place.save()
-            counter['Place'] += 1
-          if not place.lat:
-            place.lat = rec.get('GLAT')
-            place.lon = rec.get('GLON')
-            place.zip_code = zip_code
-            place.save()
-            counter['Coords'] += 1
-          location = place
-      if not location:
-        location = parent_loc
-        print(f"URXL No place for {lineno} {regid}")
+            try:
+              country = Location(name=country_name)
+              country.save()
+              counter['Country'] += 1
+              print(f"{lineno} {regid} new country {country}", file=last_import_log)
+            except:
+              pass
+          parent_loc = country
+          if state_name:
+            state = Location.objects.filter(name=state_name, in_location=parent_loc).first()
+            if not state:
+              # Allow for now, close state creation soon
+              state = Location(name=state_name, in_location=parent_loc)
+              state.save()
+              counter['State'] += 1
+              print(f"{lineno} {regid} new state {state}", file=last_import_log)
+            parent_loc = state
+          if region_name:
+            region = Location.objects.filter(name=region_name, in_location=parent_loc).first()
+            if not region:
+              region = Location(name=region_name, in_location=parent_loc)
+              region.save()
+              counter['Region'] += 1
+              print(f"{lineno} {regid} new region {region}", file=last_import_log)
+            parent_loc = region
+          if place_name:
+            place = Location.objects.filter(name=place_name, in_location=parent_loc).first()
+            if not place:
+              place = Location(name=place_name, in_location=parent_loc)
+              place.save()
+              counter['Place'] += 1
+              print(f"{lineno} {regid} new place {place}", file=last_import_log)
+            if not place.lat:
+              place.lat = rec.get('GLAT')
+              place.lon = rec.get('GLON')
+              place.zip_code = zip_code
+              place.save()
+              counter['Coords'] += 1
+              print(f"{lineno} {regid} new coords", file=last_import_log)
+            location = place
+        if not location:
+          location = parent_loc
+          print(f"URXL No place for {lineno} {regid}")
+          print(f"{lineno} {regid} missing location {loc_name} in {location}", file=last_import_log)
 
-      gathering = Gathering.objects.filter(location = location).first()
-      if not gathering:
-        gathering = Gathering(
-          regid=regid,
-          gathering_type='STRK', # FIXME
-          location=location,
-          start_date=edate,
-          end_date=edate)
-        #print(f"Adding gathering {gathering}")
-        gathering.save() 
-        counter['Gathering'] += 1
-        #print(f"URGC {lineno} {regid} Gathering created")
+        gathering = Gathering.objects.filter(location=location, regid=regid).first()
+        if not gathering:
+          gathering = Gathering(
+            regid=regid,
+            gathering_type='STRK', # FIXME
+            location=location,
+            start_date=edate,
+            end_date=edate)
+          #print(f"Adding gathering {gathering}")
+          gathering.save() 
+          counter['Gathering'] += 1
+          print(f"{lineno} {regid} new gathering {gathering}", file=last_import_log)
+          #print(f"URGC {lineno} {regid} Gathering created")
+        else:
+          print(f"{lineno} {regid} existing gathering {gathering} {gathering.regid} {gathering.location}", file=last_import_log)
 
-      belong = Gathering_Belong.objects.filter(regid = regid)
-      if not belong:
-        belong = Gathering_Belong(regid=regid, gathering=gathering)
-        belong.save()
-        counter['Gathering_Belong'] += 1
-        #print(f"URGB {lineno} {regid} Gathering_Belong created")
+        belong = Gathering_Belong.objects.filter(regid = regid).first()
+        if not belong:
+          belong = Gathering_Belong(regid=regid, gathering=gathering)
+          belong.save()
+          counter['Gathering_Belong'] += 1
+          print(f"{lineno} {regid} new belong {belong}", file=last_import_log)
+          #print(f"URGB {lineno} {regid} Gathering_Belong created")
 
-      witness = Gathering_Witness.objects.filter(
-        gathering = gathering,
-        date = edate).first()
-      if not witness:
-        witness = Gathering_Witness(
-          gathering = gathering, 
-          date = edate)
-        counter['Gathering_Witness'] += 1
-        #print(f"URWC {lineno} {regid} Witness created")
+        witness = Gathering_Witness.objects.filter(
+          gathering = gathering,
+          date = edate).first()
+        if not witness:
+          witness = Gathering_Witness(
+            gathering = gathering, 
+            date = edate)
+          counter['Gathering_Witness'] += 1
+          print(f"{lineno} {regid} new witness {gathering} {edate}", file=last_import_log)
+          #print(f"URWC {lineno} {regid} Witness created")
 
-      # Compare if newer
-      rec_updated = get_update_timestamp(rec.get('RUPD'))
-      db_updated = get_update_timestamp(witness.updated)
-      if rec_updated > db_updated:
-        revnum = '0' + rec.get('REVNUM','0')
-        revnum = revnum.replace(',', '').replace(' ', '')
-        witness.participants = int(revnum)
-        witness.proof_url = rec.get('REVPROOF','')
-        witness.save()
-        counter['Witness Updated'] += 1
-        #print(f"URUP {lineno}/{line_count} {regid} Witness updated")
+        # Compare if newer
+        rec_updated = get_update_timestamp(rec.get('RUPD'))
+        db_updated = get_update_timestamp(witness.updated)
+        if rec_updated > db_updated:
+          revnum = '0' + rec.get('REVNUM','0')
+          revnum = revnum.replace(',', '').replace(' ', '')
+          witness.participants = int(revnum)
+          witness.proof_url = rec.get('REVPROOF','')
+          witness.save()
+          counter['Witness Updated'] += 1
+          print(f"{lineno} {regid} updated witness {witness}, {rec_updated} > {db_updated}", file=last_import_log)
+          #print(f"URUP {lineno}/{line_count} {regid} Witness updated")
+        else:
+          counter['Witness Not Updated'] += 1
+          print(f"{lineno} {regid} no change to witness, {rec_updated} <= {db_updated}", file=last_import_log)
+
+        counter['Completed'] += 1
+        print(f"{lineno} {regid} completed {location} in {location.in_location}: {place} {region} {state} {country} {gathering} {belong} {witness} <- '{loc_name}'", file=last_import_log)
+      except Exception as e:
+        print(f"{lineno} {regid} exception", file=last_import_log)
+        print(f"URXX === Exception on {lineno} updated recs:\n{e}")
+    print(f"URDN {lineno} records results: {counter}")
+    if lineno:
+      if counter['Completed'] < lineno * 0.90:
+        Push_Notifier.push(
+          title="Gamechanger failed update",
+          message=f"{lineno} records resulted in {counter}",
+        )
       else:
-        counter['Witness Not Updated'] += 1
-
-      counter['Completed'] += 1
-    except Exception as e:
-      print(f"URXX === Exception on {lineno} updated recs:\n{e}")
-  print(f"URDN {lineno} records results: {counter}")
-  if lineno:
-    if counter['Completed'] < lineno * 0.90:
-      Push_Notifier.push(
-        title="Gamechanger failed update",
-        message=f"{lineno} records resulted in {counter}",
+        Push_Notifier.push(
+          title="Gamechanger updated",
+          message=f"{lineno} records resulted in {counter}",
       )
-    else:
-      Push_Notifier.push(
-        title="Gamechanger updated",
-        message=f"{lineno} records resulted in {counter}",
-    )
