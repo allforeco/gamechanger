@@ -293,6 +293,7 @@ def _overview_by_name(request, loc_name='', loc_exact='', loc_id=''):
       sublocation_parent = location_list.first()
     else:
       # Name is something like "Colorado Blvd, Denver, CO, USA"
+      loc_name = Location.make_location_name(*Location.split_location_name(loc_name))
       location_levels = [name.strip() for name in loc_name.split(",")]
       loc_name = location_levels[0]
       print(f"CLS0 loc_name {loc_name}")

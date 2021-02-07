@@ -116,99 +116,6 @@ def get_update_timestamp(timestr):
   long_ago = datetime.datetime(1970, 1, 1, 0, 0, 0, 0)
   return long_ago
 
-def _split_location_name_test():
-  # Examples of location names received from Google Maps:
-  for loc_name in [
-    "Umeå, Sweden",
-    "London, UK",
-    "Boulder, CO, USA",
-    "Niwot, CO 80503, USA",
-    "Gettysburg, PA 17325, USA",
-    "Brattleboro, VT 05301, USA",
-    "Calgary, AB, Canada",
-    "442 95 Hålta, Sweden",
-    "23795 Bad Segeberg, Germany",
-    "Adıyaman, Adıyaman Merkez/Adıyaman Province, Turkey",
-    "Årsta, Enskede-Årsta-Vantör, Stockholm, Sweden",
-    "39100 Bolzano, Province of Bolzano - South Tyrol, Italy",
-    "04016 Sabaudia LT, Italy",
-    "37068 Vigasio, VR, Italy",
-    "St Neots, Saint Neots PE19, UK",
-    "Hebden Bridge HX7, UK",
-    "Abu Dhabi, United Arab Emirates",
-    "Waurn Ponds VIC 3216, Australia",
-    "Dungog NSW 2420, Australia",
-    "Ravenshoe QLD 4888, Australia",
-    "Gibraltar",
-    "Poza Rica de Hidalgo, Ver., Mexico",
-    "Mumbai, Maharashtra, India",
-    "Skopje, Macedonia (FYROM)",
-    "Gol ghar, Park Rd, Raja Ji Salai, Chajju Bagh, Patna, Bihar 800001, India",
-  ]:
-    print(f"Name '{loc_name}' => '{split_location_name(loc_name)}'")
-
-def split_location_name(loc_name):
-  countries_with_states = [
-    "USA",
-    "Canada",
-    "Australia",
-    "India",
-  ]
-  countries_with_regions = [
-    "Mexico",
-    "Italy",
-  ]
-  def contains_number(word):
-    for char in word:
-      if char in "0123456789":
-        return True
-    return False
-  zip_code = ""
-  state_name = None
-  region_name = None
-  clean_parts = []
-  parts = loc_name.split(",")
-  parts.reverse()
-  for part in parts:
-    part = part.strip()
-    words = []
-    for word in part.split(" "):
-      if contains_number(word):
-        zip_code += word
-        continue
-      # Remove certain words from place names
-      # (in order to remove duplicate locations with and without this word)
-      if word.casefold() in ["municipality", "county"]: 
-        continue
-      words += [word]
-    clean_parts += [" ".join(words)]
-  if not zip_code:
-    zip_code = None
-  country_name = clean_parts.pop(0)
-  if not clean_parts:
-    return (country_name, None, None, None, zip_code)
-  place_name = clean_parts.pop()
-  last_word_in_place_name = place_name.split(" ")[-1]
-  if last_word_in_place_name.isupper():
-    place_name = place_name[:-(len(last_word_in_place_name)+1)]
-    if country_name in countries_with_states:
-      state_name = last_word_in_place_name
-    elif country_name in countries_with_regions:
-      region_name = last_word_in_place_name
-  if not clean_parts:
-    return (country_name, state_name, region_name, place_name, zip_code)
-  if not state_name and country_name in countries_with_states:
-    state_name = clean_parts.pop(0)
-  if not clean_parts:
-    return (country_name, state_name, region_name, place_name, zip_code)
-  if not region_name:
-    region_name = clean_parts.pop(0)
-  if not clean_parts:
-    return (country_name, state_name, region_name, place_name, zip_code)
-  clean_parts.insert(0, place_name)
-  place_name = ", ".join(clean_parts)
-  return (country_name, state_name, region_name, place_name, zip_code)
-
 def update_reg(regs):
   print("UREG Updating regid registry")
   last_import_log_name = "/var/log/gamechanger-spooler/last_import.log"
@@ -253,7 +160,7 @@ def update_reg(regs):
           print(f"{lineno} {regid} new location {location}", file=last_import_log)
           print(f"URUL {lineno} {regid} {loc_name}")
         else:
-          (country_name, state_name, region_name, place_name, zip_code) = split_location_name(loc_name)
+          (country_name, state_name, region_name, place_name, zip_code) = Location.split_location_name(loc_name)
           country = Location.objects.filter(name=country_name, in_location__isnull=True).first()
           if not country:
             # Allow for now, close country creation soon
