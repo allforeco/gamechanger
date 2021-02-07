@@ -107,13 +107,15 @@ def cleanup_locations():
     print(f"UCRG done")
     print(f"UCRG done", file=last_cleanup_log)
 
-def get_update_timestamp(timestr):
-  if timestr:
+def get_update_timestamp(timeinfo):
+  if isinstance(timeinfo, datetime.datetime):
+    return timeinfo.replace(tzinfo=datetime.timezone.utc)
+  if isinstance(timeinfo, str):
     try:
-      return datetime.datetime.strptime(timestr, "%Y-%m-%dT%H:%M:%S")
+      return datetime.datetime.strptime(timeinfo,"%Y-%m-%d %H:%M:%S.%f").replace(tzinfo=datetime.timezone.utc)
     except:
       pass
-  long_ago = datetime.datetime(1970, 1, 1, 0, 0, 0, 0)
+  long_ago = datetime.datetime(1970, 1, 1, 0, 0, 0, 0, tzinfo=datetime.timezone.utc)
   return long_ago
 
 def update_reg(regs):
@@ -236,19 +238,22 @@ def update_reg(regs):
           #print(f"URGB {lineno} {regid} Gathering_Belong created")
 
         witness = Gathering_Witness.objects.filter(
-          gathering = gathering,
+          gathering = Gathering.objects.get(regid=belong.gathering.regid),
           date = edate).first()
         if not witness:
           witness = Gathering_Witness(
-            gathering = gathering, 
+            gathering = Gathering.objects.get(regid=belong.gathering.regid),
             date = edate)
+          witness.save()
           counter['Gathering_Witness'] += 1
-          print(f"{lineno} {regid} new witness {gathering} {edate}", file=last_import_log)
+          print(f"{lineno} {regid} new witness {gathering}=>{belong.gathering.regid}:{edate}", file=last_import_log)
           #print(f"URWC {lineno} {regid} Witness created")
 
         # Compare if newer
         rec_updated = get_update_timestamp(rec.get('RUPD'))
+        print(f"{lineno} {regid} rec_updated {rec_updated} {rec_updated.tzinfo}", file=last_import_log)
         db_updated = get_update_timestamp(witness.updated)
+        print(f"{lineno} {regid} db_updated {db_updated} {db_updated.tzinfo}", file=last_import_log)
         if rec_updated > db_updated:
           revnum = '0' + rec.get('REVNUM','0')
           revnum = revnum.replace(',', '').replace(' ', '')

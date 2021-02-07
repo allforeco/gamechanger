@@ -285,12 +285,14 @@ def _overview_by_name(request, loc_name='', loc_exact='', loc_id=''):
     sublocation_parent = location_list.first()
   elif loc_exact:
     location_list = Location.objects.filter(name=loc_name)
-    sublocation_parent = location_list.first()
+    if len(location_list) == 1:
+      sublocation_parent = location_list.first()
   else:
     if "," not in loc_name:
       # Simple search for a name
       location_list = Location.objects.filter(name__icontains=loc_name)
-      sublocation_parent = location_list.first()
+      if len(location_list) == 1:
+        sublocation_parent = location_list.first()
     else:
       # Name is something like "Colorado Blvd, Denver, CO, USA"
       loc_name = Location.make_location_name(*Location.split_location_name(loc_name))
