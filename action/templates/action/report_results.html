@@ -32,6 +32,9 @@
     {% endif %}
     {% if gat.duration %} each time for {{ gat.duration }} hours{% endif %}
   </p>
+  {% if gat_organizations %}
+    <p>Arranged by {{ gat_organizations|join:", " }}</p>
+  {% endif %}  
 </form>
 
 {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}

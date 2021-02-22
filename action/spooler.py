@@ -16,7 +16,7 @@
 
 import datetime, io, csv
 from uwsgidecorators import spool
-from .models import Country, Location, Gathering, Gathering_Belong, Gathering_Witness
+from .models import Country, Location, Gathering, Gathering_Belong, Gathering_Witness, Organization
 from .push_notifier import Push_Notifier
 
 try:
@@ -112,7 +112,7 @@ def get_update_timestamp(timeinfo):
     return timeinfo.replace(tzinfo=datetime.timezone.utc)
   if isinstance(timeinfo, str):
     try:
-      return datetime.datetime.strptime(timeinfo,"%Y-%m-%d %H:%M:%S.%f").replace(tzinfo=datetime.timezone.utc)
+      return datetime.datetime.strptime(timeinfo,"%Y-%m-%d %H:%M:%S").replace(tzinfo=datetime.timezone.utc)
     except:
       pass
   long_ago = datetime.datetime(1970, 1, 1, 0, 0, 0, 0, tzinfo=datetime.timezone.utc)
@@ -130,7 +130,8 @@ def update_reg(regs):
     line_count = len(regs)
     counter = {'Completed':0, 'Country':0, 'State':0, 'Region':0, 'Place':0,
                'Coords':0, 'Gathering':0, 'Gathering_Belong':0, 
-               'Gathering_Witness':0, 'Witness Updated':0, 'Witness Not Updated':0}
+               'Gathering_Witness':0, 'Witness Updated':0, 'Witness Not Updated':0,
+               'Organization':0}
     for lineno, line in enumerate(regs[1:], 1):
       if lineno % 1000 == 1:
         print(f"URCT {lineno-1} {counter}")
@@ -213,6 +214,19 @@ def update_reg(regs):
           print(f"URXL No place for {lineno} {regid}")
           print(f"{lineno} {regid} missing location {loc_name} in {location}", file=last_import_log)
 
+        organization = None
+        org_name = rec.get('CORG2')
+        if org_name:
+          org_name = org_name[:25]# FIXME: Max length 25 chars; Find better ways to do this?
+          organization = Organization.objects.filter(
+            name = org_name).first()
+          if not organization:
+            organization = Organization(
+              name = org_name)
+            organization.save()
+            counter['Organization'] += 1
+            print(f"{lineno} {regid} new organization {org_name}", file=last_import_log)
+
         gathering = Gathering.objects.filter(location=location, regid=regid).first()
         if not gathering:
           gathering = Gathering(
@@ -221,6 +235,8 @@ def update_reg(regs):
             location=location,
             start_date=edate,
             end_date=edate)
+          if organization:
+            gathering.organizations.add(organization)
           #print(f"Adding gathering {gathering}")
           gathering.save() 
           counter['Gathering'] += 1
@@ -237,28 +253,36 @@ def update_reg(regs):
           print(f"{lineno} {regid} new belong {belong}", file=last_import_log)
           #print(f"URGB {lineno} {regid} Gathering_Belong created")
 
-        witness = Gathering_Witness.objects.filter(
+        long_ago = datetime.datetime(1970,1,1,tzinfo=datetime.timezone.utc)
+        db_updated = long_ago
+        witness_queryobj = Gathering_Witness.objects.filter(
           gathering = Gathering.objects.get(regid=belong.gathering.regid),
-          date = edate).first()
+          date = edate)
+        witness = witness_queryobj.first()
+        print(f"{lineno} {regid} {edate} witnesses count {witness_queryobj.count()} first: {witness.__dict__ if witness else None}", file=last_import_log)
         if not witness:
           witness = Gathering_Witness(
             gathering = Gathering.objects.get(regid=belong.gathering.regid),
-            date = edate)
+            date = edate,
+            updated = long_ago)
           witness.save()
           counter['Gathering_Witness'] += 1
           print(f"{lineno} {regid} new witness {gathering}=>{belong.gathering.regid}:{edate}", file=last_import_log)
           #print(f"URWC {lineno} {regid} Witness created")
+        else:
+          db_updated = get_update_timestamp(witness.updated)
+          print(f"{lineno} {regid} db_updated {db_updated} {db_updated.tzinfo} {witness.updated}", file=last_import_log)
 
         # Compare if newer
         rec_updated = get_update_timestamp(rec.get('RUPD'))
         print(f"{lineno} {regid} rec_updated {rec_updated} {rec_updated.tzinfo}", file=last_import_log)
-        db_updated = get_update_timestamp(witness.updated)
-        print(f"{lineno} {regid} db_updated {db_updated} {db_updated.tzinfo}", file=last_import_log)
-        if rec_updated > db_updated:
+        print(f"{lineno} {regid} participants {witness.participants} {rec.get('REVNUM','0')}", file=last_import_log)
+        if rec_updated > db_updated or db_updated == long_ago:
           revnum = '0' + rec.get('REVNUM','0')
           revnum = revnum.replace(',', '').replace(' ', '')
           witness.participants = int(revnum)
           witness.proof_url = rec.get('REVPROOF','')
+          witness.updated = rec_updated
           witness.save()
           counter['Witness Updated'] += 1
           print(f"{lineno} {regid} updated witness {witness}, {rec_updated} > {db_updated}", file=last_import_log)
@@ -270,7 +294,7 @@ def update_reg(regs):
         counter['Completed'] += 1
         print(f"{lineno} {regid} completed {location} in {location.in_location}: {place} {region} {state} {country} {gathering} {belong} {witness} <- '{loc_name}'", file=last_import_log)
       except Exception as e:
-        print(f"{lineno} {regid} exception", file=last_import_log)
+        print(f"{lineno} {regid} exception {e}", file=last_import_log)
         print(f"URXX === Exception on {lineno} updated recs:\n{e}")
     print(f"URDN {lineno} records results: {counter}")
     if lineno:

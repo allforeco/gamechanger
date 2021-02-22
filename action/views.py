@@ -155,10 +155,12 @@ class GatheringCreate(FormView):
   class GatheringCreateForm0(forms.ModelForm):
     class Meta:
       model = Gathering
-      fields = ['gathering_type', 'location', 'start_date', 'end_date', 'duration', 'expected_participants']
+      fields = ['gathering_type', 'location', 'start_date', 'end_date', 'duration', 
+        'expected_participants', 'organizations']
       print(f"GCV1 ")
       widgets = {
-        'location': autocomplete.ModelSelect2(url='/action/location-autocomplete/')
+        'location': autocomplete.ModelSelect2(url='/action/location-autocomplete/'),
+        'organizations': autocomplete.ModelSelect2(url='/action/organization-autocomplete/')
       }
 
     def get_success_url(self):
@@ -308,7 +310,7 @@ def _overview_by_name(request, loc_name='', loc_exact='', loc_id=''):
         is_candidate = True
         in_area = cand_location
         loc_in_list = location_levels
-        watchdog = 5
+        watchdog = 8
         while loc_in_list:
           watchdog -= 1
           if watchdog < 0:
@@ -416,6 +418,7 @@ def overview(request, regid, date=None, prev_participants=None, prev_url=None, e
     gathering_list = []
 
   gat = Gathering.objects.get(regid=regid)
+  print(f"ORG2 {gat.organizations.all()}")
   context = {
     'place_name': gat.get_place_name(),
     'in_location': gat.get_in_location(),
@@ -423,6 +426,7 @@ def overview(request, regid, date=None, prev_participants=None, prev_url=None, e
     'date': date,
     'regid': regid,
     'gat': gat,
+    'gat_organizations': [org.name for org in gat.organizations.all()],
     'gat_type': gat.get_gathering_type_str(),
     'gathering_list': gathering_list,
     'prev_participants': prev_participants,

@@ -2,7 +2,9 @@
 
 {% block content %}
 
-{% if not location and not sublocation_parent %}
+{% if not location and not sublocation_parent and locations %}
+  <h1>Multiple locations found</h1>
+{% elif not location and not sublocation_parent %}
   <h1>No such location found</h1>
 {% else %}
   <h1>Location Overview {% if sublocation_parent %} of {{ sublocation_parent }}{% endif %}</h1>
