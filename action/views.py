@@ -511,6 +511,26 @@ def report_date(request, regid, date):
         witness.save()
         error_message = f"Report for {date} Saved!"
         print(f"RDUP Updated witness {witness} {witness.__dict__}")
+
+        organization_id = None
+        try:
+          organization_id = int(request.POST.get('organization'))
+        except:
+          pass
+        print(f"RDOR Organization {organization_id}")
+        if isinstance(organization_id, int):
+          org = Organization.objects.filter(id = organization_id).first()
+          if org:
+            if org not in gathering.organizations.all():
+              gathering.organizations.add(org)
+              gathering.save()
+              print(f"RDOA Organization {organization_id} added to {gathering.regid}")
+            else:
+              print(f"RDOD Organization {organization_id} already present in {gathering.regid}")
+          else:
+            print(f"RDOM Organization {organization_id} not found")
+        else:
+          print(f"RDOE Organization field empty or unchanged")
       else:
         print(f"RDNC No change")
   except Exception as e:

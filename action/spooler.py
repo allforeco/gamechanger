@@ -253,6 +253,11 @@ def update_reg(regs):
           print(f"{lineno} {regid} new belong {belong}", file=last_import_log)
           #print(f"URGB {lineno} {regid} Gathering_Belong created")
 
+        if organization and organization not in belong.gathering.organizations.all():
+          belong.gathering.organizations.add(organization)
+          belong.gathering.save() 
+          print(f"{lineno} {regid} added organization {organization} to gathering {belong.gathering.regid} {belong.gathering.location}", file=last_import_log)
+
         long_ago = datetime.datetime(1970,1,1,tzinfo=datetime.timezone.utc)
         db_updated = long_ago
         witness_queryobj = Gathering_Witness.objects.filter(
