@@ -409,6 +409,11 @@ def _overview_by_name(request, loc_name='', loc_exact='', loc_id=''):
   return HttpResponse(template.render(context, request))
 
 def overview(request, regid, date=None, prev_participants=None, prev_url=None, error_message=None):
+  from django.template.defaulttags import register
+  @register.filter
+  def get_item(dictionary, key):
+      return dictionary.get(key)
+
   regid = get_canonical_regid(regid)
   if not regid:
     return bad_link(request, "Something went wrong with this link (#21)")
@@ -416,6 +421,13 @@ def overview(request, regid, date=None, prev_participants=None, prev_url=None, e
     gathering_list = Gathering_Witness.objects.filter(gathering=regid).order_by('-date')
   except Gathering_Witness.DoesNotExist:
     gathering_list = []
+
+  pin_colmap = {}
+  pin_colors = set(['black'])
+  for gathering in gathering_list:
+    col = gathering.get_pin_color()
+    pin_colmap[gathering.date] = col
+    pin_colors.add(col)
 
   gat = Gathering.objects.get(regid=regid)
   print(f"ORG2 {gat.organizations.all()}")
@@ -433,6 +445,8 @@ def overview(request, regid, date=None, prev_participants=None, prev_url=None, e
     'prev_url': prev_url,
     'today': datetime.datetime.today(),
     'favorite_location': None,
+    'colors': pin_colors,
+    'colmap': pin_colmap,
   }
 
   if request.POST.get('favorite'):
@@ -647,7 +661,7 @@ def join_us(request):
     return HttpResponse(template.render(context, request))
 
   screenname = html.escape(raw_screenname)
-  callsign = html.escape(raw_screenname).lower()
+  callsign = html.escape(raw_screenname.lower())
   if UserHome.objects.filter(callsign=callsign):
     context = {'error_message': f"Callsign '{screenname}' is already taken. Please try another one."}
     return HttpResponse(template.render(context, request))

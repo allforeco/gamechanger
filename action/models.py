@@ -242,6 +242,13 @@ class Gathering(models.Model):
   def get_gathering_type_str(self):
     return {key:val for (key, val) in Gathering._gathering_type_choices}[self.gathering_type]
 
+  @staticmethod
+  def get_gathering_type_code(s):
+    for (key, val) in Gathering._gathering_type_choices:
+      if s.casefold() == val.casefold():
+        return key
+    return Gathering.OTHER
+
   def get_canonical_regid(self):
     try:
       return Gathering_Belong.objects.get(regid=self.regid).gathering.regid
@@ -276,3 +283,28 @@ class Gathering_Witness(models.Model):
   proof_url = models.URLField(max_length=500, blank=True)
   creation_time = models.DateTimeField(auto_now_add=True, editable=False)
   updated = models.DateTimeField(auto_now_add=True, null=True, editable=False)
+  organization = models.ForeignKey(Organization, on_delete=models.SET_NULL, blank=True, null=True, editable=False)
+
+  def get_pin_color(self):
+    # FIXME: should be picked up from Coffer
+    pin_color_map = {
+      "blue": ["Weekly", "FridaysForFuture", "YFC blue", "Persistent Presence fridays For Future", "FFF Fridays For Future"],
+      "dark red": ["Once / Irregular  month irregular dark red  year  yearly"],
+      "grey": ["Historic  grey"],
+      "yellow": ["11thHFC / Sunrise (prefer 11thHourForClimate) 11thHourForClimate  11thHour  yellow  11th Hour 11th Hour For The Climate 11thHFC Sunrise 11thhourforclimate"],
+      "green": ["Online / EarthStrike / Digital / Training EarthStrike Earth Strike  green Online  digitalFFF  talksforfuture  training for future climatestrikeonline Fridays 4 Future Online FridaysforfutureOnline  Fridays4FutureOnline  Course  Training  training for future Digital DigitalFFF  Online strike"],
+      "pink": ["Local / Work Group  Local Group pink  Work"],
+      "black": ["Other (incl) XR / Ecocide  / WCUD/ RR / Ende Gelende /  Extinction Rebellion  XR  black By2020WeRiseUp  By2020  WorldCleanUpDay WCUD  WCD Other SOSAmazon Amazon  Buy nothing day Buynothingday Enköpfridag En köpfri dag Climate Roar  Ecocide Ende Gelende"],
+      "dark blue": ["Parents / Family / Psychologists / Queers / AllFF AllForFuture  Zero Hour dark blue Earth Uprising  Psychologistsforfuture  psykologer  family for future physiotherapistsforfuture Queers4Climate  Parentsforfuture  föräldrar Parents for future  p4f Pff Grandparentsforfuture artistsforfuture  familyforfuture"],
+      "red": ["ShoeProtest Shoestrike for future Shoestrikeforfuture red Shoestrikeff  Skostrejk Skostrejkff Skostrejkforfuture  ShoeProtest ShoeProtest for future  Shoe Strike ShoeStrike"],
+      "orange": ["Teachers / Scientists / Researchers / Developers  ScientistsForFuture s4f orange  researchers desk  ResearchersDesk Teachersforfuture Teachers for future Teachers for climate  Teacherforclimate developersforfuture FridaysforfutureTeachers  Breaksforfuture"],
+    }
+    gat = self.gathering
+    orgs = gat.organizations.all()
+    for org in orgs:
+      for col in pin_color_map:
+        for name in pin_color_map[col]:
+          #print(f"GPCN {self.date} {gat} org:{org} col:{col} mapname:'{name}' actname:'{org.name}'")
+          if org.name.casefold() in name.casefold():
+            return col
+    return "black"

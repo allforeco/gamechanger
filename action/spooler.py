@@ -125,7 +125,7 @@ def update_reg(regs):
     print(f"Action spooler update_reg log taken on {datetime.datetime.ctime(datetime.datetime.utcnow())}", file=last_import_log)
     print(f"ULOG Writing update_reg log to {last_import_log_name}")
 
-    headers = regs[0] # RID,RUPD,GLOC,EDATE,EENDDATE,REVNUM,REVPROOF
+    headers = regs[0] # RID,RUPD,GLOC,GLAT,GLON,CORG2,EDATE,EENDDATE,REVNUM,REVPROOF,RSOURCE,ETYPE,EFREQ,ETIME,ELINK
     print(f"URHD Read headers {headers}")
     line_count = len(regs)
     counter = {'Completed':0, 'Country':0, 'State':0, 'Region':0, 'Place':0,
@@ -141,6 +141,9 @@ def update_reg(regs):
         rec[headers[col]] = val
       regid = rec.get('RID', None)
       edate = rec.get('EDATE', None)
+      eenddate = rec.get('EENDDATE', None)
+      etype_raw = rec.get('ETYPE', 'Strike')
+      etype = Gathering.get_gathering_type_code(etype_raw)
       if not regid or not edate:
         print(f"{lineno} missing regid {regid} or edate {edate}", file=last_import_log)
         print(f"URBR Skipping record {lineno} {regid} {edate}")
@@ -231,10 +234,10 @@ def update_reg(regs):
         if not gathering:
           gathering = Gathering(
             regid=regid,
-            gathering_type='STRK', # FIXME
+            gathering_type=etype,
             location=location,
             start_date=edate,
-            end_date=edate)
+            end_date=eenddate)
           if organization:
             gathering.organizations.add(organization)
           #print(f"Adding gathering {gathering}")
@@ -243,6 +246,16 @@ def update_reg(regs):
           print(f"{lineno} {regid} new gathering {gathering}", file=last_import_log)
           #print(f"URGC {lineno} {regid} Gathering created")
         else:
+          dirty = False
+          if gathering.gathering_type != etype:
+            gathering.gathering_type = etype
+            dirty = True
+          if gathering.end_date != eenddate:
+            gathering.end_date = eenddate
+            dirty = True
+          if dirty:
+            print(f"{lineno} {regid} updated gathering {gathering.gathering_type} {gathering.end_date}", file=last_import_log)
+            gathering.save()
           print(f"{lineno} {regid} existing gathering {gathering} {gathering.regid} {gathering.location}", file=last_import_log)
 
         belong = Gathering_Belong.objects.filter(regid = regid).first()
@@ -277,6 +290,12 @@ def update_reg(regs):
         else:
           db_updated = get_update_timestamp(witness.updated)
           print(f"{lineno} {regid} db_updated {db_updated} {db_updated.tzinfo} {witness.updated}", file=last_import_log)
+
+        if organization:
+          if witness.organization != organization:
+            witness.organization = organization
+            witness.save()
+            print(f"URWO {lineno} {regid} Witness organization updated to {organization}")
 
         # Compare if newer
         rec_updated = get_update_timestamp(rec.get('RUPD'))

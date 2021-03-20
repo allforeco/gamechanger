@@ -10,6 +10,13 @@
 
 <style>
   div.favoriteform > input {display: inline-block;}
+
+  div.gathering ul {
+    list-style: none; /* Remove default bullets */
+  }
+  {% for color in colors %}
+    div.gathering ul li.{{color}}::before { content: "\2743"; color: {{color}}; display: inline-block; width: 1em; margin-left: -1em; }
+  {% endfor %}
 </style>
 
 {% if date %}
@@ -20,7 +27,10 @@
   {% csrf_token %}
   <div class="favoriteform" style="white-space:nowrap; display:inline-block;">
     <p>Report Results for{% if favorite_location == 'True' %} favorite location{% endif %}</p>
-    <h1 style="display: inline-block;">{{ place_name }}</h1>
+    <h1 style="display: inline-block;">{{ place_name }}
+      <!--a href="https://map.fridaysforfuture.org/?e={{regid}}/{{date}}">&nbsp;🌐&nbsp;</a-->
+      <a href="https://map.fridaysforfuture.org/?e={{regid}}">&nbsp;🌐&nbsp;</a>
+    </h1>
     {% if favorite_location == 'True' %}
       <input type="submit" name="favorite" id="favorite" value="Remove from Favorites" style="color:red; display: inline-block;"/>
     {% endif %}
@@ -105,28 +115,36 @@
         <script src="/static/autocomplete_light/select2.min.js"></script>
         <script src="/static/autocomplete_light/i18n/en.js"></script>
       </tr>
-      <!--tr>
-        <td style="white-space:nowrap;">
-          <input type="submit" value="Report Result" style="display: inline-block;"/>
-        </td>
-        <td style="white-space:nowrap;">
-          <div style="color:red; display: none;" id="save_changes">&nbsp;&nbsp;&nbsp;↤&nbsp;&nbsp;Save Your Changes</div>
-        </td>
-      </tr-->
+      {% if user.is_authenticated is user.is_authenticated %}
+        <tr>
+          <td style="white-space:nowrap;">
+            <input type="submit" value="Report Result" style="display: inline-block;"/>
+          </td>
+          <td style="white-space:nowrap;">
+            <div style="color:red; display: none;" id="save_changes">&nbsp;&nbsp;&nbsp;↤&nbsp;&nbsp;Save Your Changes</div>
+          </td>
+        </tr>
+      {% endif %}
     </table>
-    <p style="color:red">Reporting temporarily closed for maintenance. Use this reporting form instead: <a href="https://docs.google.com/forms/d/e/1FAIpQLSeyRjvtBZZAEXUbLDe_P4tTIKncQaGxrkrxUcmmiyaZDdLFtg/viewform">Report!</a></p>
+    {% if True is False %}
+      <p style="color:red">Reporting temporarily closed for maintenance. Use this reporting form instead: <a href="https://docs.google.com/forms/d/e/1FAIpQLSeyRjvtBZZAEXUbLDe_P4tTIKncQaGxrkrxUcmmiyaZDdLFtg/viewform">Report!</a></p>
+    {% endif %}
   </form>
 {% endif %}
 <h2>Reports</h2>
 {% if gathering_list %}
-  <ul>
-  {% for witness in gathering_list %}
-    <li><a href="/action/report_results/date/{{ regid }}/{{ witness.date|date:'Y-m-d' }}/">{{ witness.date|date:"Y-m-d" }}</a>
-      : {% if witness.participants %}{{ witness.participants }}{% else %}?{% endif %}
-      {% if witness.proof_url %}  <a href="{{ witness.proof_url }}">View Photo</a>{% endif %}
-    </li>
-  {% endfor %}
-  </ul>
+  <div class="gathering">
+    <ul>
+      {% for witness in gathering_list %}
+        <li class="{{colmap|get_item:witness.date}}">
+          <a href="/action/report_results/date/{{ regid }}/{{ witness.date|date:'Y-m-d' }}/">{{ witness.date|date:"Y-m-d" }}</a>
+          : {% if witness.participants %}{{ witness.participants }}{% else %}?{% endif %}
+          {% if witness.proof_url %}  <a href="{{ witness.proof_url }}">View Photo</a>{% endif %}
+          {% if witness.organization %} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<small>({{ witness.organization }})</small>{% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
 {% else %}
   <p>No results registered yet.</p>
 {% endif %}
