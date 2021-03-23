@@ -256,7 +256,7 @@ def get_canonical_regid(regid):
     return None
 
 def index(request):
-  latest_gathering_list = Gathering_Witness.objects.order_by('-creation_date')[:5]
+  latest_gathering_list = Gathering_Witness.objects.order_by('-creation_time')[:5]
   template = loader.get_template('action/index.html')
   context = {
     'latest_gathering_list': latest_gathering_list,
