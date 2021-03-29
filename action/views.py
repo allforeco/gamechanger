@@ -36,6 +36,7 @@ except:
   print(f"SIMP No uwsgi spooler environment")
 from .models import Gathering, Gathering_Belong, Gathering_Witness, Location, UserHome, Organization
 from django.contrib.auth.models import User
+from .geo_view import geo_view_handler, geo_date_view_handler, GeoUpdateView
 
 class HomeView(FormView):
   class LocationSearchForm(forms.Form):
@@ -677,7 +678,7 @@ def join_us(request):
   userhome = UserHome(
     callsign = callsign, 
     screenname = screenname,
-    loginuser = loginuser,
+    loginuser_id = loginuser.id,
     visibility_level = visibility,
   )
   userhome.save()
