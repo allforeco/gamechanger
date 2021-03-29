@@ -60,7 +60,7 @@
   <p>No events directly at this level.</p>
 {% endif %}
 {% if sublocations %}
-  <h1>{{ sublocations|length }} Locations in {{ sublocation_parent }}</h1>
+  <h1>Plus {{ sublocations|length }} locations in and around {{ sublocation_parent }}</h1>
   <p>
     {% for loc in sublocations %}
       <a href="{% url 'action:overview_by_name' %}?locid={{ loc.id }}">{{ loc.name }}</a>{% if loc != sublocations|last %}&nbsp;&nbsp;&nbsp; {% endif %}
