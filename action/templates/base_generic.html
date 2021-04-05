@@ -17,11 +17,12 @@
 		<div style="padding: 8px; margin: 5px 0px; background-color:#cccccc;">
 			{% if user.is_authenticated %}
 				Welcome, {{ user.get_username }}&nbsp;&nbsp;&nbsp;
+        <a href="{% url 'action:logout' %}?next={{request.path}}">Logout</a>
 			{% else %}
 				Hello, Stranger!&nbsp;&nbsp;&nbsp;
-			{% endif %}
-			<a href="{% url 'action:login' %}?next={{request.path}}">Login</a> or
-			<a href="{% url 'action:join_us' %}?next={{request.path}}">Join Us</a>
+        <a href="{% url 'action:login' %}?next={{request.path}}">Login</a> or
+        <a href="{% url 'action:join_us' %}?next={{request.path}}">Join Us</a>
+      {% endif %}
 		</div>
 
     {% endblock %}
