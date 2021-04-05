@@ -1,30 +1,30 @@
 <!DOCTYPE html>
+{% load static %}
 <html lang="en">
   <head>
     {% block title %}
       <title>Gamechanger Action Tracker</title>
     {% endblock %}
 
-    {% block navbar %}
-      <div style="background-color:#cccccc; white-space:nowrap;">
-       {% if user.is_authenticated %}
-         <div style="display: inline-block;">Gamechanger.eco Action Tracker&nbsp;&nbsp;&nbsp;</div>
-         <div style="display: inline-block;">Welcome, {{ user.get_username }}&nbsp;&nbsp;&nbsp;</div>
-         <div style="display: inline-block;"><a href="{% url 'action:home' %}">Your Home</a>&nbsp;&nbsp;&nbsp;</div>
-         <div style="display: inline-block;"><a href="{% url 'action:logout' %}?next={{request.path}}">Logout</a>&nbsp;&nbsp;&nbsp;</div>
-       {% else %}
-         <div style="display: inline-block;">
-           Gamechanger.eco Action Tracker&nbsp;&nbsp;&nbsp;
-           Hello, Stranger!&nbsp;&nbsp;&nbsp;
-           <a href="{% url 'action:login' %}?next={{request.path}}">Login</a> or 
-           <a href="{% url 'action:join_us' %}?next={{request.path}}">Join Us</a>
-        </div>
-       {% endif %} 
-      </div>
-    {% endblock %}
-
+    <link rel="shortcut icon" type="image/png" href="{% static 'favicon.ico' %}"/>
+    <link rel="stylesheet" type="text/css" href="{% static 'style.css' %}"/>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   </head>
-  <body>
+  <body style="margin: 8px">
+    {% block navbar %}
+		<a href="/action/home"><img src="{% static 'gc.jpg' %}" alt="" style="width: 73px; margin-bottom: -11px; border-right: 5px solid white;"/></a>
+		<h2 style="margin-top: 8px; margin-bottom: 8px; display: inline-block">Gamechanger.eco<br>Action Tracker</h2>
+		<div style="padding: 8px; margin: 5px 0px; background-color:#cccccc;">
+			{% if user.is_authenticated %}
+				Welcome, {{ user.get_username }}&nbsp;&nbsp;&nbsp;
+			{% else %}
+				Hello, Stranger!&nbsp;&nbsp;&nbsp;
+			{% endif %}
+			<a href="{% url 'action:login' %}?next={{request.path}}">Login</a> or
+			<a href="{% url 'action:join_us' %}?next={{request.path}}">Join Us</a>
+		</div>
+
+    {% endblock %}
     {% block content %}<!-- default content text (typically empty) -->{% endblock %}
   </body>
 </html>

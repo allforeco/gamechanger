@@ -1,5 +1,9 @@
 {% extends "base_generic.html" %}
 
+{% block title %}
+      <title>Location Overview {% if sublocation_parent %} of {{ sublocation_parent }}{% endif %} - Gamechanger Action Tracker</title>
+{% endblock %}
+
 {% block content %}
 
 {% if not location and not sublocation_parent and locations %}
