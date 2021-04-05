@@ -128,3 +128,4 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = '/var/www/gamechanger.eco/static/'
+STATICFILES_DIRS = ['static/']

@@ -1,6 +1,8 @@
 {% extends "base_generic.html" %}
 
-{% load static %}
+{% block title %}
+      <title>Reports {{ this_location.name }} - Gamechanger Action Tracker</title>
+{% endblock %}
 
 {% block content %}
   <h1>{{ this_location.name }}</h1>

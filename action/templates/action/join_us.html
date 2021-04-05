@@ -1,17 +1,9 @@
 {% extends "base_generic.html" %}
 
-{% block navbar %}
-
-<div style="background-color:#cccccc; white-space:nowrap;">
- {% if user.is_authenticated %}
-   <div style="display: inline-block;">Welcome, {{ user.get_username }}</div>
-   <div style="display: inline-block;">&nbsp;&nbsp;&nbsp;<a href="{% url 'action:logout' %}?next={{request.path}}">Logout</a></div>
- {% else %}
-   <div style="display: inline-block;">Hello, Stranger!&nbsp;&nbsp;&nbsp;<a href="{% url 'action:login' %}?next={{request.path}}">Login</a> or <a href="{xx% url 'join_us' %xx}?next={{request.path}}">Join Us</a></div>
- {% endif %} 
-</div>
-
+{% block title %}
+      <title>Join Us - Gamechanger Action Tracker</title>
 {% endblock %}
+
 {% block content %}
 
   {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
@@ -27,38 +19,37 @@
     {% csrf_token %}
     <table>
       <tr>
-        <td><legend>Invitation Code</legend></td>
-        <td><input type="text" name="invitation_code" value="" required minlength="5" maxlength="10"/></td>
+        <td><input placeholder="Invitation Code" type="text" name="invitation_code" value="" required minlength="5" maxlength="10"/></td>
         <td><p>The personal code you got from whoever invited you.</p></td>
       </tr>
       <tr>
-        <td><legend>Pick a Callsign</legend></td>
-        <td><input type="text" name="screenname" value="" required minlength="5" maxlength="25"/><!--oninput="check_available()"--></td>
+        <td><input placeholder="Pick a Callsign" type="text" name="screenname" value="" required minlength="5" maxlength="25"/><!--oninput="check_available()"--></td>
         <td><p>The name you want to be called on this site. At least 5 characters, no spaces. E.g. "Nemo-the-fish" or "Hubei"</p></td>
       </tr>
       <tr>
-        <td><legend>Pick a Password</legend></td>
-        <td><input type="password" name="password" value="" required minlength="10" maxlength="25"/><!--oninput="check_strength()"--></td>
+        <td><input placeholder="Pick a Password" type="password" name="password" value="" required minlength="10" maxlength="25"/><!--oninput="check_strength()"--></td>
         <td><p>The password for your account. At least 10 characters.</p></td>
       </tr>
       <tr>
-        <td><legend>Select Visibility</legend></td>
-        <td>
+        <td colspan="2">
           <select required name="visibility" id="visibility">
             <option value="SIGN">Callsign only, no other information is visible</option>
-            <option value="PRIV">Callsign, Country, State, Zip code and Organizations are visible</option>
+            <option value="PRIV">Callsign, Country, State, Zip code and Org are visible</option>
             <option value="FRND">As above, plus email-address visible to friends</option>
             <option value="PUBL">As above, plus email-address visible to all</option>
             <option value="OPEN">All contact information you provide is visible to all</option>
           </select>
         </td>
-        <td><p>Control how much information about yourself is visible to others. You don't have to state your geographic location or share your email-address if you don't want to. All you have to do is to pick an available Callsign.</p></td>
       </tr>
       <tr>
-        <td>
-          <input type="submit" value="Create Account"/>
+        <td colspan="2">
+			Select Visibility - Control how much information about yourself is visible to others. You don't have to state your geographic location or share your email-address if you don't want to. All you have to do is to pick an available Callsign.
         </td>
-        <td>
+      </tr>
+      <tr>
+        <td colspan="2">
+          <br>
+		  <input type="submit" value="Create Account"/>
           <p>There is <strong>currently no way</strong> to recover a lost password, so please keep it safe.</p>
         </td>
       </tr>
