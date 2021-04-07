@@ -1,0 +1,40 @@
+{% extends "base_generic.html" %}
+
+{% block title %}
+      <title>Event Overview - Gamechanger Action Tracker</title>
+{% endblock %}
+
+{% block content %}
+
+{% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+
+  <style>
+    td{
+      padding-left: 4px;
+      padding-right: 16px;
+      padding-bottom: 4px;
+    }
+
+    .highlight{
+      background-color: #efefef;
+    }
+  </style>
+
+  <table>
+    <thead>
+      <td>Country</td>
+      <td>Reports</td>
+    </thead>
+    {% for location, reports, locid in reports_list %}
+    <tr class="highlight">
+      <td>
+        <a href="{% url 'action:geo_view' locid %}" >{{location }}</a>
+      </td>
+      <td> 
+        {{ reports }}
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+
+{% endblock %}
