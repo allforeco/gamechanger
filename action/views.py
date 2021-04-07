@@ -37,6 +37,7 @@ except:
 from .models import Gathering, Gathering_Belong, Gathering_Witness, Location, UserHome, Organization
 from django.contrib.auth.models import User
 from .geo_view import geo_view_handler, geo_date_view_handler, GeoUpdateView
+from .start_view import start_view_handler
 
 class HomeView(FormView):
   class LocationSearchForm(forms.Form):
