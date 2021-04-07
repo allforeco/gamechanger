@@ -1,0 +1,64 @@
+{% extends "base_generic.html" %}
+
+{% block title %}
+      <title>Event Overview - Gamechanger Action Tracker</title>
+{% endblock %}
+
+{% block content %}
+
+{% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+
+  <style>
+    td{
+      padding-left: 4px;
+      padding-right: 16px;
+      padding-bottom: 4px;
+    }
+
+    .highlight{
+      background-color: #efefef;
+    }
+  </style>
+
+  <table>
+    <thead>
+      <td>Date</td>
+      <td>Registration</td>
+      <td>Location</td>
+      <td>Host</td>
+      <td>Participants</td>
+      <td>Photo</td>
+    </thead>
+    {% for event in event_list %}
+    <tr class="highlight">
+      <td> 
+        {{event.date|date:'d-m-Y'}} 
+      </td>
+      <td>
+        <small>{{ event.gathering.regid}}</small>
+      </td>
+      <td>
+        <a href="{% url 'action:geo_view' event.gathering.location.id %}"> {{event.gathering.location.name}} </a>
+      </td>
+      <td>
+        {% if event.organization %}
+          {{ event.organization}}
+        {% endif %}
+      </td>
+      <td style="text-align: right;">
+        {% if event.participants %}
+          {{ event.participants}}
+        {% else %}
+          ?
+        {% endif %}
+      </td>
+      <td>
+        {% if witness.proof_url %}
+          <a href="{{ event.gathering.proof_url }}">Photo</a>
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+
+{% endblock %}
