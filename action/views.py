@@ -36,7 +36,7 @@ except:
   print(f"SIMP No uwsgi spooler environment")
 from .models import Gathering, Gathering_Belong, Gathering_Witness, Location, UserHome, Organization
 from django.contrib.auth.models import User
-from .geo_view import geo_view_handler, geo_date_view_handler, GeoUpdateView
+from .geo_view import geo_view_handler, geo_date_view_handler, GeoUpdateView, translate_maplink
 from .start_view import start_view_handler
 from .top_reporters_view import top_reporters_view_handler
 
@@ -50,16 +50,19 @@ class HomeView(FormView):
       label='Select Particular',
       required=False,
     )
-    freetext = forms.CharField(
-      label='Freetext Search',
-      required=False)
+    #freetext = forms.CharField(
+    #  label='Freetext Search',
+    #  required=False)
 
   template_name = 'action/home.html'
   form_class = LocationSearchForm
 
   def get_success_url(self):
     print(f"HOMS {self.clean_location}")
-    return reverse_lazy('action:overview_by_name')+"?location="+str(self.clean_location)
+    try:
+      return reverse_lazy('action:geo_view', kwargs={'locid': self.clean_location.id})
+    except:
+      return reverse_lazy('action:home')
 
   def form_valid(self, form):
     self.clean_location = form.cleaned_data.get('location')
@@ -82,6 +85,7 @@ class HomeView(FormView):
         userhome = UserHome.objects.get(callsign=self.request.user.username)
         favorites_list = []
         for loc in userhome.favorite_locations.all():
+          locid = Gathering.objects.filter(location=loc).first().location_id
           regid = Gathering.objects.filter(location=loc).first().regid
           events = [w.participants for w in Gathering_Witness.objects.filter(gathering=regid)]
           last_week = [w.participants for w in Gathering_Witness.objects.filter(gathering=regid, 
@@ -92,6 +96,7 @@ class HomeView(FormView):
             "participants": sum(events),
             "last_week": sum(last_week),
             "regid": regid,
+            "locid": locid,
             "in_location": loc.in_location,
           }]
           print(f"HOM2 {loc.name} in {loc.in_location}")
@@ -410,162 +415,6 @@ def _overview_by_name(request, loc_name='', loc_exact='', loc_id=''):
   template = loader.get_template('action/location_overview.html')
   #{% url 'action:overview' gat.regid %}
   return HttpResponse(template.render(context, request))
-
-def overview(request, regid, date=None, prev_participants=None, prev_url=None, error_message=None):
-  from django.template.defaulttags import register
-  @register.filter
-  def get_item(dictionary, key):
-      return dictionary.get(key)
-
-  regid = get_canonical_regid(regid)
-  if not regid:
-    return bad_link(request, "Something went wrong with this link (#21)")
-  try:
-    gathering_list = Gathering_Witness.objects.filter(gathering=regid).order_by('-date')
-  except Gathering_Witness.DoesNotExist:
-    gathering_list = []
-
-  pin_colmap = {}
-  pin_colors = set(['black'])
-  for gathering in gathering_list:
-    col = gathering.get_pin_color()
-    pin_colmap[gathering.date] = col
-    pin_colors.add(col)
-
-  gat = Gathering.objects.get(regid=regid)
-  print(f"ORG2 {gat.organizations.all()}")
-  context = {
-    'place_name': gat.get_place_name(),
-    'in_location': gat.get_in_location(),
-    'error_message': error_message,
-    'date': date,
-    'regid': regid,
-    'gat': gat,
-    'gat_organizations': [org.name for org in gat.organizations.all()],
-    'gat_type': gat.get_gathering_type_str(),
-    'gathering_list': gathering_list,
-    'prev_participants': prev_participants,
-    'prev_url': prev_url,
-    'today': datetime.datetime.today(),
-    'favorite_location': None,
-    'colors': pin_colors,
-    'colmap': pin_colmap,
-  }
-
-  if request.POST.get('favorite'):
-    print(f"FAVV {request.POST.get('favorite')}")
-    handle_favorite(request, regid)
-
-  if request.user.is_authenticated:
-    print(f"FAVU User {request.user.username}")
-    try:
-      userhome = UserHome.objects.get(callsign=request.user.username)
-      gathering = Gathering.objects.get(regid=regid)
-      context['favorite_location'] = str(gathering.location.id in [loc.id for loc in userhome.favorite_locations.all()])
-      print(f"FAVQ {context['favorite_location']} {gathering.location.id} {userhome.favorite_locations.all()}")
-    except:
-      print(f"FAVF No userhome object for user {request.user.username}")
-      userhome = None
-
-  template = loader.get_template('action/report_results.html')
-  return HttpResponse(template.render(context, request))
-
-def handle_favorite(request, regid):
-  print(f"FAVH {regid}")
-  if request.user.is_authenticated:
-    print(f"FAVX Authenticated")
-    userhome = UserHome.objects.get(callsign=request.user.username)
-    print(f"FAVU {request.user.username}")
-    gathering = Gathering.objects.get(regid=regid)
-    if userhome.favorite_locations.filter(id=gathering.location.id).count() == 0:
-      print(f"FAVA {gathering.location.id}")
-      userhome.favorite_locations.add(gathering.location.id)
-    else:
-      print(f"FAVR {gathering.location.id} {UserHome.objects.filter(favorite_locations__id=gathering.location.id)} {UserHome.favorite_locations.__dict__}")
-      userhome.favorite_locations.remove(gathering.location.id)
-    userhome.save()
-    print(f"FAVS Saved {UserHome.favorite_locations} {UserHome.objects.filter(favorite_locations__id=gathering.location.id)}")
-
-def report_results(request, regid):
-  regid = get_canonical_regid(regid)
-  if not regid:
-    return bad_link(request, "Something went wrong with this link. (#31)")
-  try:
-    date = request.POST['date']
-  except KeyError:
-    # Redisplay the form
-    return overview(request, regid, error_message="You must select a date for your results report.")
-  return report_date(request, regid, date)
-
-def report_date(request, regid, date):
-  print(f"RDST report_date {regid} {date}")
-  regid = get_canonical_regid(regid)
-  if not regid:
-    print("RDNO No regid")
-    return bad_link(request, "Something went wrong with this link. (#33)")
-  try:
-    error_message = ""
-    if request.POST.get('favorite'):
-      pass
-    else:
-      participants = request.POST.get('participants')
-      proof_url = request.POST.get('url')
-      print(f"RDPP partricpants={participants} proof={proof_url}")
-
-      gathering = Gathering.objects.filter(regid=regid).first()
-      if gathering and participants != None and proof_url != None:
-        try:
-          Gathering_Witness.objects.filter(gathering=regid, date=date).delete()
-          print(f"RDDL Deleted old Witness")
-        except:
-          pass
-        witness = Gathering_Witness(
-          gathering = gathering,
-          date = date,
-          participants = participants,
-          proof_url = proof_url,
-          updated = datetime.datetime.now())
-        witness.save()
-        error_message = f"Report for {date} Saved!"
-        print(f"RDUP Updated witness {witness} {witness.__dict__}")
-
-        organization_id = None
-        try:
-          organization_id = int(request.POST.get('organization'))
-        except:
-          pass
-        print(f"RDOR Organization {organization_id}")
-        if isinstance(organization_id, int):
-          org = Organization.objects.filter(id = organization_id).first()
-          if org:
-            if org not in gathering.organizations.all():
-              gathering.organizations.add(org)
-              gathering.save()
-              print(f"RDOA Organization {organization_id} added to {gathering.regid}")
-            else:
-              print(f"RDOD Organization {organization_id} already present in {gathering.regid}")
-          else:
-            print(f"RDOM Organization {organization_id} not found")
-        else:
-          print(f"RDOE Organization field empty or unchanged")
-      else:
-        print(f"RDNC No change")
-  except Exception as e:
-    print(f"RDXX Got Exception {e}")
-    pass
-  try:
-    witness = Gathering_Witness.objects.get(gathering=regid, date=date)
-    prev_participants = witness.participants
-    prev_url = witness.proof_url
-  except:
-    print(f"RDNW No witness")
-    prev_participants = 0
-    prev_url = ""
-  return overview(request, regid, 
-    date=date, 
-    prev_participants=prev_participants, 
-    prev_url=prev_url, 
-    error_message=error_message)
 
 def upload_reg(request, error_message=None):
   context = {
