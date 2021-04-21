@@ -23,25 +23,31 @@ from django.contrib.auth.decorators import login_required, permission_required
 from django import forms
 from .models import Gathering, Gathering_Belong, Gathering_Witness, Location, UserHome, Organization
 from django.shortcuts import redirect
+from datetime import datetime
 
 def geo_view_handler(request, locid):
-  print(f"TOWH {locid}")
+  #print(f"TOWH {locid}")
   this_location = Location.objects.filter(id=locid).first()
   parent_location = this_location.in_location
   sublocation_list = Location.objects.filter(in_location=this_location)
   gathering_list = Gathering.objects.filter(location=this_location)
   witness_dict = {}
-  print(f"TOWH {this_location} {parent_location} {len(sublocation_list)} {len(gathering_list)}")
+  #print(f"TOWH {this_location} {parent_location} {len(sublocation_list)} {len(gathering_list)}")
   for gathering in gathering_list:
     raw_witness_list = list(Gathering_Witness.objects.filter(gathering=gathering))
-    print(f"TOWI {gathering} {len(raw_witness_list)} {raw_witness_list}")
+    #print(f"TOWI {gathering} {len(raw_witness_list)} {raw_witness_list}")
     for w in raw_witness_list:
       witness_dict[(w.gathering.regid,w.date)] = w
   witness_list = list(witness_dict.values())
   witness_list.sort(key=lambda e: e.date, reverse=True)
   total_participants = sum([w.participants for w in witness_list if w.participants])
   template = loader.get_template('action/geo_view.html')
-  favorite_location = UserHome.objects.get(callsign=request.user.username).favorite_locations.filter(name=this_location.name).exists()
+  try:
+    favorite_location = UserHome.objects.get(callsign=request.user.username).favorite_locations.filter(name=this_location.name).exists()
+  except:
+    favorite_location = False
+  
+  new_report = Gathering_Witness()
   context = {
     'this_location': this_location,
     'parent_location': parent_location,
@@ -49,21 +55,22 @@ def geo_view_handler(request, locid):
     'witness_list': witness_list,
     'total_participants': total_participants,
     'favorite_location': favorite_location,
+    'locid': locid,
   }
 
   if request.POST.get('favorite'):
-    print(f"FAVV {request.POST.get('favorite')}")
+    #print(f"FAVV {request.POST.get('favorite')}")
     handle_favorite(request, this_location.id)
 
   if request.user.is_authenticated:
-    print(f"FAVU User {request.user.username}")
+    #print(f"FAVU User {request.user.username}")
     try:
       userhome = UserHome.objects.get(callsign=request.user.username)
       gathering = Gathering.objects.filter(location=locid).first()
       context['favorite_location'] = str(gathering.location.id in [loc.id for loc in userhome.favorite_locations.all()])
-      print(f"FAVQ {context['favorite_location']} {gathering.location.id} {userhome.favorite_locations.all()}")
+      #print(f"FAVQ {context['favorite_location']} {gathering.location.id} {userhome.favorite_locations.all()}")
     except:
-      print(f"FAVF No userhome object for user {request.user.username}")
+      #print(f"FAVF No userhome object for user {request.user.username}")
       userhome = None
 
   return HttpResponse(template.render(context, request))
@@ -80,43 +87,93 @@ def geo_date_view_handler(request, locid, date):
   }
   return HttpResponse(template.render(context, request))
 
-class GeoUpdateView(UpdateView):
-    model = Gathering_Witness
-    fields = [ 'date', 'participants', 'proof_url' ] #, 'organization'
-    template_name = 'action/geo_update_view.html'
+def geo_update_view(request, witness_id):
+  witness = Gathering_Witness.objects.get(id=witness_id)
+  date = witness.date
+  participants = witness.participants
+  proof_url = witness.proof_url
+  organization = witness.organization
+  locid = request.GET.get('locid')
 
-    def get_success_url(self):
-      print(f"TDDV success {self.__dict__}")    
-      return reverse_lazy('action:geo_view', kwargs={'locid': self.object.gathering.location.id})
-    def get_absolute_url(self):
-      print(f"TDDV abs {self.__dict__}")    
-      return reverse_lazy('geo_view', kwargs={'locid': self.gathering})
+  template = loader.get_template('action/geo_update_view.html')
+  context = { 
+    'date': date,
+    'participants': participants,
+    'proof_url': proof_url,
+    'organization': organization,
+    'witness_id': witness_id,
+    'locid': locid,
+  }
+
+  return HttpResponse(template.render(context, request))
+
+def geo_create_view(request):
+  date = datetime.today().strftime('%m-%d-%y')
+  participants = 1
+  proof_url = ""
+  organization = ""
+  locid = request.GET.get('locid')
+
+  template = loader.get_template('action/geo_update_view.html')
+  context = { 
+    'date': date,
+    'participants': participants,
+    'proof_url': proof_url,
+    'organization': organization,
+    'witness_id': None,
+    'locid': locid,
+  }
+
+  return HttpResponse(template.render(context, request))
+
+def geo_update_post(request, locid):
+  witness_id = request.GET.get('witness_id')
+  if witness_id != "None":
+    witness = Gathering_Witness.objects.get(id=witness_id)
+  else:
+    witness = Gathering_Witness(gathering=Gathering.objects.filter(location__id=locid).first())
+
+  witness.date = request.GET.get('date')
+  witness.participants = request.GET.get('participants')
+  witness.proof_url = request.GET.get('proof_url','')
+  try:
+    print(f"---\n\n n: '{request.GET.get('organization')}'" )
+    org = Organization.objects.get(id=request.GET.get('organization'))
+    print(f"org: '{org}'")
+    witness.organization = org
+  except Exception as ex:
+    print(ex)
+    witness.organization = None
+  
+  witness.save()
+
+  return redirect('action:geo_view', locid)
 
 
 def handle_favorite(request, locid):
-  print(f"FAVH {locid}")
+  #print(f"FAVH {locid}")
   if request.user.is_authenticated:
-    print(f"FAVX Authenticated")
+    #print(f"FAVX Authenticated")
     userhome = UserHome.objects.get(callsign=request.user.username)
-    print(f"FAVU {request.user.username}")
+    #print(f"FAVU {request.user.username}")
     gathering = Gathering.objects.filter(location=locid).first()
     if userhome.favorite_locations.filter(id=gathering.location.id).count() == 0:
-      print(f"FAVA {gathering.location.id}")
+      #print(f"FAVA {gathering.location.id}")
       userhome.favorite_locations.add(gathering.location.id)
     else:
-      print(f"FAVR {gathering.location.id} {UserHome.objects.filter(favorite_locations__id=gathering.location.id)} {UserHome.favorite_locations.__dict__}")
+      #print(f"FAVR {gathering.location.id} {UserHome.objects.filter(favorite_locations__id=gathering.location.id)} {UserHome.favorite_locations.__dict__}")
       userhome.favorite_locations.remove(gathering.location.id)
     userhome.save()
-    print(f"FAVS Saved {UserHome.favorite_locations} {UserHome.objects.filter(favorite_locations__id=gathering.location.id)}")
+    #print(f"FAVS Saved {UserHome.favorite_locations} {UserHome.objects.filter(favorite_locations__id=gathering.location.id)}")
 
 def translate_maplink(request, regid, date):
-  print(f"RRRC {regid, date}")
+  #print(f"RRRC {regid, date}")
   try:
     gathering_belong = Gathering_Belong.objects.filter(regid=regid).first()
     gathering = Gathering.objects.filter(regid=gathering_belong.gathering).first()
     locid = gathering.location.id
-    print(f"RRRS '{regid}' --> '{locid}'")
+    #print(f"RRRS '{regid}' --> '{locid}'")
     return redirect('action:geo_view', locid=locid)
   except:
-    print(f"RRRF")
+    #print(f"RRRF")
     return redirect('action:start')

@@ -73,7 +73,13 @@
         </tr>
         {% for witness in witness_list %}
           <tr>
-            <td><a href="{% url 'action:geo_update' witness.id %}">{{ witness.date|date:'Y-m-d' }}</a></td>
+            <td>
+              <form action="{% url 'action:geo_update' witness.id %}">
+                {% csrf_token %}
+                <input type="hidden" value="{{locid}}" name="locid"/>
+                <input type="submit" value="{{witness.date|date:'Y-m-d' }}"/>
+              </form>
+            </td>
             <td style="text-align: center;"><a href="https://map.fridaysforfuture.org/?e={{witness.gathering.regid}}">&nbsp;🌐&nbsp;<small style="display: none;">{{ witness.gathering.regid }}</small></a></td>
             <td style="text-align: right;">
               {% if witness.participants %}
@@ -99,96 +105,11 @@
   {% else %}
     <p>No results registered yet.</p>
   {% endif %}
-  <div>
-    <script>
-      function togglenewevent(){
-        var el = document.getElementById("newevent");
-        if (el.style.display != "inline")
-          el.style.display = "inline";
-        else {
-          el.style.display = "none";
-        }
-      }
-
-      function toggleadvancededit(){
-        var el = document.getElementById("advancededit");
-        if (el.style.display != "inline")
-          el.style.display = "inline";
-        else {
-          el.style.display = "none";
-        }
-      }
-    </script>
-    <br />
-    <input type="button" value="New Event" onclick="togglenewevent()">
-
-    <div style="display: none;" id="newevent">
-      <form action="" method="post" id="form">
-        {% csrf_token %}
-        <input type="hidden" id="prev_participants" value="{{ prev_participants }}"/>
-        <input type="hidden" id="prev_url" value="{{ prev_url }}"/>
-        <script type="text/javascript">
-          // For XHTML: <![CDATA[
-          function show_unsaved(show) {
-            if(show) {
-              document.getElementById("save_changes").style.display = "inline-block";
-              document.getElementById("form").style.backgroundColor = "#ffeeee";
-              document.getElementById("favorite").style.display = "none";
-            } else {
-              document.getElementById("save_changes").style.display = "none";
-              document.getElementById("form").style.backgroundColor = "";
-              document.getElementById("favorite").style.display = "inline-block";
-            }
-          }
-          function check_unsaved() {
-            if(document.getElementById("prev_participants").value == document.getElementById("participants").value &&
-               document.getElementById("prev_url").value == document.getElementById("url").value) {
-              show_unsaved(false);
-            } else {
-              show_unsaved(true);
-            }
-          }
-          // For XHTML: ]]>
-        </script>
-        <table>
-          <tr>
-            <td><legend>Participants</legend></td>
-            <td><input type="number" id="participants" name="participants" value="{{ prev_participants }}" min="1" max="99999" oninput="check_unsaved()" onchange="check_unsaved()"/></td>
-          </tr>
-          <tr>
-            <td><legend>URL to Photo</legend></td>
-            <td><input placeholder="You are welcome to share a photo from the event (optional) that we can show the world!" type="url" id="url" name="url" value="{{ prev_url }}" size="60" oninput="check_unsaved()" onchange="check_unsaved()"/></td>
-          </tr>
-          <tr>
-            <td>Organization (if any)</td>
-            <td>
-              <select name="organization" data-minimum-input-length="3" id="id_organization" data-autocomplete-light-language="en" data-autocomplete-light-url="/action/organization-autocomplete/" data-autocomplete-light-function="select2">
-                <option value="{{ gat_organizations|first }}" selected>{{ gat_organizations|first }}</option>
-              </select>
-            </td>
-            <link href="/static/admin/css/vendor/select2/select2.min.css" type="text/css" media="screen" rel="stylesheet">
-            <link href="/static/admin/css/autocomplete.css" type="text/css" media="screen" rel="stylesheet">
-            <link href="/static/autocomplete_light/select2.css" type="text/css" media="screen" rel="stylesheet">
-            <script src="/static/admin/js/vendor/select2/select2.full.js"></script>
-            <script src="/static/autocomplete_light/autocomplete_light.min.js"></script>
-            <script src="/static/autocomplete_light/select2.min.js"></script>
-            <script src="/static/autocomplete_light/i18n/en.js"></script>
-          </tr>
-          {% if user.is_authenticated is user.is_authenticated %}
-          <tr>
-            <td style="white-space:nowrap;">
-              <input type="button" value="Advanced Edit" style="display: inline-block; cursor: not-allowed;" onclick="toggleadvancededit()"/>
-              <input type="submit" value="Report Result" style="display: inline-block;"/>
-            </td>
-            <td style="white-space:nowrap;">
-              <div style="color:red; display: none;" id="save_changes">&nbsp;&nbsp;&nbsp;↤&nbsp;&nbsp;Save Your Changes</div>
-            </td>
-          </tr>
-          {% endif %}
-        </table>
-        {% if True is False %}
-          <p style="color:red">Reporting temporarily closed for maintenance. Use this reporting form instead: <a href="https://docs.google.com/forms/d/e/1FAIpQLSeyRjvtBZZAEXUbLDe_P4tTIKncQaGxrkrxUcmmiyaZDdLFtg/viewform">Report!</a></p>
-        {% endif %}
-      </form>
-  </div>
+  <br />
+  <form action="{% url 'action:geo_create' %}">
+    {% csrf_token %}
+    <input type="hidden" value="{{locid}}" name="locid"/>
+    <input type="submit" value="New Event">
+  </form>
+ 
 {% endblock %}
