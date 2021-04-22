@@ -5,14 +5,20 @@
 {% endblock %}
 
 {% block content %}
-  <h1>Update {{ this_location.name }}</h1>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+  <script src="https://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/css/select2.min.css" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/js/select2.full.js"></script>
+  
+
+  <h1>Update {{ this_location.name }} Event</h1>
     {% if parent_location %} in 
       <a href="{% url 'action:location_view' parent_location.id %}">{{ parent_location.name }}</a>
     {% endif %}
 
   {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
 
-  <form method="post">
+  <form action="{% url 'action:geo_post' this_location.id %}" method="POST">
     {% csrf_token %}
     {{ form.as_p }}
     <input type="submit" value="Update">

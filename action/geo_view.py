@@ -46,6 +46,7 @@ def geo_view_handler(request, locid):
     'sublocation_list': sublocation_list,
     'witness_list': witness_list,
     'total_participants': total_participants,
+    'favorite_location': favorite_location,
   }
   return HttpResponse(template.render(context, request))
 
@@ -61,15 +62,92 @@ def geo_date_view_handler(request, locid, date):
   }
   return HttpResponse(template.render(context, request))
 
-class GeoUpdateView(UpdateView):
-    model = Gathering_Witness
-    fields = [ 'date', 'participants', 'proof_url' ] #, 'organization'
-    template_name = 'action/geo_update_view.html'
+def geo_update_view(request, witness_id):
+  witness = Gathering_Witness.objects.get(id=witness_id)
+  date = witness.date
+  participants = witness.participants
+  proof_url = witness.proof_url
+  organization = witness.organization
+  locid = request.POST.get('locid')
+  this_location = Location.objects.filter(id=locid).first()
 
-    def get_success_url(self):
-      print(f"TDDV success {self.__dict__}")    
-      return reverse_lazy('action:geo_view', kwargs={'locid': self.object.gathering.location.id})
-    def get_absolute_url(self):
-      print(f"TDDV abs {self.__dict__}")    
-      return reverse_lazy('geo_view', kwargs={'locid': self.gathering})
+  template = loader.get_template('action/geo_update_view.html')
+  context = { 
+    'date': date,
+    'participants': participants,
+    'proof_url': proof_url,
+    'organization': organization,
+    'witness_id': witness_id,
+    'this_location': this_location,
+  }
 
+
+def geo_create_view(request):
+  date = datetime.today().strftime('%m-%d-%y')
+  participants = 1
+  proof_url = ""
+  organization = ""
+  locid = request.POST.get('locid')
+  this_location = Location.objects.filter(id=locid).first()
+
+  template = loader.get_template('action/geo_update_view.html')
+  context = { 
+    'date': date,
+    'participants': participants,
+    'proof_url': proof_url,
+    'organization': organization,
+    'witness_id': None,
+    'this_location': this_location,
+  }
+
+  return HttpResponse(template.render(context, request))
+
+def geo_update_post(request, locid):
+  witness_id = request.POST.get('witness_id')
+  if witness_id != "None":
+    witness = Gathering_Witness.objects.get(id=witness_id)
+  else:
+    witness = Gathering_Witness(gathering=Gathering.objects.filter(location__id=locid).first())
+
+  witness.date = request.POST.get('date')
+  witness.participants = request.POST.get('participants')
+  witness.proof_url = request.POST.get('proof_url','')
+  try:
+    org = Organization.objects.get(id=request.POST.get('organization'))
+    witness.organization = org
+  except Exception as ex:
+    witness.organization = None
+  
+  witness.updated = datetime.today()
+  witness.save()
+
+  return redirect('action:geo_view', locid)
+
+
+def handle_favorite(request, locid):
+  #print(f"FAVH {locid}")
+  if request.user.is_authenticated:
+    #print(f"FAVX Authenticated")
+    userhome = UserHome.objects.get(callsign=request.user.username)
+    #print(f"FAVU {request.user.username}")
+    gathering = Gathering.objects.filter(location=locid).first()
+    if userhome.favorite_locations.filter(id=gathering.location.id).count() == 0:
+      #print(f"FAVA {gathering.location.id}")
+      userhome.favorite_locations.add(gathering.location.id)
+    else:
+      #print(f"FAVR {gathering.location.id} {UserHome.objects.filter(favorite_locations__id=gathering.location.id)} {UserHome.favorite_locations.__dict__}")
+      userhome.favorite_locations.remove(gathering.location.id)
+    userhome.save()
+    #print(f"FAVS Saved {UserHome.favorite_locations} {UserHome.objects.filter(favorite_locations__id=gathering.location.id)}")
+
+def translate_maplink(request, regid, date):
+  #print(f"RRRC {regid, date}")
+  try:
+    gathering_belong = Gathering_Belong.objects.filter(regid=regid).first()
+    gathering = Gathering.objects.filter(regid=gathering_belong.gathering).first()
+    locid = gathering.location.id
+    #print(f"RRRS '{regid}' --> '{locid}'")
+    return redirect('action:geo_view', locid=locid)
+  except:
+    #print(f"RRRF")
+    return redirect('action:start')
