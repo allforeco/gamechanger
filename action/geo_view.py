@@ -55,7 +55,6 @@ def geo_view_handler(request, locid):
     'witness_list': witness_list,
     'total_participants': total_participants,
     'favorite_location': favorite_location,
-    'locid': locid,
   }
 
   if request.POST.get('favorite'):
@@ -93,7 +92,8 @@ def geo_update_view(request, witness_id):
   participants = witness.participants
   proof_url = witness.proof_url
   organization = witness.organization
-  locid = request.GET.get('locid')
+  locid = request.POST.get('locid')
+  this_location = Location.objects.filter(id=locid).first()
 
   template = loader.get_template('action/geo_update_view.html')
   context = { 
@@ -102,17 +102,16 @@ def geo_update_view(request, witness_id):
     'proof_url': proof_url,
     'organization': organization,
     'witness_id': witness_id,
-    'locid': locid,
+    'this_location': this_location,
   }
-
-  return HttpResponse(template.render(context, request))
 
 def geo_create_view(request):
   date = datetime.today().strftime('%m-%d-%y')
   participants = 1
   proof_url = ""
   organization = ""
-  locid = request.GET.get('locid')
+  locid = request.POST.get('locid')
+  this_location = Location.objects.filter(id=locid).first()
 
   template = loader.get_template('action/geo_update_view.html')
   context = { 
@@ -121,30 +120,28 @@ def geo_create_view(request):
     'proof_url': proof_url,
     'organization': organization,
     'witness_id': None,
-    'locid': locid,
+    'this_location': this_location,
   }
 
   return HttpResponse(template.render(context, request))
 
 def geo_update_post(request, locid):
-  witness_id = request.GET.get('witness_id')
+  witness_id = request.POST.get('witness_id')
   if witness_id != "None":
     witness = Gathering_Witness.objects.get(id=witness_id)
   else:
     witness = Gathering_Witness(gathering=Gathering.objects.filter(location__id=locid).first())
 
-  witness.date = request.GET.get('date')
-  witness.participants = request.GET.get('participants')
-  witness.proof_url = request.GET.get('proof_url','')
+  witness.date = request.POST.get('date')
+  witness.participants = request.POST.get('participants')
+  witness.proof_url = request.POST.get('proof_url','')
   try:
-    print(f"---\n\n n: '{request.GET.get('organization')}'" )
-    org = Organization.objects.get(id=request.GET.get('organization'))
-    print(f"org: '{org}'")
+    org = Organization.objects.get(id=request.POST.get('organization'))
     witness.organization = org
   except Exception as ex:
-    print(ex)
     witness.organization = None
   
+  witness.updated = datetime.today()
   witness.save()
 
   return redirect('action:geo_view', locid)
