@@ -27,7 +27,6 @@
   <h1>
     {{ this_location.name }} 
   </h1>
-  {% if user.is_authenticated %}
   <form action="" method="post">
     {% csrf_token %}
     <div class="favoriteform" style="white-space:nowrap; display:inline-block;">
@@ -39,7 +38,6 @@
       {% endif %}
     </div>
   </form>
-  {% endif %}
   <p>
     {% if parent_location %} in 
       <a href="{% url 'action:geo_view' parent_location.id %}">{{ parent_location.name }}</a>
@@ -68,7 +66,7 @@
       <table>
         <tr>
           <th>Date</th>
-          <th>RegID</th>
+          <th>Map ID</th>
           <th>Participants</th>
           <th>Photos</th>
           <th>Host</th>
@@ -76,9 +74,9 @@
         {% for witness in witness_list %}
           <tr>
             <td>
-              <form action="{% url 'action:geo_update' witness.id %}" method="POST">
+              <form action="{% url 'action:geo_update' witness.id %}">
                 {% csrf_token %}
-                <input type="hidden" value="{{this_location.id}}" name="locid"/>
+                <input type="hidden" value="{{locid}}" name="locid"/>
                 <input type="submit" value="{{witness.date|date:'Y-m-d' }}"/>
               </form>
             </td>
@@ -108,12 +106,10 @@
     <p>No results registered yet.</p>
   {% endif %}
   <br />
-  <form action="{% url 'action:geo_create' %}" method="POST">
+  <form action="{% url 'action:geo_create' %}">
     {% csrf_token %}
-    <input type="hidden" value="{{this_location.id}}" name="locid"/>
-    <input type="submit" value="Add Date">
+    <input type="hidden" value="{{locid}}" name="locid"/>
+    <input type="submit" value="New Event">
   </form>
-  {% if user.is_authenticated %}
-  <!--Add Date user.is_authenticated-->
-  {% endif %}
+ 
 {% endblock %}
