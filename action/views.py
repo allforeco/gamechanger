@@ -26,6 +26,7 @@ from django.urls import reverse_lazy
 from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth.decorators import login_required, permission_required
+from django.shortcuts import redirect
 from django import forms
 from django.db.models import Sum
 from dal import autocomplete
@@ -128,8 +129,8 @@ class LocationAutocomplete(autocomplete.Select2QuerySetView):
 class OrganizationAutocomplete(autocomplete.Select2QuerySetView):
   def get_queryset(self):
     print(f"AUTO Entered")
-    if not self.request.user.is_authenticated:
-      return Organization.objects.none()
+    #if not self.request.user.is_authenticated:
+    #  return Organization.objects.none()
     qs = Organization.objects.all()
     print(f"AUTO {len(qs)} organizations")
     if self.q:
@@ -292,17 +293,12 @@ def _overview_by_name(request, loc_name='', loc_exact='', loc_id=''):
   sublocation_parent = None
   if loc_id:
     location_list = Location.objects.filter(id=int(loc_id))
-    sublocation_parent = location_list.first()
   elif loc_exact:
     location_list = Location.objects.filter(name=loc_name)
-    if len(location_list) == 1:
-      sublocation_parent = location_list.first()
   else:
     if "," not in loc_name:
       # Simple search for a name
       location_list = Location.objects.filter(name__icontains=loc_name)
-      if len(location_list) == 1:
-        sublocation_parent = location_list.first()
     else:
       # Name is something like "Colorado Blvd, Denver, CO, USA"
       loc_name = Location.make_location_name(*Location.split_location_name(loc_name))
@@ -345,65 +341,37 @@ def _overview_by_name(request, loc_name='', loc_exact='', loc_id=''):
               sublocation_parent = parent_loc
               break
           print(f"CLS6 {sublocation_parent} taken from {cand_location.name}")
+
+          if "," in cand_location.name and not cand_location.in_location:
+            # This candidate location is not a country, and does not have a parent. Skip.
+            print(f"CLS7 Disqualified {cand_location.name}")
+            continue
+
           location_list += [cand_location]
       print(f"CLS9 location_list {location_list}")
+
+  location_list = [loc for loc in location_list if loc.in_location or "," not in loc.name]
+  if len(location_list) == 1:
+    sublocation_parent = location_list.first()
   if sublocation_parent:
     sublocations = list(Location.objects.filter(in_location=sublocation_parent).order_by('name'))
 
-  for loc in location_list[:max_entries]:
-    gatherings = Gathering.objects.filter(location=loc)#.order_by('location.name')#'-start_date')
-    print(f"OVX0 Gatherings {gatherings}")
-    uniqe_gatherings = {}
-    for gat in gatherings:
-      print(f"OVX1 Gathering {gat}")
-      cregid = gat.get_canonical_regid()
-      if not cregid:
-        print(f"OVBN Missing cregid {loc} {cregid} '{gat}'")
-        continue
-      gat = Gathering.objects.get(regid=cregid)
-      print(f"OVX2 Gathering => {gat}")
-      try:
-        print(f"OVX3 Unique {cregid} {cregid not in uniqe_gatherings} {uniqe_gatherings}")
-        if cregid not in uniqe_gatherings:
-          print(f"OVX4 Unique {gat}")
-          events = Gathering_Witness.objects.filter(gathering=cregid).count()
-          participants = Gathering_Witness.objects.filter(gathering=cregid).aggregate(Sum('participants'))
-          photos = Gathering_Witness.objects.filter(gathering=cregid).exclude(proof_url__exact='').count()
-          uniqe_gatherings[cregid]=1
-          print(f"OVX5 Unique {cregid} {cregid not in uniqe_gatherings} {uniqe_gatherings}")
-          locations += [{
-              'name':html.escape(loc.name), 
-              'in_location': loc.in_location, 
-              'gatherings': [{
-                  'regid': gat.regid, 
-                  'gathering_type': gat.get_gathering_type_str(), 
-                  'start_date':gat.start_date,
-                  'count': events,
-                  'participants': participants.get('participants__sum'),
-                  'photos': photos,
-                }],
-            }]
-      except Exception as e:
-        pass
-        print(f"OVBN Exception looking up {loc} {cregid} '{gat}': {e}")
-
-  if not sublocations and len(locations) == 1:
+  if len(location_list) == 1:
     print(f"OVBN shortcut {loc_name}")
-    regid = locations[0]['gatherings'][0]['regid']
-    return overview(request, regid, date=None, prev_participants=None, prev_url=None, error_message=None)
-  elif sublocation_parent and sublocation_parent.in_location and not sublocations and not locations:
-    # This is going to be a boring page, let's show the parent instead
-    print(f"OVBP boring, switching to loc_id {sublocation_parent.in_location.id}")
-    return _overview_by_name(request, loc_id=sublocation_parent.in_location.id)
+    return redirect('action:geo_view', location_list[0].id)
 
-  else:
-    print(f"OVBN No shortcut: {len(sublocations)} {len(locations)} {sublocation_parent} {sublocation_parent.in_location if sublocation_parent else None}")
+  locations = []
+  for loc in location_list:
+    locations += [{
+        'name':html.escape(loc.name), 
+        'in_location': loc.in_location, 
+        'locid': loc.id,
+      }]
 
   truncated = None
   if len(locations) == max_entries:
     truncated = f"... (search limited to {max_entries} results) ..."
   locations.sort(key=lambda e: e['name'])
-
 
   context = {
     'error_message': '',
@@ -413,7 +381,6 @@ def _overview_by_name(request, loc_name='', loc_exact='', loc_id=''):
     'sublocations': sublocations,
   }
   template = loader.get_template('action/location_overview.html')
-  #{% url 'action:overview' gat.regid %}
   return HttpResponse(template.render(context, request))
 
 def upload_reg(request, error_message=None):

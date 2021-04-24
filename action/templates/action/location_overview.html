@@ -13,7 +13,7 @@
 {% else %}
   <h1>Location Overview {% if sublocation_parent %} of {{ sublocation_parent }}{% endif %}</h1>
   {% if sublocation_parent and sublocation_parent.in_location %}
-    <p>in <a href="{% url 'action:overview_by_name' %}?locid={{ sublocation_parent.in_location.id }}">
+    <p>in <a href="{% url 'action:geo_view' sublocation_parent.in_location.id %}">
       {{ sublocation_parent.in_location.name }}</a>
     </p>
   {% endif %}
@@ -24,37 +24,16 @@
 {% if locations %}
   <table>
     <thead>
-      <td>#Events</td>
-      <td>Reported<br/>Participants</td>
-      <td>Photos</td>
-      <td>First Date</td>
-      <td>Event Type</td>
       <td>Location</td>
     </thead>
     {% for loc in locations %}
-      {% for gat in loc.gatherings %}
-        <tr>
-          {% if gat.count == 1 %}
-            <td/>
-          {% else %}
-            <td>{{ gat.count }}</td>
+      <tr>
+        <td><a href="{% url 'action:geo_view' loc.locid %}">{{ loc.name }}</a>
+          {% if loc.in_location %} in 
+            <a href="{% url 'action:geo_view' loc.in_location.id %}">{{ loc.in_location.name }}</a>
           {% endif %}
-          <td>{% if gat.participants %}{{ gat.participants }}{% endif %}</td>
-          {% if gat.photos == 0 %}
-            <td/>
-          {% else %}
-            <td>{{ gat.photos }}</td>
-          {% endif %}
-          <td>{{ gat.start_date }}</td>
-          <td>{{ gat.gathering_type }}</td>
-          <td><a href="{% url 'action:overview' gat.regid %}">{{ loc.name }}</a>
-            {% if loc.in_location %} in 
-              <a href="{% url 'action:overview_by_name' %}?exact=t&location={{ loc.in_location.name }}">
-                {{ loc.in_location.name }}</a>
-            {% endif %}
-          </td>
-        </tr>
-      {% endfor %}
+        </td>
+      </tr>
     {% endfor %}
   </table>
   {% if truncated %}
