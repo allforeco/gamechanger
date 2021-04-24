@@ -105,6 +105,8 @@ def geo_update_view(request, witness_id):
     'this_location': this_location,
   }
 
+  return HttpResponse(template.render(context, request))
+
 def geo_create_view(request):
   date = datetime.today().strftime('%m-%d-%y')
   participants = 1
@@ -137,6 +139,8 @@ def geo_update_post(request, locid):
   witness.proof_url = request.POST.get('proof_url','')
   try:
     org = Organization.objects.get(id=request.POST.get('organization'))
+    if org.name == 'None':
+      org = None
     witness.organization = org
   except Exception as ex:
     witness.organization = None
