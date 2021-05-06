@@ -1,7 +1,7 @@
 {% extends "base_generic.html" %}
 
 {% block title %}
-      <title>Reports {{ this_location.name }} - Gamechanger Action Tracker</title>
+      <title>Reports for {{ this_location.name }} - Gamechanger Action Tracker</title>
 {% endblock %}
 
 {% block content %}
@@ -25,7 +25,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/js/select2.full.js"></script>
   
   <h1>
-    {{ this_location.name }} 
+    Reports for {{ this_location.name }} 
   </h1>
   {% if user.is_authenticated %}
   <form action="" method="post">
