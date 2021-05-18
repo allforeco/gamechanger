@@ -64,6 +64,14 @@
   {% endif %}
   {% if witness_list %}
     <p>{{ witness_list|length }} events with a total of {{ total_participants }} reported participants</p>
+    <form action="{% url 'action:geo_update' %}" method="POST">
+      {% csrf_token %}
+      <input type="hidden" value="False" name="isnewevent"/>
+      <input type="hidden" value="None" name="witness_id"/>
+      <input type="hidden" value="{{this_location.id}}" name="locid"/>
+      <input type="submit" value="Add Date">
+    </form>
+    <br/>
     <div class="gathering">
       <table>
         <tr>
@@ -76,8 +84,10 @@
         {% for witness in witness_list %}
           <tr>
             <td>
-              <form action="{% url 'action:geo_update' witness.id %}" method="POST">
+              <form action="{% url 'action:geo_update' %}" method="POST">
                 {% csrf_token %}
+                <input type="hidden" value="False" name="isnewevent"/>
+                <input type="hidden" value="{{witness.id}}" name="witness_id"/>
                 <input type="hidden" value="{{this_location.id}}" name="locid"/>
                 <input type="submit" value="{{witness.date|date:'Y-m-d' }}"/>
               </form>
@@ -107,12 +117,6 @@
   {% else %}
     <p>No results registered yet.</p>
   {% endif %}
-  <br />
-  <form action="{% url 'action:geo_create' %}" method="POST">
-    {% csrf_token %}
-    <input type="hidden" value="{{this_location.id}}" name="locid"/>
-    <input type="submit" value="Add Date">
-  </form>
   {% if user.is_authenticated %}
   <!--Add Date user.is_authenticated-->
   {% endif %}

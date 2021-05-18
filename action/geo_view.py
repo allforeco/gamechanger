@@ -23,7 +23,7 @@ from django.contrib.auth.decorators import login_required, permission_required
 from django import forms
 from .models import Gathering, Gathering_Belong, Gathering_Witness, Location, UserHome, Organization
 from django.shortcuts import redirect
-from datetime import datetime
+import datetime
 
 def geo_view_handler(request, locid):
   #print(f"TOWH {locid}")
@@ -86,14 +86,24 @@ def geo_date_view_handler(request, locid, date):
   }
   return HttpResponse(template.render(context, request))
 
-def geo_update_view(request, witness_id):
-  witness = Gathering_Witness.objects.get(id=witness_id)
-  date = witness.date
-  participants = witness.participants
-  proof_url = witness.proof_url
-  organization = witness.organization
+def geo_update_view(request):
+  witness_id = request.POST.get('witness_id')
+
+  if (witness_id != 'None'):
+    witness = Gathering_Witness.objects.get(id=witness_id)
+    date = witness.date
+    participants = witness.participants
+    proof_url = witness.proof_url
+    organization = witness.organization
+  else:
+    date = datetime.datetime.today()
+    participants = 1
+    proof_url = ""
+    organization = ""
+  
   locid = request.POST.get('locid')
   this_location = Location.objects.filter(id=locid).first()
+  isnewevent = request.POST.get('isnewevent')
 
   template = loader.get_template('action/geo_update_view.html')
   context = { 
@@ -103,38 +113,30 @@ def geo_update_view(request, witness_id):
     'organization': organization,
     'witness_id': witness_id,
     'this_location': this_location,
+    'isnewevent': isnewevent,
+    'gathering_types': Gathering.gathering_type.field.choices,
   }
 
   return HttpResponse(template.render(context, request))
 
-def geo_create_view(request):
-  date = datetime.today().strftime('%m-%d-%y')
-  participants = 1
-  proof_url = ""
-  organization = ""
+def geo_update_post(request):
+  isnewevent = request.POST.get('isnewevent')
+  if (isnewevent == 'True'):
+    return geo_update_post_gathering(request)
+  else:
+    return geo_update_post_witness(request)
+
+def geo_update_post_witness(request):
   locid = request.POST.get('locid')
-  this_location = Location.objects.filter(id=locid).first()
-
-  template = loader.get_template('action/geo_update_view.html')
-  context = { 
-    'date': date,
-    'participants': participants,
-    'proof_url': proof_url,
-    'organization': organization,
-    'witness_id': None,
-    'this_location': this_location,
-  }
-
-  return HttpResponse(template.render(context, request))
-
-def geo_update_post(request, locid):
   witness_id = request.POST.get('witness_id')
   if witness_id != "None":
     witness = Gathering_Witness.objects.get(id=witness_id)
   else:
     witness = Gathering_Witness(gathering=Gathering.objects.filter(location__id=locid).first())
 
-  witness.date = request.POST.get('date')
+
+  #RuntimeWarning: DateTimeField Gathering_Witness.updated received a naive datetime (2021-05-07 11:52:41.502616) while time zone support is active.
+  witness.date = datetime.datetime.strptime(request.POST.get('date'), '%Y-%m-%d').replace(tzinfo=datetime.timezone.utc)
   witness.participants = request.POST.get('participants')
   witness.proof_url = request.POST.get('proof_url','')
   try:
@@ -145,11 +147,35 @@ def geo_update_post(request, locid):
   except Exception as ex:
     witness.organization = None
   
-  witness.updated = datetime.today()
+  witness.updated = datetime.datetime.today()
   witness.save()
 
+  print(f"GUPW {witness.__dict__}")
   return redirect('action:geo_view', locid)
 
+def geo_update_post_gathering(request):
+  gathering = Gathering()
+  locid = request.POST.get('locid')
+  gathering.location_id = locid
+  gathering.start_date = datetime.datetime.strptime(request.POST.get('date'), '%Y-%m-%d').replace(tzinfo=datetime.timezone.utc)
+  gathering.end_date = datetime.datetime.strptime(request.POST.get('date'), '%Y-%m-%d').replace(tzinfo=datetime.timezone.utc) + datetime.timedelta(weeks=int(request.POST.get('weeks')))
+  gathering.expected_participants = request.POST.get('participants')
+  gathering.gathering_type = request.POST.get('gathering-type')
+  try:
+    organization = Organization.objects.get(id=request.POST.get('organization'))
+    gathering.organizations.add(organization)
+  except:
+    print(f"GUPO <Organization:None>")
+  
+
+  gathering.save()
+
+  print(f"GUPG {gathering.__dict__}")
+  return redirect('action:geo_view', locid)
+
+def geo_search(request):
+  locid = request.POST.get('location')
+  return redirect('action:geo_view', locid)
 
 def handle_favorite(request, locid):
   #print(f"FAVH {locid}")
