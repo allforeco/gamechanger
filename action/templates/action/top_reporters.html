@@ -7,26 +7,13 @@
 {% block content %}
 
 {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
-
-  <style>
-    td{
-      padding-left: 4px;
-      padding-right: 16px;
-      padding-bottom: 4px;
-    }
-
-    .highlight{
-      background-color: #efefef;
-    }
-  </style>
-
   <table>
     <thead>
       <td>Country</td>
       <td>Reports</td>
     </thead>
     {% for location, reports, locid in reports_list %}
-    <tr class="highlight">
+    <tr>
       <td>
         <a href="{% url 'action:geo_view' locid %}" >{{location }}</a>
       </td>
