@@ -351,9 +351,12 @@ def _overview_by_name(request, loc_name='', loc_exact='', loc_id=''):
       print(f"CLS9 location_list {location_list}")
 
   location_list = [loc for loc in location_list if loc.in_location or "," not in loc.name]
+  print(f"OVLC count {location_list}")
   if len(location_list) == 1:
-    sublocation_parent = location_list.first()
+    print(f"OVL1 {location_list[0]}")
+    sublocation_parent = location_list[0]
   if sublocation_parent:
+    print(f"OVLP {sublocation_parent}")
     sublocations = list(Location.objects.filter(in_location=sublocation_parent).order_by('name'))
 
   if len(location_list) == 1:

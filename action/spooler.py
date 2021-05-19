@@ -243,7 +243,7 @@ def update_reg(regs):
           #print(f"Adding gathering {gathering}")
           gathering.save() 
           counter['Gathering'] += 1
-          print(f"{lineno} {regid} new gathering {gathering}", file=last_import_log)
+          print(f"{lineno} {regid} new gathering {gathering} {gathering.__dict__}", file=last_import_log)
           #print(f"URGC {lineno} {regid} Gathering created")
         else:
           dirty = False
