@@ -1,7 +1,7 @@
 {% extends "base_generic.html" %}
 
 {% block title %}
-      <title>Update {{ this_location.name }} - Gamechanger Action Tracker</title>
+      <title>Event Editor - Gamechanger Action Tracker</title>
 {% endblock %}
 
 {% block content %}
@@ -10,20 +10,24 @@
   <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/css/select2.min.css" rel="stylesheet" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/js/select2.full.js"></script>
   
+  <!--3search-->
+  <link href="/static/admin/css/vendor/select2/select2.min.css" type="text/css" media="screen" rel="stylesheet">
+  <link href="/static/admin/css/autocomplete.css" type="text/css" media="screen" rel="stylesheet">
+  <link href="/static/autocomplete_light/select2.css" type="text/css" media="screen" rel="stylesheet">
+  <script src="/static/admin/js/vendor/select2/select2.full.js"></script>
+  <script src="/static/autocomplete_light/autocomplete_light.min.js"></script>
+  <script src="/static/autocomplete_light/select2.min.js"></script>
+  <script src="/static/autocomplete_light/i18n/en.js"></script>
 
-  <h1>Update {{ this_location.name }} Event</h1>
+  <h1 id="advanced-title"></h1>
     {% if parent_location %} in 
       <a href="{% url 'action:location_view' parent_location.id %}">{{ parent_location.name }}</a>
     {% endif %}
 
   {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
 
-  <form action="{% url 'action:geo_post' this_location.id %}" method="POST">
+  <form action="{% url 'action:geo_post' %}" method="POST">
     {% csrf_token %}
-    <input type="hidden" value="{{witness_id}}" name="witness_id">
-
-    <input type="hidden" id="prev_participants" value="{{ prev_participants }}"/>
-    <input type="hidden" id="prev_url" value="{{ prev_url }}"/>
     <script type="text/javascript">
       // For XHTML: <![CDATA[
       function show_unsaved(show) {
@@ -39,7 +43,7 @@
       }
       function check_unsaved() {
         if(document.getElementById("prev_participants").value == document.getElementById("participants").value &&
-           document.getElementById("prev_url").value == document.getElementById("url").value) {
+          document.getElementById("prev_url").value == document.getElementById("url").value) {
           show_unsaved(false);
         } else {
           show_unsaved(true);
@@ -48,37 +52,82 @@
       // For XHTML: ]]>
     </script>
     <table>
-      <tr>
-        <td>Date</td>
-        <td><input type="date" id="date" name="date" value="{{ date|date:'Y-m-d' }}" oninput="check_unsaved()" required pattern="[0-9]{4}-[0-9]{2}-[0-9]{2}" placeholder="YYYY-MM-DD" onchange="check_unsaved()"/> </td>
-      </tr>
-      <tr>
-        <td><legend>Participants</legend></td>
-        <td><input type="number" id="participants" name="participants" value="{{ participants }}" min="1" max="99999" oninput="check_unsaved()" onchange="check_unsaved()"/></td>
-      </tr>
-      <tr>
-        <td><legend>Photo URL</legend></td>
-        <td><input placeholder="(optional) Share a photo collection from the event!" type="url" id="url" name="proof_url" value="{{ proof_url }}" size="60" oninput="check_unsaved()" onchange="check_unsaved()"/></td>
-      </tr>
-      <tr>
-        <td>Organization (if any)</td>
-        <td>
-          <select name="organization" data-minimum-input-length="3" id="id_organization" data-autocomplete-light-language="en" data-autocomplete-light-url="/action/organization-autocomplete/" data-autocomplete-light-function="select2">
-            <option value="{{ organization.id }}" selected>{{ organization }}</option>
-          </select>
-        </td>
-        <link href="/static/admin/css/vendor/select2/select2.min.css" type="text/css" media="screen" rel="stylesheet">
-        <link href="/static/admin/css/autocomplete.css" type="text/css" media="screen" rel="stylesheet">
-        <link href="/static/autocomplete_light/select2.css" type="text/css" media="screen" rel="stylesheet">
-        <script src="/static/admin/js/vendor/select2/select2.full.js"></script>
-        <script src="/static/autocomplete_light/autocomplete_light.min.js"></script>
-        <script src="/static/autocomplete_light/select2.min.js"></script>
-        <script src="/static/autocomplete_light/i18n/en.js"></script>
-      </tr>
+      <tbody id="formcommon">
+        <tr class="hide">
+          <td>
+            <input type="hidden" value="{{isnewevent}}" name="isnewevent" id="isnewevent"/>
+          </td>
+        </tr>
+        <tr>
+          <td>Date</td>
+          <td><input required type="date" id="date" name="date" value="{{ date|date:'Y-m-d' }}" pattern="[0-9]{4}-[0-9]{2}-[0-9]{2}" placeholder="YYYY-MM-DD" oninput="check_unsaved()" onchange="check_unsaved()"/> </td>
+        </tr>
+        <tr>
+          <td><legend>Participants</legend></td>
+          <td><input required type="number" id="participants" name="participants" value="{{ participants }}" min="1" oninput="check_unsaved()" onchange="check_unsaved()"/></td>
+        </tr>
+        <tr>
+          <td>Organization</td>
+          <td>
+            <select name="organization" data-minimum-input-length="3" id="id_organization" data-autocomplete-light-language="en" data-autocomplete-light-url="/action/organization-autocomplete/" data-autocomplete-light-function="select2">
+              <option value="{{ organization.id }}" selected>{{ organization }}</option>
+            </select>
+          </td>
+        </tr>
+      </tbody>
+      <tbody id="formwitness">
+        <tr class="hide">
+          <td>
+            <input type="hidden" value="{{witness_id}}" name="witness_id">
+            <input type="hidden" id="prev_participants" value="{{ prev_participants }}"/>
+            <input type="hidden" id="prev_url" value="{{ prev_url }}"/>
+          </td>
+        </tr>
+        <tr>
+          <td><legend>Photo URL</legend></td>
+          <td><input placeholder="(optional) Share a photo collection from the event!" type="url" id="url" name="proof_url" value="{{ proof_url }}" size="60" oninput="check_unsaved()" onchange="check_unsaved()"/></td>
+        </tr>
+      </tbody>
+      <tbody id="formgathering">
+        <tr>
+          <td>
+            Weeks
+          </td>
+          <td>
+            <input required type="range" id="weeks" name="weeks" value="1" min="1" max="26" oninput="WeeksDisplayUpdate()" onchange="check_unsaved()"/>
+          </td>
+          <td id="weeksdisplay">
+            1
+          </td>
+        </tr>
+        <tr>
+          <td>
+            Location
+          </td>
+          <td>
+            <select required name="locid" data-minimum-input-length="3" id="location" data-autocomplete-light-language="en" data-autocomplete-light-url="/action/location-autocomplete/" data-autocomplete-light-function="select2">
+              <option value="{{ this_location.id }}" selected>{{this_location.name}}</option>
+            </select>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            Gathering Type
+          </td>
+          <td>
+            <select name="gathering-type" id="gathering-type" class="i-can-add-my-own-attrs-now">
+            {% for id, name in gathering_types %}
+              <option value="{{ id }}">{{ name }}</option>
+            {% endfor %}
+            </select>
+          </td>
+        </tr>
+      </tbody>
+      
       {% if user.is_authenticated is user.is_authenticated %}
       <tr>
         <td style="white-space:nowrap;">
-          <input type="submit" value="Report Result" style="display: inline-block;"/>
+          <input type="submit" value="Submit" style="display: inline-block;"/>
           </td>
         <td style="white-space:nowrap;">
           <div style="color:red; display: none;" id="save_changes">&nbsp;&nbsp;&nbsp;↤&nbsp;&nbsp;Save Your Changes</div>
@@ -90,4 +139,50 @@
       <p style="color:red">Reporting temporarily closed for maintenance. Use this reporting form instead: <a href="https://docs.google.com/forms/d/e/1FAIpQLSeyRjvtBZZAEXUbLDe_P4tTIKncQaGxrkrxUcmmiyaZDdLFtg/viewform">Report!</a></p>
     {% endif %}
   </form>
+
+  <br />
+  <input type="button" onclick="ToggleAdvanced()" value="Advanced Edit +" id="advanced-toggle" />
+  <!--Toggle script-->
+  <script>
+    var formgathering = document.getElementById("formgathering");
+    var formwitness = document.getElementById("formwitness");
+    
+    var advancedtoggle = document.getElementById("advanced-toggle");
+    var advancedtitle = document.getElementById("advanced-title");
+
+    var isnewevent = document.getElementById("isnewevent")
+    
+    function ToggleAdvanced(){
+      if ((formwitness.style.display=="none"|| formwitness.style.display.length==0)){
+        formwitness.style="display:table-row-group;";
+        formgathering.style="display:none;";
+        advancedtoggle.value="Event Planner";
+        advancedtitle.innerHTML="{{this_location.name}} Event Witness";
+        isnewevent.value = "False";
+      } else {
+        formwitness.style="display:none;";
+        formgathering.style="display:table-row-group;";
+        advancedtoggle.value="Event Witness";
+        advancedtitle.innerHTML="Event Planner";
+        isnewevent.value = "True";
+      }
+    }
+
+    var weeks = document.getElementById("weeks")
+    var weeksDisplay = document.getElementById("weeksdisplay")
+
+    function WeeksDisplayUpdate()
+    {
+      weeksDisplay.innerHTML = weeks.value;
+    }
+
+    window.onload = function()
+    {
+      ToggleAdvanced();
+      if (isnewevent.value == 'True'){
+        ToggleAdvanced();
+      }
+    } 
+  </script>
+  
 {% endblock %}

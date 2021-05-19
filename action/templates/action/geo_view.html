@@ -1,31 +1,17 @@
 {% extends "base_generic.html" %}
 
 {% block title %}
-      <title>Reports {{ this_location.name }} - Gamechanger Action Tracker</title>
+      <title>Reports for {{ this_location.name }} - Gamechanger Action Tracker</title>
 {% endblock %}
 
 {% block content %}
-  <style>
-    tbody{
-      background-color: #efefef;
-      border:1px solid #ffffff;
-    }
-
-    td{
-      padding-left: 4px;
-      padding-bottom: 4px;
-      padding-right: 8px;
-      
-    }
-  </style>
-
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
   <script src="https://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/css/select2.min.css" rel="stylesheet" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/js/select2.full.js"></script>
   
   <h1>
-    {{ this_location.name }} 
+    Reports for {{ this_location.name }} 
   </h1>
   {% if user.is_authenticated %}
   <form action="" method="post">
@@ -64,11 +50,19 @@
   {% endif %}
   {% if witness_list %}
     <p>{{ witness_list|length }} events with a total of {{ total_participants }} reported participants</p>
+    <form action="{% url 'action:geo_update' %}" method="POST">
+      {% csrf_token %}
+      <input type="hidden" value="False" name="isnewevent"/>
+      <input type="hidden" value="None" name="witness_id"/>
+      <input type="hidden" value="{{this_location.id}}" name="locid"/>
+      <input type="submit" value="Add Date">
+    </form>
+    <br/>
     <div class="gathering">
       <table>
         <tr>
           <th>Date</th>
-          <th>Map ID</th>
+          <th>Map</th>
           <th>Participants</th>
           <th>Photos</th>
           <th>Host</th>
@@ -76,8 +70,10 @@
         {% for witness in witness_list %}
           <tr>
             <td>
-              <form action="{% url 'action:geo_update' witness.id %}" method="POST">
+              <form action="{% url 'action:geo_update' %}" method="POST">
                 {% csrf_token %}
+                <input type="hidden" value="False" name="isnewevent"/>
+                <input type="hidden" value="{{witness.id}}" name="witness_id"/>
                 <input type="hidden" value="{{this_location.id}}" name="locid"/>
                 <input type="submit" value="{{witness.date|date:'Y-m-d' }}"/>
               </form>
@@ -107,12 +103,6 @@
   {% else %}
     <p>No results registered yet.</p>
   {% endif %}
-  <br />
-  <form action="{% url 'action:geo_create' %}" method="POST">
-    {% csrf_token %}
-    <input type="hidden" value="{{this_location.id}}" name="locid"/>
-    <input type="submit" value="Add Date">
-  </form>
   {% if user.is_authenticated %}
   <!--Add Date user.is_authenticated-->
   {% endif %}

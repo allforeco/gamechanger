@@ -3,29 +3,104 @@
 <html lang="en">
   <head>
     {% block title %}
-      <title>Gamechanger Action Tracker</title>
+      <title>GameChanger Action Tracker</title>
     {% endblock %}
 
     <link rel="shortcut icon" type="image/png" href="{% static 'favicon.ico' %}"/>
     <link rel="stylesheet" type="text/css" href="{% static 'style.css' %}"/>
+    <style>
+      .maincontent { background-color: #ACE6A4; padding: 15px; border: 3px solid #9ADC9E; }/* #ACE6A4 #8FE159 */
+	  .linkbanner {padding: 8px; margin: 5px 0px; color: white; background-color: #2FAB57; border: 3px solid #25A04F; overflow: hidden;}/* #2FAB57 */
+      .linkbanner a {color: white;}
+	  .menu_left { float: left; color: white; } /*display: inline-block; text-align: center; padding: 14px 16px; text-decoration: none; */
+	  .menu_right { float: right; color: white; } /*display: inline-block; text-align: center; padding: 14px 16px; text-decoration: none; */
+	  a:active {font-weight: bold;}
+    
+    .hide{
+      display:none;
+      height: 0px;
+      width: 0px;
+      overflow: hidden;
+    }
+
+    body{
+      background-color: #e0ffe0;
+    }
+
+    /*Input*/
+    input[type=submit], input[type=button]{
+      box-sizing: border-box;
+      background-color: #ACE6A4;
+      border-top: 2px solid #9ADC9E;
+      border-left: 2px solid #9ADC9E;
+      border-bottom: 2px solid #25A04F;
+      border-right: 2px solid #25A04F;
+      font-weight: bold;
+      color:#000000;
+      padding-top: 4px;
+      padding-bottom: 4px;
+      padding-left: 8px;
+      padding-right: 8px;
+      border-radius: 1em;
+      
+    }
+
+    input:hover{
+      color: #336633;
+    }
+
+    input:active{
+      background-color: #2FAB57;
+      border-top: 2px solid #25A04F;
+      border-left: 2px solid #25A04F;
+      border-bottom: 2px solid #9ADC9E;
+      border-right: 2px solid #9ADC9E;
+      color: #ffffff;
+    }
+    /**/
+
+	  /*Table//
+    table{
+      background-color: #2FAB57;
+    }
+    */
+
+	  tbody, thead{
+      background-color: #e0ffe0;
+    }
+
+    td, th{
+      padding-left: 4px;
+      padding-bottom: 4px;
+      padding-right: 8px;
+    }
+    /**/
+    </style>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   </head>
   <body style="margin: 8px">
     {% block navbar %}
 		<a href="/action/home"><img src="{% static 'gc.jpg' %}" alt="" style="width: 73px; margin-bottom: -11px; border-right: 5px solid white;"/></a>
-		<h2 style="margin-top: 8px; margin-bottom: 8px; display: inline-block">Gamechanger.eco<br>Action Tracker</h2>
-		<div style="padding: 8px; margin: 5px 0px; background-color:#cccccc;">
-			{% if user.is_authenticated %}
-				Welcome, {{ user.get_username }}&nbsp;&nbsp;&nbsp;
-        <a href="{% url 'action:logout' %}?next={{request.path}}">Logout</a>
-			{% else %}
-				Hello, Stranger!&nbsp;&nbsp;&nbsp;
-        <a href="{% url 'action:login' %}?next={{request.path}}">Login</a> or
-        <a href="{% url 'action:join_us' %}?next={{request.path}}">Join Us</a>
-      {% endif %}
+		<h2 style="margin-top: 8px; margin-bottom: 8px; display: inline-block">GameChanger<br>Action Tracker</h2>
+		<div class="linkbanner"><!-- #cccccc -->
+			<div class="menu_left">
+				<a href="/action/home">Home</a> &nbsp; <a href="">Stats</a> &nbsp; <a href="">Locations</a> &nbsp; <a href="">Reports</a>
+			</div>
+			<div class="menu_right">
+				{% if user.is_authenticated %}
+					Welcome, {{ user.get_username }}&nbsp;&nbsp;&nbsp;
+					<a href="{% url 'action:logout' %}?next={{request.path}}">Logout</a>
+					&nbsp;&nbsp;&nbsp;<a href="/action/gathering/search">Search</a>
+				{% else %}
+					Hello, Stranger!&nbsp;&nbsp;&nbsp;
+					<a href="{% url 'action:login' %}?next={{request.path}}">Login</a> or
+					<a href="{% url 'action:join_us' %}?next={{request.path}}">Join Us</a>
+				{% endif %}
+			</div>
 		</div>
-
     {% endblock %}
+	<div class="maincontent">
     {% block content %}<!-- default content text (typically empty) -->{% endblock %}
+	</div>
   </body>
 </html>
