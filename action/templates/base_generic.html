@@ -24,25 +24,28 @@
     }
 
     body{
-      background-color: #e0ffe0;
+      background-color: white;/*#e0ffe0;*/
     }
 
     /*Input*/
     input[type=submit], input[type=button]{
       box-sizing: border-box;
-      background-color: #ACE6A4;
+      background-color: #1DA64A;/*#ACE6A4;
       border-top: 2px solid #9ADC9E;
       border-left: 2px solid #9ADC9E;
       border-bottom: 2px solid #25A04F;
       border-right: 2px solid #25A04F;
-      font-weight: bold;
-      color:#000000;
       padding-top: 4px;
       padding-bottom: 4px;
       padding-left: 8px;
-      padding-right: 8px;
+      padding-right: 8px;*/
+	  border: 0;
+      font-weight: bold;
+      color: white;/*#000000;*/
       border-radius: 1em;
-      
+	  padding: 5px 14px;
+	  margin: 3px;
+	  margin-top: 5px;
     }
 
     input:hover{
@@ -57,23 +60,29 @@
       border-right: 2px solid #9ADC9E;
       color: #ffffff;
     }
-    /**/
 
-	  /*Table//
-    table{
-      background-color: #2FAB57;
-    }
-    */
+	table{
+		border-collapse: collapse;
+	}
 
-	  tbody, thead{
+	tbody, thead{
       background-color: #e0ffe0;
     }
+    
+	tr:nth-child(even) {background: rgb(240, 240, 240)}
+    tr:nth-child(odd) {background: #FFF}
 
     td, th{
       padding-left: 4px;
       padding-bottom: 4px;
       padding-right: 8px;
     }
+
+	th {
+  	  background: white;
+  	  position: sticky;
+  	  top: 0; /* Don't forget this, required for the stickiness */
+	}
     /**/
     </style>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
