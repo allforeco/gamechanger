@@ -1,7 +1,7 @@
 {% extends "base_generic.html" %}
 
 {% block title %}
-      <title>Event Overview - Gamechanger Action Tracker</title>
+      <title>Reports for {{ this_location.name }} - Gamechanger Action Tracker</title>
 {% endblock %}
 
 {% block content %}
@@ -18,52 +18,12 @@
 <script src="/static/autocomplete_light/autocomplete_light.min.js"></script>
 <script src="/static/autocomplete_light/select2.min.js"></script>
 <script src="/static/autocomplete_light/i18n/en.js"></script>
-
-{% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
-  <table>
-    <thead>
-      <th>Date</th>
-      <th>Map</th>
-      <th>Location</th>
-      <th>Host</th>
-      <th>Participants</th>
-      <th>Photo</th>
-    </thead>
-    {% for event in event_list %}
-    <tr>
-      <td> 
-        {{event.date|date:'d-m-Y'}} 
-      </td>
-      <td style="text-align: center;">
-        <a href="https://map.fridaysforfuture.org/?e={{event.gathering.regid}}">🌐<small style="display: none;">{{ event.gathering.regid }}</small></a>
-      </td>
-      <td>
-        {% if event.gathering %}
-        <a href="{% url 'action:geo_view' event.gathering.location.id %}"> {{event.gathering.location.name}} </a>
-      {% endif %}
-      </td>
-      <td>
-        {% if event.organization %}
-          {{ event.organization}}
-        {% endif %}
-      </td>
-      <td style="text-align: right;">
-        {% if event.participants %}
-          {{ event.participants}}
-        {% else %}
-          ?
-        {% endif %}
-      </td>
-      <td>
-        {% if witness.proof_url %}
-          <a href="{{ event.gathering.proof_url }}">Photo</a>
-        {% endif %}
-      </td>
-    </tr>
-    {% endfor %}
-  </table>
-
-  <h1>Location search:</h1>
+  
+  <h1>
+    Invalid Location Link
+  </h1>
+  <br>
+  <h2>Search for Location:</h1>
   <form action="{% url 'action:geo_search' %}" method="post" id="searchform">
     {% csrf_token %}
     <select name="location" data-minimum-input-length="3" id="id_location" data-autocomplete-light-language="en" data-autocomplete-light-url="/action/location-autocomplete/" data-autocomplete-light-function="select2">
@@ -71,4 +31,10 @@
     </select>
     <input type="submit" value="Search" />
   </form>
+  <br>
+  <br>
+  <h3>
+    <a href="{% url 'action:start' %}">Go to Start Page ↩</a>
+  </h3>
+
 {% endblock %}
