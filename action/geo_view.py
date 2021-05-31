@@ -28,6 +28,9 @@ import datetime
 def geo_view_handler(request, locid):
   #print(f"TOWH {locid}")
   this_location = Location.objects.filter(id=locid).first()
+  if not (this_location):
+    return redirect('action:geo_invalid')
+    
   parent_location = this_location.in_location
   sublocation_list = Location.objects.filter(in_location=this_location)
   gathering_list = Gathering.objects.filter(location=this_location)
@@ -177,6 +180,13 @@ def geo_search(request):
   locid = request.POST.get('location')
   return redirect('action:geo_view', locid)
 
+def geo_invalid(request):
+  template = loader.get_template('action/geo_invalid.html')
+  context = {
+
+  }
+  return HttpResponse(template.render(context, request))
+
 def handle_favorite(request, locid):
   #print(f"FAVH {locid}")
   if request.user.is_authenticated:
@@ -203,4 +213,4 @@ def translate_maplink(request, regid, date):
     return redirect('action:geo_view', locid=locid)
   except:
     #print(f"RRRF")
-    return redirect('action:start')
+    return redirect('action:geo_invalid')

@@ -38,7 +38,7 @@
 
     <p>
       {% for sublocation in sublocation_list %}
-        <a href="{% url 'action:geo_view' sublocation.id %}">{{ sublocation }}</a> &nbsp;&nbsp;&nbsp; 
+        <a href="{% url 'action:geo_view' sublocation.id %}">{{ sublocation }}</a>
       {% endfor %}
     </p>
   {% endif %}
@@ -78,7 +78,7 @@
                 <input type="submit" value="{{witness.date|date:'Y-m-d' }}"/>
               </form>
             </td>
-            <td style="text-align: center;"><a href="https://map.fridaysforfuture.org/?e={{witness.gathering.regid}}">&nbsp;🌐&nbsp;<small style="display: none;">{{ witness.gathering.regid }}</small></a></td>
+            <td style="text-align: center;"><a href="https://map.fridaysforfuture.org/?e={{witness.gathering.regid}}">🌐<small style="display: none;">{{ witness.gathering.regid }}</small></a></td>
             <td style="text-align: right;">
               {% if witness.participants %}
                 {{ witness.participants }}
