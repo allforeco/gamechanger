@@ -1,117 +1,89 @@
 {% extends "base_generic.html" %}
 
 {% block content %}
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
-  <script src="https://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/css/select2.min.css" rel="stylesheet" />
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/js/select2.full.js"></script>
+{% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
   <style>
     div.searchform > p[0] {display: inline-block;}
   </style>
-  {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
-
+  
   {% if user.is_authenticated %}
     <h1><span style="font-size:0.5em;">Home of</span><br/>{{ userhome.screenname }}</h1>
     <h2>Your Stats</h2>
     <table>
-      <tr><td>Visibility:</td><td>{{ visibility }}</td></tr>
-      <tr><td>Level:</td><td>1</td></tr>
-      <tr><td>Reports:</td><td>47</td></tr>
-      <tr><td>Trust:</td><td>10</td></tr>
-      <tr><td>Friends:</td><td>0</td></tr>
+      <tr><th>Visibility:</th><td>{{ visibility }}</td></tr>
+      <tr><th>Level:</th><td>1</td></tr>
+      <tr><th>Reports:</th><td>47</td></tr>
+      <tr><th>Trust:</th><td>10</td></tr>
+      <tr><th>Friends:</th><td>0</td></tr>
     </table>
+    
     <hr/>
-    <table>
-      <tr>
-        <td>
-          <h2>Favorite Locations</h2>
-          {% if favorites_list %}
-            <table>
-              <thead>
-                <td>Events</td>
-                <td>Participants</td>
-                <td>Last Week</td>
-                <td>Location</td>
-              </thead>
-              {% for loc in favorites_list %}
-                <tr>
-                  <td>{{ loc.events }}</td>
-                  <td>{{ loc.participants }}</td>
-                  <td>{{ loc.last_week }}</td>
-                  <td>
-                    <a href="{% url 'action:geo_view' loc.locid %}">{{ loc.name }}</a>
-                    {% if loc.in_location %} in 
-                    <a href="{% url 'action:geo_view' loc.in_location.id %}">
+
+    <div style="margin-bottom: 2em;">
+      <h2 style="margin-bottom: 0.2em;">Favorite Locations</h2>
+      {% if favorites_list %}
+        <table>
+          <thead>
+            <th>Events</th>
+            <th>Participants</th>
+            <th>Last Week</th>
+            <th>Location</th>
+          </thead>
+          {% for loc in favorites_list %}
+            <tr>
+              <td>{{ loc.events }}</td>
+              <td>{{ loc.participants }}</td>
+              <td>{{ loc.last_week }}</td>
+              <td>
+                <a href="{% url 'action:geo_view' loc.locid %}">{{ loc.name }}</a>
+                {% if loc.in_location %} in 
+                <a href="{% url 'action:geo_view' loc.in_location.id %}">
+                  {{ loc.in_location.name }}
+                </a>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </table>
+      {% else %}
+        <p>No favorite locations yet.</p>
+      {% endif %}
+      </div>
+
+      <div style="margin-bottom: 2em;">
+        <h2 style="margin-bottom: -0.25em;">Recent Locations</h2>
+        {% if recents_list %}
+          <table>
+            <thead>
+              <th>Events</th>
+              <th>Participants</th>
+              <th>Last Week</th>
+              <th>Location</th>
+            </thead>
+            {% for loc in recents_list %}
+              <tr>
+                <td>{{ loc.events }}</td>
+                <td>{{ loc.participants }}</td>
+                <td>{{ loc.last_week }}</td>
+                <td><a href="">{{ loc.name }}</a>
+                  {% if loc.in_location %} in 
+                    <a href="">
                       {{ loc.in_location.name }}
                     </a>
-                    {% endif %}
-                  </td>
-                </tr>
-              {% endfor %}
-            </table>
-          {% else %}
-            <p>No favorite locations yet.</p>
-          {% endif %}
-        </td>
-      </tr>
-      <tr>
-        <td>
-          <h2>Recent Locations</h2>
-          {% if recents_list %}
-            <table>
-              <thead>
-                <td>Events</td>
-                <td>Participants</td>
-                <td>Last Week</td>
-                <td>Location</td>
-              </thead>
-              {% for loc in recents_list %}
-                <tr>
-                  <td>{{ loc.events }}</td>
-                  <td>{{ loc.participants }}</td>
-                  <td>{{ loc.last_week }}</td>
-                  <td><a href="">{{ loc.name }}</a>
-                    {% if loc.in_location %} in 
-                      <a href="">
-                        {{ loc.in_location.name }}
-                      </a>
-                    {% endif %}
-                  </td>
-                </tr>
-              {% endfor %}
-            </table>
-          {% else %}
-            <p>No recent locations yet.</p>
-          {% endif %}
-        </td>
-      </tr>
-      <tr>
-        <td>
-          <h2>Location Search</h2>
-          <form action="" method="post" id="searchform" onchange="document.getElementById('searchform').submit();">
-            <!--onchange="document.getElementsByClassName('select2-search__field')[0].value;"-->
-            <!--//alert(document.getElementById('id_username').value)-->
-            {% csrf_token %}
-            <div class="searchform" style="white-space:nowrap; display:inline-block;">
-              {{ form.as_p }}
-              {{ form.media }}
-              <!--input style="white-space:nowrap; display:inline-block;" type="submit" value="Show location"-->
-            </div>
-            <!--onchange="document.getElementsByClassName('select2-search__field')[0].value;"-->
-            <!--//alert(document.getElementById('id_username').value)-->
-          </form>
-          <!--p><a href="{% url 'action:gathering_search' %}">Advanced Search</a></p-->
-          <!--p><a href="{% url 'action:gathering_create' %}">Register new Event</a></p-->
-        </td>
-      </tr>
-    </table>
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          </table>
+        {% else %}
+          <p>No recent locations yet.</p>
+        {% endif %}
+        </div>
   {% else %}
     <h1>Login or Join Us?</h1>
-    <table>
-      <tr>
-        <td><input type="submit" name="login" value="Login" onclick="window.open('{% url 'action:login' %}', '_self')"/></td>
-        <td><input type="submit" name="join_us" value="Join Us" onclick="window.open('{% url 'action:join_us' %}', '_self')"/></td>
-      </tr>
-    </table>
+    <div style="margin-bottom: 3.5em;">
+      <div style="float: left;"><input type="submit" name="login" value="Login" onclick="window.open('{% url 'action:login' %}', '_self')"/></div>
+      <div style="float: left;"><input type="submit" name="join_us" value="Join Us" onclick="window.open('{% url 'action:join_us' %}', '_self')"/></div>
+    </div>
   {% endif %}
 {% endblock %}

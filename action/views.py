@@ -35,11 +35,10 @@ try:
 except:
   action_spooler = None
   print(f"SIMP No uwsgi spooler environment")
-from .models import Gathering, Gathering_Belong, Gathering_Witness, Location, UserHome, Organization
+from .models import Gathering, Gathering_Belong, Gathering_Witness, Location, UserHome, Organization, Country
 from django.contrib.auth.models import User
 from .geo_view import geo_view_handler, geo_date_view_handler, geo_update_view, geo_update_post, geo_search, geo_invalid, translate_maplink
 from .start_view import start_view_handler
-from .top_reporters_view import top_reporters_view_handler
 
 class HomeView(FormView):
   class LocationSearchForm(forms.Form):
@@ -121,7 +120,7 @@ class LocationAutocomplete(autocomplete.Select2QuerySetView):
     qs = Location.objects.all()
     print(f"AUTL {len(qs)} locations")
     if self.q:
-      qs = qs.filter(name__icontains=self.q)
+      qs = qs.filter(name__icontains=self.q).exclude(name__icontains=", ")
     return qs
 
 class OrganizationAutocomplete(autocomplete.Select2QuerySetView):
@@ -158,6 +157,8 @@ def rid_generator(rtime, cemail):
     return
   return base64.urlsafe_b64encode(hashlib.md5(str(rtime+':'+cemail).encode()).digest()).decode()[:8]
 
+#DEPRICATED
+'''
 class GatheringCreate(FormView):
   class GatheringCreateForm0(forms.ModelForm):
     class Meta:
@@ -247,6 +248,7 @@ class GatheringCreate(FormView):
     gathering_belong.save() 
 
     return reverse_lazy('action:report_date', kwargs={'regid': self.regid, 'date': self.form['gathering_start_date'].value()})
+'''
 
 def spool_update_reg(response_file_bytes):
   print(f"INIT uwsgi req {len(response_file_bytes)}")
@@ -262,7 +264,9 @@ def get_canonical_regid(regid):
     print(f"GCRN {count_regid} canonical regid for '{regid}': {ex}")
     return None
 
+#DEPRICATED
 def index(request):
+  return redirect('action:start')
   latest_gathering_list = Gathering_Witness.objects.order_by('-creation_time')[:5]
   template = loader.get_template('action/index.html')
   context = {
@@ -270,10 +274,13 @@ def index(request):
   }
   return HttpResponse(template.render(context, request))
 
+#DEPRICATED
+'''
 def bad_link(request, error_message):
   template = loader.get_template('action/bad_link.html')
   context = { 'error_message': error_message }
   return HttpResponse(template.render(context, request))
+'''
 
 def overview_by_name(request):
   loc_name = request.GET.get('location','')

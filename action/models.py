@@ -31,6 +31,11 @@ class Country(models.Model):
   name = models.CharField(max_length=25)
   phone_prefix = models.CharField(max_length=5, blank=True)
 
+  @staticmethod
+  def as_set(static):
+    return {country.name for country in Country.objects.all()}
+
+
 class Location(models.Model):
   def __str__(self):
     return self.name

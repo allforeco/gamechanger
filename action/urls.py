@@ -23,11 +23,8 @@ urlpatterns = [
   path('download_upd/', views.download_upd, name='download_reg'),
   path('download_upd/post', views.download_post, name='download_post'),
   path('accounts/', include('django.contrib.auth.urls')),
-  path('gathering/create', views.GatheringCreate.as_view(), name='gathering_create'),
-  path('gathering/search', views.GatheringSearch.as_view(), name='gathering_search'),
   path('home', views.HomeView.as_view(), name='home'),
   path('location-autocomplete/', views.LocationAutocomplete.as_view(), name='location-autocomplete'),
   path('organization-autocomplete/', views.OrganizationAutocomplete.as_view(), name='organization-autocomplete'),
   path('start', views.start_view_handler, name='start'),
-  path('top_reporters', views.top_reporters_view_handler, name='top_reporters'),
 ]

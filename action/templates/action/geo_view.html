@@ -5,50 +5,49 @@
 {% endblock %}
 
 {% block content %}
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
-  <script src="https://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/css/select2.min.css" rel="stylesheet" />
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/js/select2.full.js"></script>
-  
-  <h1>
-    Reports for {{ this_location.name }} 
-  </h1>
-  {% if user.is_authenticated %}
-  <form action="" method="post">
-    {% csrf_token %}
-    <div class="favoriteform" style="white-space:nowrap; display:inline-block;">
-      {% if favorite_location == 'True' %}
-        <input type="submit" name="favorite" id="favorite" value="Remove from Favorites" style="color:red; display: inline-block;"/>
-      {% else %}
-        <input type="submit" name="favorite" id="favorite" value="Add to Favorites" style="color:green; display: inline-block;"/>
-        
-      {% endif %}
-    </div>
-  </form>
-  {% endif %}
-  <p>
-    {% if parent_location %} in 
-      <a href="{% url 'action:geo_view' parent_location.id %}">{{ parent_location.name }}</a>
+{% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+
+  <div style="width: 100%; float:right;">
+    <h1 style="float: left; margin: auto;">Reports for {{ this_location.name }}</h1>
+    {% if user.is_authenticated %}
+    <form style="float: left; margin-left: 0.5em; margin-right: 0.5em;" action="" method="post">
+      {% csrf_token %}
+      <div class="favoriteform" style="white-space:nowrap; display:inline-block;">
+        {% if favorite_location == 'True' %}
+          <input type="submit" name="favorite" id="favorite" value="Remove from Favorites" style="color:red; display: inline-block;"/>
+        {% else %}
+          <input type="submit" name="favorite" id="favorite" value="Add to Favorites" style="color:green; display: inline-block;"/>
+        {% endif %}
+      </div>
+    </form>
     {% endif %}
-
-  {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+    <div style="float: left; margin-bottom: 1.5em;">
+      <p style="margin-top:0.35em;">
+        {% if parent_location %}
+          in <a href="{% url 'action:geo_view' parent_location.id %}">{{ parent_location.name }}</a>
+        {% else %}
+        <p style="margin-left: -25.95em; margin-top: -0.5em;">.</p>
+        {% endif %}
+      </p>
+    </div>
+  </div>
 
   {% if sublocation_list %}
-    <h2>{{ sublocation_list|length }} locations within {{ this_location.name }}</h2>
+  <h2>{{ sublocation_list|length }} locations within {{ this_location.name }}</h2>
 
-    <p>
+    <ul style="float: left; margin-bottom: 2em; width: 100%;">
       {% for sublocation in sublocation_list %}
+      <li style="float: left; margin-left: 1.5em; margin-bottom: 0.5em;">
         <a href="{% url 'action:geo_view' sublocation.id %}">{{ sublocation }}</a>
+      </li>
       {% endfor %}
-    </p>
+    </ul>
+    
+  <h2>Direct Reports for {{ this_location.name }} in addition to the locations above</h2>
   {% endif %}
 
-  {% if sublocation_list %}
-    <h2>Direct Reports for {{ this_location.name }} in addition to the locations above</h2>
-  {% else %}
-    <h2>Reports</h2>
-  {% endif %}
   {% if witness_list %}
+  <h2>Reports</h2>
     <p>{{ witness_list|length }} events with a total of {{ total_participants }} reported participants</p>
     <form action="{% url 'action:geo_update' %}" method="POST">
       {% csrf_token %}
@@ -103,7 +102,9 @@
   {% else %}
     <p>No results registered yet.</p>
   {% endif %}
+
   {% if user.is_authenticated %}
   <!--Add Date user.is_authenticated-->
   {% endif %}
+  
 {% endblock %}

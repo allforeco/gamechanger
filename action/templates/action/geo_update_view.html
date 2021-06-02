@@ -5,26 +5,12 @@
 {% endblock %}
 
 {% block content %}
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
-  <script src="https://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/css/select2.min.css" rel="stylesheet" />
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/js/select2.full.js"></script>
-  
-  <!--3search-->
-  <link href="/static/admin/css/vendor/select2/select2.min.css" type="text/css" media="screen" rel="stylesheet">
-  <link href="/static/admin/css/autocomplete.css" type="text/css" media="screen" rel="stylesheet">
-  <link href="/static/autocomplete_light/select2.css" type="text/css" media="screen" rel="stylesheet">
-  <script src="/static/admin/js/vendor/select2/select2.full.js"></script>
-  <script src="/static/autocomplete_light/autocomplete_light.min.js"></script>
-  <script src="/static/autocomplete_light/select2.min.js"></script>
-  <script src="/static/autocomplete_light/i18n/en.js"></script>
+{% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
 
   <h1 id="advanced-title"></h1>
     {% if parent_location %} in 
       <a href="{% url 'action:location_view' parent_location.id %}">{{ parent_location.name }}</a>
     {% endif %}
-
-  {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
 
   <form action="{% url 'action:geo_post' %}" method="POST">
     {% csrf_token %}
@@ -59,15 +45,15 @@
           </td>
         </tr>
         <tr>
-          <td>Date</td>
+          <th>Date</th>
           <td><input required type="date" id="date" name="date" value="{{ date|date:'Y-m-d' }}" pattern="[0-9]{4}-[0-9]{2}-[0-9]{2}" placeholder="YYYY-MM-DD" oninput="check_unsaved()" onchange="check_unsaved()"/> </td>
         </tr>
         <tr>
-          <td><legend>Participants</legend></td>
+          <th><legend>Participants</legend></th>
           <td><input required type="number" id="participants" name="participants" value="{{ participants }}" min="1" oninput="check_unsaved()" onchange="check_unsaved()"/></td>
         </tr>
         <tr>
-          <td>Organization</td>
+          <th>Organization</th>
           <td>
             <select name="organization" data-minimum-input-length="3" id="id_organization" data-autocomplete-light-language="en" data-autocomplete-light-url="/action/organization-autocomplete/" data-autocomplete-light-function="select2">
               <option value="{{ organization.id }}" selected>{{ organization }}</option>
@@ -84,15 +70,13 @@
           </td>
         </tr>
         <tr>
-          <td><legend>Photo URL</legend></td>
+          <th><legend>Photo URL</legend></th>
           <td><input placeholder="(optional) Share a photo collection from the event!" type="url" id="url" name="proof_url" value="{{ proof_url }}" size="60" oninput="check_unsaved()" onchange="check_unsaved()"/></td>
         </tr>
       </tbody>
       <tbody id="formgathering">
         <tr>
-          <td>
-            Weeks
-          </td>
+          <th>Weeks</th>
           <td>
             <input required type="range" id="weeks" name="weeks" value="1" min="1" max="26" oninput="WeeksDisplayUpdate()" onchange="check_unsaved()"/>
           </td>
@@ -101,9 +85,7 @@
           </td>
         </tr>
         <tr>
-          <td>
-            Location
-          </td>
+          <th>Location</th>
           <td>
             <select required name="locid" data-minimum-input-length="3" id="location" data-autocomplete-light-language="en" data-autocomplete-light-url="/action/location-autocomplete/" data-autocomplete-light-function="select2">
               <option value="{{ this_location.id }}" selected>{{this_location.name}}</option>
@@ -111,9 +93,7 @@
           </td>
         </tr>
         <tr>
-          <td>
-            Gathering Type
-          </td>
+          <th>Gathering Type</th>
           <td>
             <select name="gathering-type" id="gathering-type" class="i-can-add-my-own-attrs-now">
             {% for id, name in gathering_types %}
@@ -123,18 +103,16 @@
           </td>
         </tr>
       </tbody>
-      
-      {% if user.is_authenticated is user.is_authenticated %}
-      <tr>
-        <td style="white-space:nowrap;">
-          <input type="submit" value="Submit" style="display: inline-block;"/>
-          </td>
-        <td style="white-space:nowrap;">
-          <div style="color:red; display: none;" id="save_changes">&nbsp;&nbsp;&nbsp;↤&nbsp;&nbsp;Save Your Changes</div>
-        </td>
-      </tr>
-      {% endif %}
     </table>
+    {% if user.is_authenticated is user.is_authenticated %}
+      <div style="width: 100%; margin-bottom: 2em; margin-top: 0.5em;">
+        <input type="submit" value="Submit" style="display: inline-block; float: left;"/>
+        <div style="color:red; display: none; float: left; margin-top: -0.6em;" id="save_changes">
+          <p style="margin-left: 1em; margin-right: 1em; float: left;">↤</p><p style="float: left;">Save Your Changes</p>
+        </div>
+
+      </div>
+      {% endif %}
     {% if True is False %}
       <p style="color:red">Reporting temporarily closed for maintenance. Use this reporting form instead: <a href="https://docs.google.com/forms/d/e/1FAIpQLSeyRjvtBZZAEXUbLDe_P4tTIKncQaGxrkrxUcmmiyaZDdLFtg/viewform">Report!</a></p>
     {% endif %}
