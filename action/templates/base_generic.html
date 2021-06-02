@@ -10,106 +10,145 @@
     <link rel="stylesheet" type="text/css" href="{% static 'style.css' %}"/>
     <style>
       .maincontent { background-color: #ACE6A4; padding: 15px; border: 3px solid #9ADC9E; }/* #ACE6A4 #8FE159 */
-	  .linkbanner {padding: 8px; margin: 5px 0px; color: white; background-color: #2FAB57; border: 3px solid #25A04F; overflow: hidden;}/* #2FAB57 */
-      .linkbanner a {color: white;}
-	  .menu_left { float: left; color: white; } /*display: inline-block; text-align: center; padding: 14px 16px; text-decoration: none; */
-	  .menu_right { float: right; color: white; } /*display: inline-block; text-align: center; padding: 14px 16px; text-decoration: none; */
-	  a:active {font-weight: bold;}
+	    .linkbanner {padding: 8px; margin: 5px 0px; color: white; background-color: #2FAB57; border: 3px solid #25A04F; overflow: hidden;}/* #2FAB57 */
+        .linkbanner a {color: white; margin-right: 0.5em;}
+	    .menu_left { float: left; color: white; } /*display: inline-block; text-align: center; padding: 14px 16px; text-decoration: none; */
+	    .menu_right { float: right; color: white; } /*display: inline-block; text-align: center; padding: 14px 16px; text-decoration: none; */
+	    a:active {font-weight: bold;}
     
-    .hide{
-      display:none;
-      height: 0px;
-      width: 0px;
-      overflow: hidden;
-    }
+      .hide{
+        display:none;
+        height: 0px;
+        width: 0px;
+        overflow: hidden;
+      }
 
-    body{
-      background-color: white;/*#e0ffe0;*/
-    }
+      body{
+        background-color: white;/*#e0ffe0;*/
+      }
 
-    /*Input*/
-    input[type=submit], input[type=button]{
-      box-sizing: border-box;
-      background-color: #1DA64A;/*#ACE6A4;
-      border-top: 2px solid #9ADC9E;
-      border-left: 2px solid #9ADC9E;
-      border-bottom: 2px solid #25A04F;
-      border-right: 2px solid #25A04F;
-      padding-top: 4px;
-      padding-bottom: 4px;
-      padding-left: 8px;
-      padding-right: 8px;*/
-	  border: 0;
-      font-weight: bold;
-      color: white;/*#000000;*/
-      border-radius: 1em;
-	  padding: 5px 14px;
-	  margin: 3px;
-	  margin-top: 5px;
-    }
+      /*Input*/
+      input[type=submit], input[type=button]{
+        box-sizing: border-box;
+        background-color: #1DA64A;/*#ACE6A4;
+        border-top: 2px solid #9ADC9E;
+        border-left: 2px solid #9ADC9E;
+        border-bottom: 2px solid #25A04F;
+        border-right: 2px solid #25A04F;
+        padding-top: 4px;
+        padding-bottom: 4px;
+        padding-left: 8px;
+        padding-right: 8px;*/
+      border: 0;
+        font-weight: bold;
+        color: white;/*#000000;*/
+        border-radius: 1em;
+      padding: 5px 14px;
+      margin: 3px;
+      margin-top: 5px;
+      }
 
-    input:hover{
-      color: #336633;
-    }
+      input:hover{
+        color: #336633;
+      }
 
-    input:active{
-      background-color: #2FAB57;
-      border-top: 2px solid #25A04F;
-      border-left: 2px solid #25A04F;
-      border-bottom: 2px solid #9ADC9E;
-      border-right: 2px solid #9ADC9E;
-      color: #ffffff;
-    }
+      input:active{
+        background-color: #2FAB57;
+        border-top: 2px solid #25A04F;
+        border-left: 2px solid #25A04F;
+        border-bottom: 2px solid #9ADC9E;
+        border-right: 2px solid #9ADC9E;
+        color: #ffffff;
+      }
 
-	table{
-		border-collapse: collapse;
-	}
+      table{
+        border-collapse: collapse;
+      }
 
-	tbody, thead{
-      background-color: #e0ffe0;
-    }
-    
-	tr:nth-child(even) {background: rgb(240, 240, 240)}
-    tr:nth-child(odd) {background: #FFF}
+      tbody, thead{
+          background-color: #e0ffe0;
+        }
+        
+      tr:nth-child(even) {background: rgb(240, 240, 240)}
+        tr:nth-child(odd) {background: #FFF}
 
-    td, th{
-      padding-left: 4px;
-      padding-bottom: 4px;
-      padding-right: 8px;
-    }
+      td, th{
+        padding-left: 4px;
+        padding-bottom: 4px;
+        padding-right: 8px;
+      }
 
-	th {
-  	  background: white;
-  	  position: sticky;
-  	  top: 0; /* Don't forget this, required for the stickiness */
-	}
-    /**/
+      td{
+        border-right: 1px solid #eeeeee;
+      }
+
+      th{
+        border: 2px solid #eeeeee;
+      }
+
+      th {
+        background: white;
+        position: sticky;        
+        top: 0; /* Don't forget this, required for the stickiness */
+      }
+        /**/
     </style>
-	<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+	  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   </head>
   <body style="margin: 8px">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/js/select2.full.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+
     {% block navbar %}
-		<a href="/action/home"><img src="{% static 'gc.jpg' %}" alt="" style="width: 73px; margin-bottom: -11px; border-right: 5px solid white;"/></a>
+		<a href="{% url 'action:start' %}"><img src="{% static 'gc.jpg' %}" alt="" style="width: 73px; margin-bottom: -11px; border-right: 5px solid white;"/></a>
 		<h2 style="margin-top: 8px; margin-bottom: 8px; display: inline-block">GameChanger<br>Action Tracker</h2>
 		<div class="linkbanner"><!-- #cccccc -->
 			<div class="menu_left">
-				<a href="/action/home">Home</a> &nbsp; <a href="">Stats</a> &nbsp; <a href="">Locations</a> &nbsp; <a href="">Reports</a>
-			</div>
+        {% if user.is_authenticated %}
+        <a href="{% url 'action:home' %}">Home</a>
+        {% endif %}
+        <a href="{% url 'action:start' %}">Start</a>
+        <a href="">Stats</a> 
+        <a href="">Locations</a>
+        <a href="">Reports</a>
+      </div>
+
 			<div class="menu_right">
+        <div style="margin: initial; float: left; margin-top: -0.5em; margin-right: 1em;">
+          <!--3search-->
+          <link href="/static/admin/css/vendor/select2/select2.min.css" type="text/css" media="screen" rel="stylesheet">
+          <link href="/static/admin/css/autocomplete.css" type="text/css" media="screen" rel="stylesheet">
+          <link href="/static/autocomplete_light/select2.css" type="text/css" media="screen" rel="stylesheet">
+          <script src="/static/admin/js/vendor/select2/select2.full.js"></script>
+          <script src="/static/autocomplete_light/autocomplete_light.min.js"></script>
+          <script src="/static/autocomplete_light/select2.min.js"></script>
+          <script src="/static/autocomplete_light/i18n/en.js"></script>
+          
+          <form action="{% url 'action:geo_search' %}" method="post" id="searchform">
+            {% csrf_token %}
+            <select name="location" data-minimum-input-length="3" id="id_location" data-autocomplete-light-language="en" data-autocomplete-light-url="/action/location-autocomplete/" data-autocomplete-light-function="select2">
+              <option value="0" selected>Location Search</option>
+            </select>
+            <input type="submit" value="Search" />
+          </form>
+        </div>
+
 				{% if user.is_authenticated %}
-					Welcome, {{ user.get_username }}&nbsp;&nbsp;&nbsp;
+          <p style="float: left; margin: initial; margin-right: 1em;">Welcome, {{ user.get_username }}</p>
 					<a href="{% url 'action:logout' %}?next={{request.path}}">Logout</a>
-					&nbsp;&nbsp;&nbsp;<a href="/action/gathering/search">Search</a>
 				{% else %}
-					Hello, Stranger!&nbsp;&nbsp;&nbsp;
-					<a href="{% url 'action:login' %}?next={{request.path}}">Login</a> or
+					<p style="float: left; margin: initial; margin-right: 1em;">Hello, Stranger!</p>
+					<a href="{% url 'action:login' %}?next={{request.path}}" style="margin-right: initial;">Login</a> or
 					<a href="{% url 'action:join_us' %}?next={{request.path}}">Join Us</a>
-				{% endif %}
+        {% endif %}
 			</div>
 		</div>
     {% endblock %}
-	<div class="maincontent">
-    {% block content %}<!-- default content text (typically empty) -->{% endblock %}
-	</div>
+    <div class="maincontent">
+      {% block content %}<!-- default content text (typically empty) -->{% endblock %}
+    </div>     
   </body>
 </html>

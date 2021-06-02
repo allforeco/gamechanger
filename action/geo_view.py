@@ -30,9 +30,9 @@ def geo_view_handler(request, locid):
   this_location = Location.objects.filter(id=locid).first()
   if not (this_location):
     return redirect('action:geo_invalid')
-    
+
   parent_location = this_location.in_location
-  sublocation_list = Location.objects.filter(in_location=this_location)
+  sublocation_list = Location.objects.filter(in_location=this_location).order_by('name')
   gathering_list = Gathering.objects.filter(location=this_location)
   witness_dict = {}
   #print(f"TOWH {this_location} {parent_location} {len(sublocation_list)} {len(gathering_list)}")
@@ -180,10 +180,10 @@ def geo_search(request):
   locid = request.POST.get('location')
   return redirect('action:geo_view', locid)
 
-def geo_invalid(request):
+def geo_invalid(request, error_message = None):
   template = loader.get_template('action/geo_invalid.html')
   context = {
-
+    'error_message': error_message
   }
   return HttpResponse(template.render(context, request))
 
