@@ -24,7 +24,7 @@
         {% for event in event_list %}
       <tr>
         <td> 
-          <span>{{event.date|date:'d-m-Y'}}</span>
+          <span>{{event.date|date:'Y-m-d'}}</span>
         </td>
         {% if event.gathering.location %}
         <td style="text-align: center;">

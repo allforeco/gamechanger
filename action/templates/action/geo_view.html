@@ -69,7 +69,7 @@
         {% for witness in witness_list %}
           <tr>
             <td>
-              <span hidden="true">{{witness.date|date:'d-m-Y' }}</span>
+              <span hidden="true">{{witness.date|date:'Y-m-d' }}</span>
               <form action="{% url 'action:geo_update' %}" method="POST">
                 {% csrf_token %}
                 <input type="hidden" value="False" name="isnewevent"/>

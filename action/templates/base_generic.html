@@ -122,11 +122,11 @@
       }
   
       function sortby_date(a, b, greater){
-        //gets (dd-mm-yyyy), need (mm/dd/yyyy) format
+        //gets ("yyyy-mm-dd"), need ("mm/dd/yyyy") format
         a = a.split('-'); 
         b = b.split('-'); 
-        a = (a[1] + '/' + a[0] + '/' + a[2]);
-        b = (b[1] + '/' + b[0] + '/' + b[2]);
+        a = (a[1] + '/' + a[2] + '/' + a[0]);
+        b = (b[1] + '/' + b[2] + '/' + b[0]);
         a = Date.parse(a);
         b = Date.parse(b);
         if (a - b){
