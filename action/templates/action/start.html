@@ -7,40 +7,54 @@
 {% block content %}
 {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
 
-  <diV>
+  <div>
     <h2 style="margin-bottom: 0.25em;">Latest Events</h2>
     <table>
       <thead>
-        <th>Date</th>
-        <th>Map</th>
-        <th>Location</th>
-        <th>Host</th>
-        <th>Participants</th>
-        <th>Photo</th>
+        <tr>
+          <th sort="dat-true">Date</th>
+          <th>Map</th>
+          <th sort="str-false">Location</th>
+          <th sort="str-false">Host</th>
+          <th sort="int-false">Participants</th>
+          <th>Photo</th>
+        </tr>
       </thead>
-      {% for event in event_list %}
+      <tbody>
+        {% for event in event_list %}
       <tr>
         <td> 
-          {{event.date|date:'d-m-Y'}} 
+          <span>{{event.date|date:'d-m-Y'}}</span>
         </td>
+        {% if event.gathering.location %}
         <td style="text-align: center;">
-          <a href="https://map.fridaysforfuture.org/?e={{event.gathering.regid}}">🌐<small style="display: none;">{{ event.gathering.regid }}</small></a>
+          <a href="https://map.fridaysforfuture.org/?e={{event.gathering.regid}}">🌐</a>
         </td>
         <td>
-          {% if event.gathering %}
-          <a href="{% url 'action:geo_view' event.gathering.location.id %}"> {{event.gathering.location.name}} </a>
+          <a href="{% url 'action:geo_view' event.gathering.location.id %}">{{event.gathering.location.name}}</a>
+        </td>
+        {% else %}
+        <td style="text-align: center;">
+          ❌
+        </td>
+        <td class="Unknown Place">
+          <span>Unknown Place</span>
+        </td>
         {% endif %}
+        {% if event.organization %}
+        <td class="{{event.organization}}">
+          <span>{{event.organization}}</span>
         </td>
+        {% else %}
         <td>
-          {% if event.organization %}
-            {{ event.organization}}
-          {% endif %}
+          <span hidden="true">z-sort</span>
         </td>
-        <td style="text-align: right;">
+        {% endif %}
+        <td style="text-align: right;" class="{{event.participants}}">
           {% if event.participants %}
-            {{ event.participants}}
+          <span>{{event.participants}}</span>
           {% else %}
-            ?
+          <span>?</span>
           {% endif %}
         </td>
         <td>
@@ -50,20 +64,21 @@
         </td>
       </tr>
       {% endfor %}
+      </tbody>
     </table>
-  </diV>
+  </div>
 
   <div>
     <h2 style="margin-bottom: 0.25em;">Reports Leaderboard</h2>
     <table>
       <thead>
-        <th>Country</th>
-        <th>Reports</th>
+        <th sort="str-false">Country</th>
+        <th sort="int-true">Reports</th>
       </thead>
       {% for location, reports, locid in leaderboard_list %}
       <tr>
-        <td><a href="{% url 'action:geo_view' locid %}" >{{ location }}</a></td>
-        <td>{{ reports }}</td>
+        <td><a href="{% url 'action:geo_view' locid %}" >{{location}}</a></td>
+        <td><span>{{reports}}</span></td>
       </tr>
       {% endfor %}
     </table>

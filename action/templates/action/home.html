@@ -25,14 +25,14 @@
         <table>
           <thead>
             <th>Events</th>
-            <th>Participants</th>
+            <th sort="int-false">Participants</th>
             <th>Last Week</th>
-            <th>Location</th>
+            <th sort="str-false">Location</th>
           </thead>
           {% for loc in favorites_list %}
             <tr>
               <td>{{ loc.events }}</td>
-              <td>{{ loc.participants }}</td>
+              <td><span>{{loc.participants}}</span></td>
               <td>{{ loc.last_week }}</td>
               <td>
                 <a href="{% url 'action:geo_view' loc.locid %}">{{ loc.name }}</a>

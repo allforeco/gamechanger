@@ -90,6 +90,12 @@
         background: white;
         position: sticky;        
         top: 0; /* Don't forget this, required for the stickiness */
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        -khtml-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
       }
         /**/
     </style>
@@ -101,6 +107,125 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/css/select2.min.css" rel="stylesheet" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/js/select2.full.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+    <script id="sort-table">
+      //#region sortby
+      function sortby_int(a, b, greater = true){
+        a = parseInt(a);
+        b = parseInt(b);
+        if (isNaN(a)){a = 0;}
+        if (isNaN(b)){b = 0;}
+        if (a > b){
+          return greater;
+        } else {
+          return !greater;
+        }
+      }
+  
+      function sortby_date(a, b, greater){
+        //gets (dd-mm-yyyy), need (mm/dd/yyyy) format
+        a = a.split('-'); 
+        b = b.split('-'); 
+        a = (a[1] + '/' + a[0] + '/' + a[2]);
+        b = (b[1] + '/' + b[0] + '/' + b[2]);
+        a = Date.parse(a);
+        b = Date.parse(b);
+        if (a - b){
+          return greater;
+        } else {
+          return !greater;
+        }
+      }
+  
+      function sortby_string(a, b, greater){
+        a.toString();
+        b.toString();
+        if (a < b){
+          return greater;
+        } else {
+          return !greater;
+        }
+      }
+      //#endregion
+
+      //#region sort table
+      function sort_table(tableid, colid, sortby, greater){
+        //console.log(tableid, colid, sortby, greater);
+        let table = document.getElementById(tableid);
+  
+        for (const th of table.getElementsByTagName("th")){
+          if (th.attributes.length > 0){
+            if (th.attributes[0].name == "sort"){
+              let data = th.attributes[0].value.split('-');
+
+              th.children[0].innerHTML = "↕";
+              if (th.cellIndex == colid){
+                th.onclick = function(){ sort_table(tableid, colid, sortby, !greater);}
+                if (greater)
+                {th.children[0].innerHTML = "⬇";} else 
+                {th.children[0].innerHTML = "⬆";}
+              }
+            }
+          }
+        }
+
+        let rows = table.rows;
+        for (var i = 0; i < rows.length; i++){
+          for (var j = 1; j < (rows.length - i - 1); j++){
+            let a = rows[j].children[colid].children[0].innerHTML;
+            let b = rows[j+1].children[colid].children[0].innerHTML;
+            let bubble;
+            switch(sortby){
+              case 'int':
+                bubble = sortby_int(a, b, greater);
+                break;
+  
+              case 'dat':
+                bubble = sortby_date(a, b, true);
+                break;
+  
+              default:
+              case 'str':
+                bubble = sortby_string(a, b, greater);
+                break;
+            }
+  
+            if (bubble){
+              rows[j].parentNode.insertBefore(rows[j+1], rows[j]);
+            }
+          }
+        }
+      }
+      //#endregion
+      //#region setup
+      function sort_setup(){
+        let tables = document.getElementsByTagName("table");
+        for (let i = 0; i < tables.length; i++){
+          tables[i].id = ("table-"+ i);
+          for (const th of tables[i].getElementsByTagName("th")){
+            if (th.attributes.length > 0){
+              if (th.attributes[0].name == "sort"){
+                let data = th.attributes[0].value.split('-');
+                th.onclick = function(){ sort_table(tables[i].id, th.cellIndex, data[0], (data[1] == 'true'));}
+                th.innerHTML += "<span>↕</span>";
+                if (data[1] == 'true'){th.children[0].innerHTML = "⬆";}
+              }
+            }
+          }
+        }
+      }
+      //#endregion
+      window.onload = function(){
+        /*
+          HOW-TO-SETUP
+          In table add sort attribute as first attribute to th element
+            value="{type}-{is already sorted by value}"
+            type is eather: 'int' (number), 'dat' (date), 'str' (text) [default]
+          Put td value in element tag (<span>, <a>), (to remove spaces from read value)
+
+        */
+        sort_setup();
+      }
+    </script>
 
     {% block navbar %}
 		<a href="{% url 'action:start' %}"><img src="{% static 'gc.jpg' %}" alt="" style="width: 73px; margin-bottom: -11px; border-right: 5px solid white;"/></a>
