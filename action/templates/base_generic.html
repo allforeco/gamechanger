@@ -121,21 +121,6 @@
         }
       }
   
-      function sortby_date(a, b, greater){
-        //gets ("yyyy-mm-dd"), need ("mm/dd/yyyy") format
-        a = a.split('-'); 
-        b = b.split('-'); 
-        a = (a[1] + '/' + a[2] + '/' + a[0]);
-        b = (b[1] + '/' + b[2] + '/' + b[0]);
-        a = Date.parse(a);
-        b = Date.parse(b);
-        if (a - b){
-          return greater;
-        } else {
-          return !greater;
-        }
-      }
-  
       function sortby_string(a, b, greater){
         a.toString();
         b.toString();
@@ -180,7 +165,7 @@
                 break;
   
               case 'dat':
-                bubble = sortby_date(a, b, true);
+                bubble = sortby_string(a, b, !greater);
                 break;
   
               default:
