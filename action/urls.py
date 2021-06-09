@@ -27,4 +27,5 @@ urlpatterns = [
   path('location-autocomplete/', views.LocationAutocomplete.as_view(), name='location-autocomplete'),
   path('organization-autocomplete/', views.OrganizationAutocomplete.as_view(), name='organization-autocomplete'),
   path('start', views.start_view_handler, name='start'),
+  path('eventmap_data/', views.eventmap_data, name='eventmap_data'),
 ]
