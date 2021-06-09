@@ -173,4 +173,6 @@ def eventmap_data(request):
   context = {
     'csvfile': csvdisplay,
   }
-  return HttpResponse(loader.get_template('action/eventmap_data.html').render(context, request))
+  
+  template = loader.get_template('action/eventmap_data.html')
+  return HttpResponse(template.render(context, request))

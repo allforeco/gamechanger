@@ -31,4 +31,6 @@ urlpatterns = [
   path('start/latest_reports', views.latest_reports_view, name='latest_reports'),
   path('start/locations_list', views.locations_view, name='locations_list'),
 
+  path('start', views.start_view_handler, name='start'),
+  path('eventmap_data/', views.eventmap_data, name='eventmap_data'),
 ]
