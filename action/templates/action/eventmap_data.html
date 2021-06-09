@@ -1,0 +1,39 @@
+{% extends "base_generic.html" %}
+
+{% block title %}
+      <title>Event Overview - Gamechanger Action Tracker</title>
+{% endblock %}
+
+{% block content %}
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+<script src="https://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/js/select2.full.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>  
+<!--3search-->
+<link href="/static/admin/css/vendor/select2/select2.min.css" type="text/css" media="screen" rel="stylesheet">
+<link href="/static/admin/css/autocomplete.css" type="text/css" media="screen" rel="stylesheet">
+<link href="/static/autocomplete_light/select2.css" type="text/css" media="screen" rel="stylesheet">
+<script src="/static/admin/js/vendor/select2/select2.full.js"></script>
+<script src="/static/autocomplete_light/autocomplete_light.min.js"></script>
+<script src="/static/autocomplete_light/select2.min.js"></script>
+<script src="/static/autocomplete_light/i18n/en.js"></script>
+
+{% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+  
+
+  <table>
+    <tbody>
+      {% for csvitems in csvfile %}
+      <tr>
+        {% for csvitem in csvitems %}
+        <td style="max-width: 7vw;overflow: hidden;">
+          {{csvitem}}
+        </td>
+        {% endfor %}
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+{% endblock %}

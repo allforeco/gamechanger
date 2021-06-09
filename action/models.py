@@ -244,6 +244,8 @@ class Gathering(models.Model):
   duration = models.DurationField(blank=True, null=True)
   expected_participants = models.PositiveIntegerField(blank=True, null=True)
   organizations = models.ManyToManyField(Organization, blank=True)
+  #address = models.CharField(blank=True, max_length=64)
+  #time = models.CharField(blank=True, max_length=32)
 
   def get_gathering_type_str(self):
     return {key:val for (key, val) in Gathering._gathering_type_choices}[self.gathering_type]

@@ -18,6 +18,7 @@ import datetime, io, csv
 from uwsgidecorators import spool
 from .models import Country, Location, Gathering, Gathering_Belong, Gathering_Witness, Organization
 from .push_notifier import Push_Notifier
+from map_sync import sync_to_fff, 
 
 try:
   import uwsgi
@@ -35,6 +36,8 @@ def action_spooler(req):
     print(f"SSMP Body len {len(body)} sample '{str(body)[:100]}'...")
   if task == 'upload' and body:
     task_update_reg(body)
+  elif task == 'mapsync-full':
+    sync_to_fff()
   else:
     print('SUNK Unknown spool job type')
   print(f"SEND Gamechanger spooler job complete")
