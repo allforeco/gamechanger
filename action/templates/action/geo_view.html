@@ -60,15 +60,16 @@
     <div class="gathering">
       <table>
         <tr>
-          <th>Date</th>
+          <th sort="dat-true">Date</th>
           <th>Map</th>
-          <th>Participants</th>
+          <th sort="int-false">Participants</th>
           <th>Photos</th>
-          <th>Host</th>
+          <th sort="str-false">Host</th>
         </tr>
         {% for witness in witness_list %}
           <tr>
             <td>
+              <span hidden="true">{{witness.date|date:'Y-m-d' }}</span>
               <form action="{% url 'action:geo_update' %}" method="POST">
                 {% csrf_token %}
                 <input type="hidden" value="False" name="isnewevent"/>
@@ -77,12 +78,12 @@
                 <input type="submit" value="{{witness.date|date:'Y-m-d' }}"/>
               </form>
             </td>
-            <td style="text-align: center;"><a href="https://map.fridaysforfuture.org/?e={{witness.gathering.regid}}">🌐<small style="display: none;">{{ witness.gathering.regid }}</small></a></td>
+            <td style="text-align: center;"><a href="https://map.fridaysforfuture.org/?e={{witness.gathering.regid}}">🌐</a></td>
             <td style="text-align: right;">
               {% if witness.participants %}
-                {{ witness.participants }}
+                <span>{{ witness.participants }}</span>
               {% else %}
-                ?
+              <span>?</span>
               {% endif %}
             </td>
             <td>
@@ -92,7 +93,10 @@
             </td> 
             <td>
               {% if witness.organization %}
+              <span hidden="true">{{ witness.organization }}</span>
                 <small>{{ witness.organization }}</small>
+              {% else %}
+              <span hidden=true>z-sort</span>
               {% endif %}
             </td>
           </tr>
@@ -101,6 +105,13 @@
     </div>
   {% else %}
     <p>No results registered yet.</p>
+    <form action="{% url 'action:geo_update' %}" method="POST">
+      {% csrf_token %}
+      <input type="hidden" value="False" name="isnewevent"/>
+      <input type="hidden" value="None" name="witness_id"/>
+      <input type="hidden" value="{{this_location.id}}" name="locid"/>
+      <input type="submit" value="Add Date">
+    </form>
   {% endif %}
 
   {% if user.is_authenticated %}
