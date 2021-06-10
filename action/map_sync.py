@@ -29,7 +29,7 @@ def _send_to_fff_web_server(self,payload,files=None):
 
 def eventmap_data(request):
   csvdisplay = []
-  with open('eventmap_data.csv', 'w', newline='') as csvfile:
+  with open(path + 'eventmap_data.csv', 'w', newline='') as csvfile:
     datawriter = csv.writer(csvfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
     datawriter.writerow(['FFF Global Map generated on ' + dateTime.datetime.today().strftime('%Y-%m-%d %H:%M')]+['']*16)
     datawriter.writerow(
@@ -165,13 +165,14 @@ def eventmap_data(request):
     
 
 
-  with open('eventmap_data.csv', newline='') as csvfile:
+  with open(path +'eventmap_data.csv', newline='') as csvfile:
     datareader = csv.reader(csvfile, delimiter=',', quotechar='"')
     for row in datareader:
       csvdisplay.append(row)
 
   context = {
     'csvfile': csvdisplay,
+    'eventlist': eventlist,
   }
   
   template = loader.get_template('action/eventmap_data.html')
