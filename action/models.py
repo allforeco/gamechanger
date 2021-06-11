@@ -158,7 +158,7 @@ class Organization(models.Model):
   def __str__(self):
     return self.name
 
-  name = models.CharField(max_length=25, unique=True)
+  name = models.CharField(max_length=50, unique=True)
   email = models.EmailField(blank=True)
   #verified = models.ForeignKey(Verification, on_delete=models.CASCADE, editable=False)
 
@@ -244,8 +244,14 @@ class Gathering(models.Model):
   duration = models.DurationField(blank=True, null=True)
   expected_participants = models.PositiveIntegerField(blank=True, null=True)
   organizations = models.ManyToManyField(Organization, blank=True)
-  #address = models.CharField(blank=True, max_length=64)
-  #time = models.CharField(blank=True, max_length=32)
+
+  address = models.CharField(blank=True, max_length=64)
+  time = models.CharField(blank=True, max_length=32)
+
+  contact_name = models.CharField(blank=True, max_length=64)
+  contact_email = models.CharField(blank=True, max_length=64)
+  contact_phone = models.CharField(blank=True, max_length=64)
+  contact_notes = models.CharField(blank=True, max_length=64)
 
   def get_gathering_type_str(self):
     return {key:val for (key, val) in Gathering._gathering_type_choices}[self.gathering_type]
