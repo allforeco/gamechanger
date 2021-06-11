@@ -28,8 +28,7 @@ def _send_to_fff_web_server(self,payload,files=None):
     raise (result.status_code, result.text)
 
 def eventmap_data(request):
-  csvdisplay = []
-  with open(path + 'eventmap_data.csv', 'w', newline='') as csvfile:
+  with open('eventmap_data/eventmap_data.csv', 'w', newline='') as csvfile:
     datawriter = csv.writer(csvfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
     datawriter.writerow(['FFF Global Map generated on ' + dateTime.datetime.today().strftime('%Y-%m-%d %H:%M')]+['']*16)
     datawriter.writerow(
@@ -51,25 +50,25 @@ def eventmap_data(request):
       ['Organizational Color']+
       ['gclink'])
 
-    locations = list(Location.objects.filter(lat__isnull=False)[:333])
+    locations = list(Location.objects.filter(lat__isnull=False)[:]) #remove [:num] for full list
     for location in locations:
       d_country = ''
       d_town = ''
-      d_adress = ''
+      d_address = ''
       d_time = ''
       d_date = ''
-      d_frequency = ''
+      d_frequency = '' #unused; frequency ?==> enddate
       d_witness_event_link = ''
       d_gathering_type = ''
       d_lat = ''
       d_lon = ''
-      d_witness_name = ''
-      d_witness_email = ''
-      d_witness_phone = ''
-      d_notes = ''
+      d_contact_name = ''
+      d_contact_email = ''
+      d_contact_phone = ''
+      d_contact_notes = ''
       d_organization = ''
       d_organization_color = ''
-      d_gc_link = ''
+      d_gc_link = '' #ok regid ==> gc_link
 
       country = location
       for i in range(4):
@@ -81,7 +80,7 @@ def eventmap_data(request):
       d_town = location
       d_lat = location.lat
       d_lon = location.lon
-      d_gc_link = ('https://www.gamechanger.eco/action/geo/' +str(location.id)+'/').split('/')[-2]
+      d_gc_link = ('https://www.gamechanger.eco/action/geo/' +str(location.id)+'/')#.split('/')[-2] #remove post split for full link
 
       gatherings = list(Gathering.objects.filter(location=location))
       gatherings.sort(key=lambda gathering: gathering.start_date if gathering.start_date else datetime.datetime(1970,1,1), reverse=True)
@@ -91,8 +90,13 @@ def eventmap_data(request):
           d_date = gathering.start_date
           d_gathering_type = gathering.get_gathering_type_str()
           #d_organization = gathering.organizations
-          #d_adress = gathering.address
-          #d_time = gathering.time
+          d_address = gathering.address
+          d_time = gathering.time
+
+          d_contact_name = gathering.contact_name
+          d_contact_email = gathering.contact_email
+          d_contact_phone = gathering.contact_phone
+          d_contact_notes = gathering.contact_notes
 
           witnesses = list(Gathering_Witness.objects.filter(gathering=gathering))
           witnesses.sort(key=lambda witness: witness.date if witness.date else datetime.datetime(1970,1,1), reverse=True)
@@ -101,77 +105,40 @@ def eventmap_data(request):
             for witness in witnesses:
               d_date = witness.date
               if (len(witness.proof_url.split('/')) > 1):
-                d_witness_event_link = witness.proof_url.split('/')[2]
+                d_witness_event_link = witness.proof_url#.split('/')[2] #remove if statement & post split for full link
               d_organization = witness.organization
               d_organization_color = witness.get_pin_color()
 
-              datawriter.writerow(
-                [d_country]+
-                [d_town]+
-                [d_adress]+
-                [d_time]+
-                [d_date]+
-                [d_frequency]+
-                [d_witness_event_link]+
-                [d_gathering_type]+
-                [d_lat]+
-                [d_lon]+
-                [d_witness_name]+
-                [d_witness_email]+
-                [d_witness_phone]+
-                [d_notes]+
-                [d_organization]+
-                [d_organization_color]+
-                [d_gc_link])
-          else:
-            datawriter.writerow(
-                [d_country]+
-                [d_town]+
-                [d_adress]+
-                [d_time]+
-                [d_date]+
-                [d_frequency]+
-                [d_witness_event_link]+
-                [d_gathering_type]+
-                [d_lat]+
-                [d_lon]+
-                [d_witness_name]+
-                [d_witness_email]+
-                [d_witness_phone]+
-                [d_notes]+
-                [d_organization]+
-                [d_organization_color]+
-                [d_gc_link])
-      else:
-        datawriter.writerow(
-          [d_country]+
-          [d_town]+
-          [d_adress]+
-          [d_time]+
-          [d_date]+
-          [d_frequency]+
-          [d_witness_event_link]+
-          [d_gathering_type]+
-          [d_lat]+
-          [d_lon]+
-          [d_witness_name]+
-          [d_witness_email]+
-          [d_witness_phone]+
-          [d_notes]+
-          [d_organization]+
-          [d_organization_color]+
-          [d_gc_link])
+      datawriter.writerow(
+        [d_country]+
+        [d_town]+
+        [d_address]+
+        [d_time]+
+        [d_date]+
+        [d_frequency]+
+        [d_witness_event_link]+
+        [d_gathering_type]+
+        [d_lat]+
+        [d_lon]+
+        [d_contact_name]+
+        [d_contact_email]+
+        [d_contact_phone]+
+        [d_contact_notes]+
+        [d_organization]+
+        [d_organization_color]+
+        [d_gc_link])
+  
+  return eventmap_data_view(request)
 
-    
-
-
-  with open(path +'eventmap_data.csv', newline='') as csvfile:
+def eventmap_data_view(request):
+  eventlist = []
+  with open('eventmap_data/eventmap_data.csv', newline='') as csvfile:
     datareader = csv.reader(csvfile, delimiter=',', quotechar='"')
     for row in datareader:
-      csvdisplay.append(row)
+      eventlist.append(row)
 
   context = {
-    'csvfile': csvdisplay,
+    'eventlist_lenght': len(eventlist),
     'eventlist': eventlist,
   }
   

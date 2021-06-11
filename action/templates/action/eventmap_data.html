@@ -21,19 +21,21 @@
 
 {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
   
-
-  <table>
-    <tbody>
-      {% for csvitems in csvfile %}
-      <tr>
-        {% for csvitem in csvitems %}
-        <td style="max-width: 7vw;overflow: hidden;">
-          {{csvitem}}
-        </td>
+  <div style="overflow-x: scroll;">
+    <table>
+      <tbody>
+        <h2>List of {{eventlist_lenght}} events in defined locations</h2>
+        {% for event in eventlist %}
+        <tr>
+          {% for data in event %}
+          <td style="max-height: 2em; max-width: 5.85vw; overflow: hidden;">
+            {{data}}
+          </td>
+          {% endfor %}
+        </tr>
         {% endfor %}
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+      </tbody>
+    </table>
+  </div>
 
 {% endblock %}
