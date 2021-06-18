@@ -5,6 +5,7 @@ from django.urls import reverse_lazy
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth.decorators import login_required, permission_required
 from django import forms
+from django.shortcuts import redirect
 from .models import Gathering, Gathering_Belong, Gathering_Witness, Location, UserHome, Organization
 
 import csv
@@ -128,7 +129,7 @@ def eventmap_data(request):
         [d_organization_color]+
         [d_gc_link])
   
-  return eventmap_data_view(request)
+  return redirect('action:eventmap_data_view') #eventmap_data_view(request)
 
 def eventmap_data_view(request):
   eventlist = []
