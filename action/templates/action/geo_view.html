@@ -78,7 +78,7 @@
                 <input type="submit" value="{{witness.date|date:'Y-m-d' }}"/>
               </form>
             </td>
-            <td style="text-align: center;"><a href="https://map.fridaysforfuture.org/?e={{witness.gathering.regid}}">🌐</a></td>
+            <td style="text-align: center;"><a href="https://map.fridaysforfuture.org/?e={{witness.gathering.regid}}">🌐<sup><sup>🔗</sup></sup></a></td>
             <td style="text-align: right;">
               {% if witness.participants %}
                 <span>{{ witness.participants }}</span>
@@ -86,9 +86,9 @@
               <span>?</span>
               {% endif %}
             </td>
-            <td>
+            <td style="text-align: center;">
               {% if witness.proof_url %}
-                <a href="{{ witness.proof_url }}">Photo</a>
+                <a href="{{ witness.proof_url }}">🖼<sup><sup>🔗</sup></sup></a>
               {% endif %}
             </td> 
             <td>

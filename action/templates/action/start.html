@@ -8,11 +8,45 @@
 {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
 
   <div>
-    <h2 style="margin-bottom: 0.25em;">Latest Events</h2>
+    <h3>Weeks: <span id="weeksinput">{{filter_weeks}}</span></h3>
+    <form action="{% url 'action:start' %}" method="POST">
+      {% csrf_token%}
+      <input type="range"  id="weeksoutput" name="filter_weeks" value="{{filter_weeks}}" min="1" max="4" oninput="document.getElementById('weeksinput').innerHTML = document.getElementById('weeksoutput').value"/>
+      <input type="submit" value="Filter"/>
+    </form>
+  </div>
+
+  <div>
+    <h2 style="margin-bottom: 0.25em;">Activity Leaderboard</h2>
+    <table>
+      <thead>
+        <th sort="str-false">Country</th>
+        <th sort="int-true">Events</th>
+        <th sort="int-false">Reports</th>
+      </thead>
+      {% for location in leaderboard_list %}
+      <tr>
+        <td>
+          <a href="{% url 'action:geo_view' location.1 %}" >{{location.0}}</a>
+        </td>
+        <td>
+          <span>{{location.2}}</span>
+        </td>
+        <td>
+          <span>{{location.3}}</span>
+        </td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+
+  <div>
+    <h2 style="margin-bottom: 0.25em;">Latest Reports</h2>
     <table>
       <thead>
         <tr>
-          <th sort="dat-true">Date</th>
+          <th sort="int-true">Latest</th>
+          <th sort="dat-false">Date</th>
           <th>Map</th>
           <th sort="str-false">Location</th>
           <th sort="str-false">Host</th>
@@ -21,66 +55,99 @@
         </tr>
       </thead>
       <tbody>
-        {% for event in event_list %}
-      <tr>
-        <td> 
-          <span>{{event.date|date:'Y-m-d'}}</span>
-        </td>
-        {% if event.gathering.location %}
-        <td style="text-align: center;">
-          <a href="https://map.fridaysforfuture.org/?e={{event.gathering.regid}}">🌐</a>
-        </td>
-        <td>
-          <a href="{% url 'action:geo_view' event.gathering.location.id %}">{{event.gathering.location.name}}</a>
-        </td>
-        {% else %}
-        <td style="text-align: center;">
-          ❌
-        </td>
-        <td class="Unknown Place">
-          <span>Unknown Place</span>
-        </td>
-        {% endif %}
-        {% if event.organization %}
-        <td class="{{event.organization}}">
-          <span>{{event.organization}}</span>
-        </td>
-        {% else %}
-        <td>
-          <span hidden="true">z-sort</span>
-        </td>
-        {% endif %}
-        <td style="text-align: right;" class="{{event.participants}}">
-          {% if event.participants %}
-          <span>{{event.participants}}</span>
+        {% for report in report_list %}
+        <tr>
+          <td style="text-align: center;">
+            <span>{{report.0}}</span>
+          </td>
+          <td> 
+            <span>{{report.1}}</span>
+          </td>
+          {% if report.2 %}
+          <td style="text-align: center;">
+            <a href="https://map.fridaysforfuture.org/?e={{report.2}}">🌐<sup><sup>🔗</sup></sup></a>
+          </td>
+          <td>
+            <a href="{% url 'action:geo_view' report.3|first %}">{{report.3|last}}</a>
+          </td>
           {% else %}
-          <span>?</span>
+          <td style="text-align: center;">
+            ❌
+          </td>
+          <td>
+            <span>Unknown Place</span>
+          </td>
           {% endif %}
-        </td>
-        <td>
-          {% if witness.proof_url %}
-            <a href="{{ event.gathering.proof_url }}">Photo</a>
-          {% endif %}
-        </td>
-      </tr>
-      {% endfor %}
+          <td>
+            {% if report.4 %}
+            <span>{{report.4}}</span>
+            {% else %}
+            <span hidden="true">z-sort</span>
+            {% endif %}
+          </td>
+          <td style="text-align: right;">
+            {% if report.5 %}
+            <span>{{report.5}}</span>
+            {% else %}
+            <span>?</span>
+            {% endif %}
+          </td>
+          <td style="text-align: center;">
+            {% if report.6 %}
+              <a href="{{ report.6 }}">🖼<sup><sup>🔗</sup></sup></a>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
       </tbody>
     </table>
   </div>
 
   <div>
-    <h2 style="margin-bottom: 0.25em;">Reports Leaderboard</h2>
+    <h2 style="margin-bottom: 0.25em;">Uppcomming Events</h2>
     <table>
       <thead>
-        <th sort="str-false">Country</th>
-        <th sort="int-true">Reports</th>
+        <tr>
+          <th sort="dat-true">Date</th>
+          <th sort="str-false">Type</th>
+          <th>Map</th>
+          <th sort="str-false">Location</th>
+          <th sort="str-false">Host</th>
+          <th sort="int-false">Expected Participants</th>
+        </tr>
       </thead>
-      {% for location, reports, locid in leaderboard_list %}
-      <tr>
-        <td><a href="{% url 'action:geo_view' locid %}" >{{location}}</a></td>
-        <td><span>{{reports}}</span></td>
-      </tr>
-      {% endfor %}
+      <tbody>
+        {% for gathering in gathering_list %}
+        <tr>
+          <td>
+            <span>{{gathering.0}}</span>
+          </td>
+          <td>
+            <span>{{gathering.1}}</span>
+          </td>
+          <td style="text-align: center;">
+            <a href="https://map.fridaysforfuture.org/map?e={{gathering.2}}">🌐<sup><sup>🔗</sup></sup></a>
+          </td>
+          <td>
+            <a href="{% url 'action:geo_view' gathering.3|first %}">{{gathering.3|last}}</a>
+          </td>
+          <td>
+            {% if gathering.4 %}
+            <span>{{gathering.4}}</span>
+            {% else %}
+            <span hidden>z-sort</span>
+            {% endif%}
+          </td>
+          <td style="text-align: right;">
+            {% if gathering.5 %}
+            <span>{{gathering.5}}</span>
+            {% else %}
+            <span>?</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
     </table>
   </div>
 {% endblock %}

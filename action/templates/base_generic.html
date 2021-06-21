@@ -107,6 +107,7 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/css/select2.min.css" rel="stylesheet" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/js/select2.full.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+    
     <script id="sort-table">
       //#region sortby
       function sortby_int(a, b, greater = true){
@@ -184,6 +185,11 @@
       //#region setup
       function sort_setup(){
         let tables = document.getElementsByTagName("table");
+        if (tables[0] == null){
+          requestAnimationFrame(sort_setup);
+          return;
+        }
+
         for (let i = 0; i < tables.length; i++){
           tables[i].id = ("table-"+ i);
           for (const th of tables[i].getElementsByTagName("th")){
@@ -199,17 +205,14 @@
         }
       }
       //#endregion
-      window.onload = function(){
-        /*
-          HOW-TO-SETUP
-          In table add sort attribute as first attribute to th element
-            value="{type}-{is already sorted by value}"
-            type is eather: 'int' (number), 'dat' (date), 'str' (text) [default]
-          Put td value in element tag (<span>, <a>), (to remove spaces from read value)
-
+      
+      /* HOW-TO-SETUP
+        In table add sort attribute as first attribute to th element
+          value="{type}-{is already sorted by value boolean}"
+          type is eather: 'int' (number), 'dat' (date), 'str' (text) [default]
+        Put td value in element a tag (ex. <span>, <a>), (reads from td child, to remove spaces/tabs from read value)
         */
-        sort_setup();
-      }
+      sort_setup();
     </script>
 
     {% block navbar %}
