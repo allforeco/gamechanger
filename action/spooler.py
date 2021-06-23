@@ -238,10 +238,13 @@ def update_reg(regs):
             location=location,
             start_date=edate,
             end_date=eenddate)
+          
+          gathering.save()
           if organization:
             gathering.organizations.add(organization)
+            gathering.save()
           #print(f"Adding gathering {gathering}")
-          gathering.save() 
+
           counter['Gathering'] += 1
           print(f"{lineno} {regid} new gathering {gathering} {gathering.__dict__}", file=last_import_log)
           #print(f"URGC {lineno} {regid} Gathering created")
