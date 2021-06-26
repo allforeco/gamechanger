@@ -3,18 +3,22 @@ import os
 import requests
 
 def prime_send_file():
-  filename = "fff-regid.csv"
+  filename = "fff-regid.csv" #In eventmap_data dir
   in_file = open(filename, "r")
   data = in_file.read()
   in_file.close()
 
   files = {'regfile': (filename, data)}
-  print(f"TGCS Upload len {len(files['regfile'][1])}, sample {str(files['regfile'][1])[:100]}...")
-  _send_to_gamechanger({}, files=files)
+  print(f"TGCS Upload len {len(files['regfile'][1])}, sample {str(files['regfile'][1])[:200]}...")
+  _send_to_gamechanger({}, files=files, local=True)
 
-def _send_to_gamechanger(payload,files=None):
-  urlsrc = "127.0.0.1:8000" #"www.gamechanger.eco"
-  url = "http://"+ urlsrc + "/action/upload_reg/post";
+def _send_to_gamechanger(payload,files=None,local=True):
+  urlsrc = "127.0.0.1:8000"
+  if not local:
+    print("ICSD, not sending to 'www.gamechanger.eco'")
+    #urlsrc = "www.gamechanger.eco"
+
+  url = "http://"+ urlsrc + "/action/upload_reg/post"
   token = os.environ['GAMECHANGER_UPLOAD_TOKEN']
   payload['token'] = token
   result = requests.post(url, data=payload, files=files)

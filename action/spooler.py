@@ -42,33 +42,41 @@ try:
     return uwsgi.SPOOL_OK
 except ImportError:
   uwsgi = None
-  print(f"INIT uWSGI not found in spooler")
+  print(f"INIT uWSGI not found in spooleSEND Gamechanger r")
+  
+  def action_nospooler(body):
+    task_update_reg(body, "last_import.log", "last_cleanup.log")
+  
 
-
-
-def task_update_reg(body):
+def task_update_reg(body, import_log=None, cleanup_log=None):
   reg_file = io.StringIO(body)
   reg_reader = csv.reader(reg_file, delimiter=',')
   doctype_line = reg_reader.__next__()
   doctype = doctype_line[0]
   if not doctype.startswith('FFF RegID'):
     print(f"URDT Bad doctype '{doctype}'")
-    return uwsgi.SPOOL_OK
+    if (uwsgi):
+      return uwsgi.SPOOL_OK
+    else:
+      return
 
   reg_list = [line for line in reg_reader]
   count_of = len(reg_list)
   print(f"URLN {count_of} place definitions to process")
-  update_reg(reg_list)
+  print(f"STUR {reg_file}...")
+  update_reg(reg_list, import_log)
   print(f"URES place definitions processed")
   print(f"UCLN unused places cleanup")
   try:
-    cleanup_locations()
+    cleanup_locations(cleanup_log)
   except Exception as ex:
     print(f"UCLN top level exception: {ex}")
   print(f"UCLN unused places cleanup done")
 
-def cleanup_locations():
+def cleanup_locations(cleanup_log = None):
   last_cleanup_log_name = "/var/log/gamechanger-spooler/last_cleanup.log"
+  if cleanup_log:
+    last_cleanup_log_name = cleanup_log
   with open(last_cleanup_log_name, "w") as last_cleanup_log:
     print(f"Action spooler cleanup log taken on {datetime.datetime.ctime(datetime.datetime.utcnow())}", file=last_cleanup_log)
 
@@ -124,9 +132,12 @@ def get_update_timestamp(timeinfo):
   long_ago = datetime.datetime(1970, 1, 1, 0, 0, 0, 0, tzinfo=datetime.timezone.utc)
   return long_ago
 
-def update_reg(regs):
+def update_reg(regs, import_log = None):
   print("UREG Updating regid registry")
   last_import_log_name = "/var/log/gamechanger-spooler/last_import.log"
+  if import_log:
+    last_import_log_name = import_log
+    
   with open(last_import_log_name, "w") as last_import_log:
     print(f"Action spooler update_reg log taken on {datetime.datetime.ctime(datetime.datetime.utcnow())}", file=last_import_log)
     print(f"ULOG Writing update_reg log to {last_import_log_name}")
@@ -141,6 +152,8 @@ def update_reg(regs):
     for lineno, line in enumerate(regs[1:], 1):
       if lineno % 1000 == 1:
         print(f"URCT {lineno-1} {counter}")
+      
+      print(f"M {lineno} '{line}'")
 
       rec = {}
       for col, val in enumerate(line):
@@ -257,12 +270,11 @@ def update_reg(regs):
             contact_email=cemail,
             contact_phone=cphone,
             contact_notes=cnotes)
-          gathering.save()
+          gathering.save() 
           if organization:
             gathering.organizations.add(organization)
-            gathering.save()
+            gathering.save() 
           #print(f"Adding gathering {gathering}")
-
           counter['Gathering'] += 1
           print(f"{lineno} {regid} new gathering {gathering} {gathering.__dict__}", file=last_import_log)
           #print(f"URGC {lineno} {regid} Gathering created")

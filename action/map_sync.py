@@ -129,7 +129,7 @@ def eventmap_data(request):
         [d_organization_color]+
         [d_gc_link])
   
-  return redirect('action:eventmap_data_view') #eventmap_data_view(request)
+  return redirect('action:eventmap_data_view')
 
 def eventmap_data_view(request):
   eventlist = []
@@ -139,7 +139,7 @@ def eventmap_data_view(request):
       eventlist.append(row)
 
   context = {
-    'eventlist_lenght': len(eventlist),
+    'eventlist_lenght': (len(eventlist)-2),
     'eventlist': eventlist,
   }
   
