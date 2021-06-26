@@ -33,6 +33,7 @@ from dal import autocomplete
 try:
   from action.spooler import action_spooler
 except:
+  from action.spooler import action_nospooler, update_reg
   action_spooler = None
   print(f"SIMP No uwsgi spooler environment")
 from .models import Gathering, Gathering_Belong, Gathering_Witness, Location, UserHome, Organization, Country
@@ -158,103 +159,17 @@ def rid_generator(rtime, cemail):
     return
   return base64.urlsafe_b64encode(hashlib.md5(str(rtime+':'+cemail).encode()).digest()).decode()[:8]
 
-#DEPRICATED
-'''
-class GatheringCreate(FormView):
-  class GatheringCreateForm0(forms.ModelForm):
-    class Meta:
-      model = Gathering
-      fields = ['gathering_type', 'location', 'start_date', 'end_date', 'duration', 
-        'expected_participants', 'organizations']
-      print(f"GCV1 ")
-      widgets = {
-        'location': autocomplete.ModelSelect2(url='/action/location-autocomplete/'),
-        'organizations': autocomplete.ModelSelect2(url='/action/organization-autocomplete/')
-      }
-
-    def get_success_url(self):
-      return reverse_lazy('action:overview', kwargs={'regid': '11111111'})
-
-    def form_valid(self, form):
-      print(f"FORM valid")
-      #form.send_email()
-      return super().form_valid(form)
-
-  class ActionGatheringCreateForm(forms.Form):
-    location = forms.ModelChoiceField(#    FFF_GS_Dataformat.ELOCATION:
-      queryset=Location.objects.all(),
-      widget=autocomplete.ModelSelect2(
-        url='/action/location-autocomplete/',
-        attrs={'data-minimum-input-length': 3}),
-      label='Location',
-      required=True,
-    )
-    #FFF_GS_Dataformat.RTIME:   generated
-    #FFF_GS_Dataformat.RSOURCE: Action.registration_source generated
-    #FFF_GS_Dataformat.CEMAIL:  generated
-    #FFF_GS_Dataformat.CNAME:   Action.creator User.name
-    organization = forms.ModelChoiceField( #FFF_GS_Dataformat.CORG2:   item['CORG1'],
-      queryset=Organization.objects.all(),
-      widget=autocomplete.ModelSelect2(
-        url='/action/organization-autocomplete/',
-        #attrs={'data-minimum-input-length': 3}
-      ),
-      label='Organization',
-      empty_label="(None)",
-      required=False,
-    )
-    #FFF_GS_Dataformat.CSPOKE:  UserHome.visibility
-    #FFF_GS_Dataformat.ECOUNTRY:Gathering.location.name derived
-    #FFF_GS_Dataformat.ECITY:   Gathering.location.name
-    gathering_type = forms.ChoiceField(label="Event Type", choices=Gathering._gathering_type_choices) #FFF_GS_Dataformat.ETYPE:   Gathering.gathering_type    
-    gathering_start_time = forms.TimeField(label="Start Time") #FFF_GS_Dataformat.ETIME:
-    gathering_start_date = forms.DateField(label="Start Date") #FFF_GS_Dataformat.EDATE:   Gathering.start_date
-    gathering_duration = forms.DurationField(label="Duration")
-    #gathering_frequency = forms.ModelChoiceField() #FFF_GS_Dataformat.EFREQ:   
-    gathering_action_link = forms.URLField(label="Action URL", max_length=500) #FFF_GS_Dataformat.ELINK:   Action.action_link
-    #FFF_GS_Dataformat.AAPPROVE:'y', generated based on Gathering_Witness(gathering=gathering, witness)
-    #    FFF_GS_Dataformat.GLOC:    Gathering.location.name
-    #    FFF_GS_Dataformat.GLAT:    Gathering.location.glat
-    #    FFF_GS_Dataformat.GLON:    Gathering.location.glon
-
-  template_name = 'action/gathering_form.html'
-  form_class = ActionGatheringCreateForm
-  #success_url = '/thanks/'
-
-  def form_valid(self, form):
-    self.form = form
-    return super().form_valid(form)
-
-  def get_success_url(self):
-    self.callsign = UserHome.objects.get(loginuser_id=self.request.user.id).callsign
-    print(f"AGCF {self.callsign}")
-    self.rtime = str(datetime.datetime.now())
-    self.cemail = self.callsign + "@gamechanger.eco"
-    self.regid = rid_generator(self.rtime, self.cemail)
-    print(f"AGCF {self.regid, self.form.__dict__}")
-    print(f"AGCF {self.regid, self.form['gathering_start_date'].value()}")
-
-    gathering = Gathering(
-      regid=self.regid,
-      gathering_type=self.form['gathering_type'].value(),
-      location=Location.objects.get(id=self.form['location'].value()),
-      start_date=self.form['gathering_start_date'].value(),
-      end_date=self.form['gathering_start_date'].value())
-    #print(f"Adding gathering {gathering}")
-    gathering.save() 
-
-    gathering_belong = Gathering_Belong(
-      regid=self.regid,
-      gathering=gathering)
-    gathering_belong.save() 
-
-    return reverse_lazy('action:report_date', kwargs={'regid': self.regid, 'date': self.form['gathering_start_date'].value()})
-'''
-
 def spool_update_reg(response_file_bytes):
   print(f"INIT uwsgi req {len(response_file_bytes)}")
   action_spooler.spool(task=b'upload', body=response_file_bytes)
   print(f"INIT uwsgi spooled")
+
+def nospool_update_reg(response_file_bytes):
+  print(f"INIT nospool req {len(response_file_bytes)}")
+  action_nospooler(response_file_bytes.decode('utf8'))
+  #update_reg(str(response_file_bytes).split("\n"), "last_import.log")
+  print(f"INIT nospool done")
+
 
 def get_canonical_regid(regid):
   try:
@@ -418,6 +333,9 @@ def upload_post(request):
     spool_update_reg(response_file_bytes)
   except Exception as e:
     print(f"Spooling exception {e}")
+    print(f"NOSpooler solution {len(response_file_bytes)}")
+    nospool_update_reg(response_file_bytes)
+    
   print(f"UPSD Spooled {len(response_file_bytes)} bytes")
   return upload_reg(request, error_message=f"{len(response_file_bytes)} bytes successfully uploaded")
 
