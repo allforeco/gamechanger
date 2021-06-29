@@ -38,7 +38,7 @@ def eventmap_data(request):
       ['Address']+
       ['Time']+
       ['Date']+
-      ['Frequency']+
+      ['End Date']+
       ["Link to event (URL), e.g. Facebook, Instagram, Twitter, web"]+
       ['Event Type']+
       ['Lat']+
@@ -51,83 +51,36 @@ def eventmap_data(request):
       ['Organizational Color']+
       ['gclink'])
 
+    data_rows = dict()
+
     locations = list(Location.objects.filter(lat__isnull=False)[:]) #remove [:num] for full list
     for location in locations:
-      d_country = ''
-      d_town = ''
-      d_address = ''
-      d_time = ''
-      d_date = ''
-      d_frequency = '' #unused; frequency ?==> enddate
-      d_witness_event_link = ''
-      d_gathering_type = ''
-      d_lat = ''
-      d_lon = ''
-      d_contact_name = ''
-      d_contact_email = ''
-      d_contact_phone = ''
-      d_contact_notes = ''
-      d_organization = ''
-      d_organization_color = ''
-      d_gc_link = '' #ok regid ==> gc_link
-
-      country = location
-      for i in range(4):
-        if (country.in_location):
-          country = country.in_location
-        else:
-          d_country = country
-
-      d_town = location
-      d_lat = location.lat
-      d_lon = location.lon
-      d_gc_link = ('https://www.gamechanger.eco/action/geo/' +str(location.id)+'/')#.split('/')[-2] #remove post split for full link
+      eventmap_data = Eventmap_Data()
+      eventmap_data.object_location = location
 
       gatherings = list(Gathering.objects.filter(location=location))
       gatherings.sort(key=lambda gathering: gathering.start_date if gathering.start_date else datetime.datetime(1970,1,1), reverse=True)
-      
       if (len(gatherings) > 0):
         for gathering in gatherings:
-          d_date = gathering.start_date
-          d_gathering_type = gathering.get_gathering_type_str()
-          #d_organization = gathering.organizations
-          d_address = gathering.address
-          d_time = gathering.time
-
-          d_contact_name = gathering.contact_name
-          d_contact_email = gathering.contact_email
-          d_contact_phone = gathering.contact_phone
-          d_contact_notes = gathering.contact_notes
+          eventmap_data.object_gathering = gathering
 
           witnesses = list(Gathering_Witness.objects.filter(gathering=gathering))
           witnesses.sort(key=lambda witness: witness.date if witness.date else datetime.datetime(1970,1,1), reverse=True)
-          
           if (len(witnesses) > 0):
             for witness in witnesses:
-              d_date = witness.date
-              if (len(witness.proof_url.split('/')) > 1):
-                d_witness_event_link = witness.proof_url#.split('/')[2] #remove if statement & post split for full link
-              d_organization = witness.organization
-              d_organization_color = witness.get_pin_color()
+              eventmap_data.object_witness = witness
+              
+              data_rows.update({eventmap_data.key: eventmap_data.data_row()})
+              #if not eventmap_data.key in data_rows:
+              #  data_rows.update({eventmap_data.key: eventmap_data.data_row()})
+          else:
+            data_rows.update({eventmap_data.key: eventmap_data.data_row()})
+            #if not eventmap_data.key in data_rows:
+            #  data_rows.update({eventmap_data.key: eventmap_data.data_row()})
 
-      datawriter.writerow(
-        [d_country]+
-        [d_town]+
-        [d_address]+
-        [d_time]+
-        [d_date]+
-        [d_frequency]+
-        [d_witness_event_link]+
-        [d_gathering_type]+
-        [d_lat]+
-        [d_lon]+
-        [d_contact_name]+
-        [d_contact_email]+
-        [d_contact_phone]+
-        [d_contact_notes]+
-        [d_organization]+
-        [d_organization_color]+
-        [d_gc_link])
+    print(f"EDDR {data_rows}")
+    datawriter.writerows(data_rows.values())
+      
   
   return redirect('action:eventmap_data_view')
 
@@ -145,3 +98,76 @@ def eventmap_data_view(request):
   
   template = loader.get_template('action/eventmap_data.html')
   return HttpResponse(template.render(context, request))
+
+class Eventmap_Data():
+  object_location = None
+  object_gathering = None
+  object_witness = None
+
+  country = ''
+  town = ''
+  address = ''
+  time = ''
+  date = ''
+  frequency = '' #unused; frequency ?==> enddate
+  date_end = ''
+  proof_url = ''
+  gathering_type = ''
+  lat = ''
+  lon = ''
+  contact_name = ''
+  contact_email = ''
+  contact_phone = ''
+  contact_notes = ''
+  organization = ''
+  organization_color = ''
+  gc_link = '' #ok; regid ==> gc_link
+  
+  key = ''
+
+  def data_process(self):
+    
+    #country, town, lat, lon, gc_link
+    if self.object_location:
+      temp = self.object_location
+      for i in range(5):
+        if temp.in_location:
+          temp=temp.in_location
+        else:
+          self.country = temp.name
+          break
+      
+      self.town = self.object_location.name
+      self.lat = self.object_location.lat
+      self.lon = self.object_location.lon
+      self.gc_link = f"https://www.gamechanger.eco/action/geo/{self.object_location.id}/"
+    
+    #date, gathering_type, adress, time, contact_name, contact_email, contact_phone, contact_notes
+    if self.object_gathering:
+      self.date = self.object_gathering.start_date
+      #self.frequency = self.object_gathering.frequency ==> end_date
+      self.date_end = self.object_gathering.end_date
+      self.gathering_type = self.object_gathering.get_gathering_type_str()
+      self.address = self.object_gathering.address
+      self.time = self.object_gathering.time
+      self.organization = ", ".join(str(elem) for elem in list(self.object_gathering.organizations.all()))
+      self.contact_name = self.object_gathering.contact_name
+      self.contact_email = self.object_gathering.contact_email
+      self.contact_phone = self.object_gathering.contact_phone
+      self.contact_notes = self.object_gathering.contact_notes
+      
+    #date, proof_url, organization, organization_color
+    if self.object_witness:
+      self.date = self.object_witness.date
+      self.date_end = self.object_witness.date
+      self.proof_url = self.object_witness.proof_url
+      self.organization = self.object_witness.organization
+      self.organization_color = self.object_witness.get_pin_color()
+
+    #self.key = self.object_gathering.regid
+    self.key = f"{self.object_location.id}|{self.date}|{self.organization}"
+
+
+  def data_row(self):
+    self.data_process()
+    return [self.country]+[self.town]+[self.address]+[self.time]+[self.date]+[self.date_end]+[self.proof_url]+[self.gathering_type]+[self.lat]+[self.lon]+[self.contact_name]+[self.contact_email]+[self.contact_phone]+[self.contact_notes]+[self.organization]+[self.organization_color]+[self.gc_link]
