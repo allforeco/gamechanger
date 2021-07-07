@@ -26,5 +26,9 @@ urlpatterns = [
   path('home', views.HomeView.as_view(), name='home'),
   path('location-autocomplete/', views.LocationAutocomplete.as_view(), name='location-autocomplete'),
   path('organization-autocomplete/', views.OrganizationAutocomplete.as_view(), name='organization-autocomplete'),
-  path('start', views.start_view_handler, name='start'),
+  path('start', views.start_view_handler),
+  path('start/', views.start_view_handler, name='start'),
+  path('start/latest_reports', views.latest_reports_view, name='latest_reports'),
+  path('start/locations_list', views.locations_view, name='locations_list'),
+
 ]

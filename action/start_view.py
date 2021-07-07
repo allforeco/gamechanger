@@ -13,11 +13,12 @@ def start_view_handler(request):
     filter_weeks = int(request.POST.get('filter_weeks'))
   else:
     filter_weeks = 2
-  list_lenght = 30
+  list_lenght = 50
 
   #GATHERING PLAN LOGIC
-  gathering_list = list(Gathering.objects.filter(start_date__gte=datetime.datetime.today()-datetime.timedelta(days=7*filter_weeks)))
-  gathering_list.sort(key=lambda e: e.start_date, reverse=True)
+  gathering_list = list(Gathering.objects.filter(start_date__gte=(datetime.datetime.today()-datetime.timedelta(days=1))))
+  gathering_list.sort(key=lambda e: e.start_date, reverse=False)
+  gathering_list = gathering_list[:list_lenght]
 
   gatherings = list()
   for gathering in gathering_list:
@@ -52,7 +53,6 @@ def start_view_handler(request):
 
       reports.append(report_data)
   
-
   #LEADERBOARD LOGIC
   leaderboard_dict=dict()
 
@@ -91,8 +91,6 @@ def start_view_handler(request):
   leaderboard = list(leaderboard_dict.values()) 
   leaderboard.sort(key=lambda e: e[2], reverse=True)
   leaderboard = leaderboard[:list_lenght]
-
-  
 
   template = loader.get_template('action/start.html')
   context = {

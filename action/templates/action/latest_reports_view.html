@@ -1,0 +1,81 @@
+{% extends "base_generic.html" %}
+
+{% block title %}
+      <title>Event Overview - Gamechanger Action Tracker</title>
+{% endblock %}
+
+{% block content %}
+{% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+
+  <div>
+    <h3>Weeks: <span id="amountinput">{{filter_amount}}</span></h3>
+    <form action="{% url 'action:latest_reports' %}" method="POST">
+      {% csrf_token%}
+      <input type="range"  id="amountoutput" name="filter_amount" value="{{filter_amount}}" step="25" min="50" max="800" oninput="document.getElementById('amountinput').innerHTML = document.getElementById('amountoutput').value"/>
+      <input type="submit" value="Filter"/>
+    </form>
+  </div>
+
+  <div>
+    <h2 style="margin-bottom: 0.25em;">Latest Reports</h2>
+    <table>
+      <thead>
+        <tr>
+          <th sort="dat-true">Latest</th>
+          <th sort="dat-false">Date</th>
+          <th>Map</th>
+          <th sort="str-false">Location</th>
+          <th sort="str-false">Host</th>
+          <th sort="int-false">Participants</th>
+          <th>Photo</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for report in report_list %}
+        <tr>
+          <td style="text-align: center;">
+            <span>{{report.updated|date:"Y-m-d"}}</span>
+          </td>
+          <td> 
+            <span>{{report.date|date:"Y-m-d"}}</span>
+          </td>
+          {% if report.gathering.location %}
+          <td style="text-align: center;">
+            <a target="_blank" href="https://map.fridaysforfuture.org/?e={{report.gathering.regid}}">🌐<sup><sup>🔗</sup></sup></a>
+          </td>
+          <td>
+            <a href="{% url 'action:geo_view' report.gathering.location.id %}">{{report.gathering.location.name}}</a>
+          </td>
+          {% else %}
+          <td style="text-align: center;">
+            ❌
+          </td>
+          <td>
+            <span>Unknown Place</span>
+          </td>
+          {% endif %}
+          <td>
+            {% if report.organization %}
+            <span>{{report.organization}}</span>
+            {% else %}
+            <span hidden="true">z-sort</span>
+            {% endif %}
+          </td>
+          <td style="text-align: right;">
+            {% if report.participants %}
+            <span>{{report.participants}}</span>
+            {% else %}
+            <span>?</span>
+            {% endif %}
+          </td>
+          <td style="text-align: center;">
+            {% if report.proof_url %}
+              <a target="_blank" href="{{ report.proof_url }}">🖼<sup><sup>🔗</sup></sup></a>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}
