@@ -15,54 +15,68 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import datetime, io, csv
-from uwsgidecorators import spool
+
 from .models import Country, Location, Gathering, Gathering_Belong, Gathering_Witness, Organization
 from .push_notifier import Push_Notifier
+from .map_sync import to_fff
 
 try:
   import uwsgi
+  from uwsgidecorators import spool
   print(f"INIT uWSGI imported in spooler")
+
+  @spool
+  def action_spooler(req):
+    task = req.get('task')
+    print(f"SPOL Gamechanger spooler running, got {task} job")
+    body = req.get('body')
+    if body:
+      print(f"SSMP Body len {len(body)} sample '{str(body)[:100]}'...")
+    if task == 'upload' and body:
+      task_update_reg(body)
+    elif task == 'mapsync-full':
+      sync_to_fff()
+    else:
+      print('SUNK Unknown spool job type')
+    print(f"SEND Gamechanger spooler job complete")
+    return uwsgi.SPOOL_OK
 except ImportError:
   uwsgi = None
-  print(f"INIT uWSGI not found in spooler")
+  print(f"INIT uWSGI not found in spooleSEND Gamechanger r")
+  
+  def action_nospooler(body):
+    task_update_reg(body, "last_import.log", "last_cleanup.log")
+  
 
-@spool
-def action_spooler(req):
-  task = req.get('task')
-  print(f"SPOL Gamechanger spooler running, got {task} job")
-  body = req.get('body')
-  if body:
-    print(f"SSMP Body len {len(body)} sample '{str(body)[:100]}'...")
-  if task == 'upload' and body:
-    task_update_reg(body)
-  else:
-    print('SUNK Unknown spool job type')
-  print(f"SEND Gamechanger spooler job complete")
-  return uwsgi.SPOOL_OK
-
-def task_update_reg(body):
+def task_update_reg(body, import_log=None, cleanup_log=None):
   reg_file = io.StringIO(body)
   reg_reader = csv.reader(reg_file, delimiter=',')
   doctype_line = reg_reader.__next__()
   doctype = doctype_line[0]
   if not doctype.startswith('FFF RegID'):
     print(f"URDT Bad doctype '{doctype}'")
-    return uwsgi.SPOOL_OK
+    if (uwsgi):
+      return uwsgi.SPOOL_OK
+    else:
+      return
 
   reg_list = [line for line in reg_reader]
   count_of = len(reg_list)
   print(f"URLN {count_of} place definitions to process")
-  update_reg(reg_list)
+  print(f"STUR {reg_file}...")
+  update_reg(reg_list, import_log)
   print(f"URES place definitions processed")
   print(f"UCLN unused places cleanup")
   try:
-    cleanup_locations()
+    cleanup_locations(cleanup_log)
   except Exception as ex:
     print(f"UCLN top level exception: {ex}")
   print(f"UCLN unused places cleanup done")
 
-def cleanup_locations():
+def cleanup_locations(cleanup_log = None):
   last_cleanup_log_name = "/var/log/gamechanger-spooler/last_cleanup.log"
+  if cleanup_log:
+    last_cleanup_log_name = cleanup_log
   with open(last_cleanup_log_name, "w") as last_cleanup_log:
     print(f"Action spooler cleanup log taken on {datetime.datetime.ctime(datetime.datetime.utcnow())}", file=last_cleanup_log)
 
@@ -118,9 +132,12 @@ def get_update_timestamp(timeinfo):
   long_ago = datetime.datetime(1970, 1, 1, 0, 0, 0, 0, tzinfo=datetime.timezone.utc)
   return long_ago
 
-def update_reg(regs):
+def update_reg(regs, import_log = None):
   print("UREG Updating regid registry")
   last_import_log_name = "/var/log/gamechanger-spooler/last_import.log"
+  if import_log:
+    last_import_log_name = import_log
+    
   with open(last_import_log_name, "w") as last_import_log:
     print(f"Action spooler update_reg log taken on {datetime.datetime.ctime(datetime.datetime.utcnow())}", file=last_import_log)
     print(f"ULOG Writing update_reg log to {last_import_log_name}")
@@ -135,6 +152,8 @@ def update_reg(regs):
     for lineno, line in enumerate(regs[1:], 1):
       if lineno % 1000 == 1:
         print(f"URCT {lineno-1} {counter}")
+      
+      print(f"M {lineno} '{line}'")
 
       rec = {}
       for col, val in enumerate(line):
@@ -144,6 +163,13 @@ def update_reg(regs):
       eenddate = rec.get('EENDDATE', None)
       etype_raw = rec.get('ETYPE', 'Strike')
       etype = Gathering.get_gathering_type_code(etype_raw)
+      eaddress = rec.get('ELOCATION', None)[:Gathering._meta.get_field('address').max_length]
+      etime = rec.get('ETIME', None)[:Gathering._meta.get_field('time').max_length]
+      cname = rec.get('CNAME', None)[:Gathering._meta.get_field('contact_name').max_length]
+      cemail = rec.get('CEMAIL', None)[:Gathering._meta.get_field('contact_email').max_length]
+      cphone = rec.get('CPHONE', None)[:Gathering._meta.get_field('contact_phone').max_length]
+      cnotes = rec.get('CNOTES', None)[:Gathering._meta.get_field('contact_notes').max_length]
+
       if not regid or not edate:
         print(f"{lineno} missing regid {regid} or edate {edate}", file=last_import_log)
         print(f"URBR Skipping record {lineno} {regid} {edate}")
@@ -220,9 +246,8 @@ def update_reg(regs):
         organization = None
         org_name = rec.get('CORG2')
         if org_name:
-          org_name = org_name[:25]# FIXME: Max length 25 chars; Find better ways to do this?
-          organization = Organization.objects.filter(
-            name = org_name).first()
+          org_name = org_name[:Organization._meta.get_field('name').max_length]# FIXME: Max length 25 chars; Find better ways to do this?
+          organization = Organization.objects.filter(name = org_name).first()
           if not organization:
             organization = Organization(
               name = org_name)
@@ -237,14 +262,18 @@ def update_reg(regs):
             gathering_type=etype,
             location=location,
             start_date=edate,
-            end_date=eenddate)
-          
-          gathering.save()
+            end_date=eenddate,
+            address=eaddress,
+            time=etime,
+            contact_name=cname,
+            contact_email=cemail,
+            contact_phone=cphone,
+            contact_notes=cnotes)
+          gathering.save() 
           if organization:
             gathering.organizations.add(organization)
-            gathering.save()
+            gathering.save() 
           #print(f"Adding gathering {gathering}")
-
           counter['Gathering'] += 1
           print(f"{lineno} {regid} new gathering {gathering} {gathering.__dict__}", file=last_import_log)
           #print(f"URGC {lineno} {regid} Gathering created")
@@ -256,11 +285,23 @@ def update_reg(regs):
           if gathering.end_date != eenddate:
             gathering.end_date = eenddate
             dirty = True
+          if gathering.contact_name != cname:
+            gathering.contact_name = cname
+            dirty = True
+          if gathering.contact_phone != cphone:
+            gathering.contact_phone = cphone
+            dirty = True
+          if gathering.contact_email != cemail:
+            gathering.contact_email = cemail
+            dirty = True
+          if gathering.contact_notes != cnotes:
+            gathering.contact_notes = cnotes
+            dirty = True
           if dirty:
             print(f"{lineno} {regid} updated gathering {gathering.gathering_type} {gathering.end_date}", file=last_import_log)
             gathering.save()
           print(f"{lineno} {regid} existing gathering {gathering} {gathering.regid} {gathering.location}", file=last_import_log)
-
+          
         belong = Gathering_Belong.objects.filter(regid = regid).first()
         if not belong:
           belong = Gathering_Belong(regid=regid, gathering=gathering)
