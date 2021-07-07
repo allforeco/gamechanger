@@ -41,7 +41,7 @@ from django.contrib.auth.models import User
 from .geo_view import geo_view_handler, geo_date_view_handler, geo_update_view, geo_update_post, geo_search, geo_invalid, translate_maplink
 from .start_view import start_view_handler
 from .overview_view import latest_reports_view, locations_view
-from .map_sync import to_fff, eventmap_data
+from .map_sync import eventmap_data, to_fff
 
 class HomeView(FormView):
   class LocationSearchForm(forms.Form):

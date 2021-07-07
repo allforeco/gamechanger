@@ -247,8 +247,7 @@ def update_reg(regs, import_log = None):
         org_name = rec.get('CORG2')
         if org_name:
           org_name = org_name[:Organization._meta.get_field('name').max_length]# FIXME: Max length 25 chars; Find better ways to do this?
-          organization = Organization.objects.filter(
-            name = org_name).first()
+          organization = Organization.objects.filter(name = org_name).first()
           if not organization:
             organization = Organization(
               name = org_name)
