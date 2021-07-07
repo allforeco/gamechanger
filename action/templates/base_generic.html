@@ -224,9 +224,8 @@
         <a href="{% url 'action:home' %}">Home</a>
         {% endif %}
         <a href="{% url 'action:start' %}">Start</a>
-        <a href="">Stats</a> 
-        <a href="">Locations</a>
-        <a href="">Reports</a>
+        <a href="{% url 'action:locations_list' %}">Locations</a>
+        <a href="{% url 'action:latest_reports' %}">Reports</a>
       </div>
 
 			<div class="menu_right">
