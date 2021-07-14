@@ -15,6 +15,8 @@ urlpatterns = [
   path('geo/invalid/', views.geo_invalid, name='geo_invalid'),
   path('geo/update/', views.geo_update_view, name='geo_update'),
   path('geo/update/post/', views.geo_update_post, name='geo_post'),
+  path('geo/add/', views.geo_add_view, name='geo_add_view'),
+  path('geo/add/post/', views.geo_add_post, name='geo_add_post'),
   path('geo/search/', views.geo_search, name='geo_search'),
   path('upload_reg', views.upload_reg),
   path('upload_reg/', views.upload_reg, name='upload_reg'),

@@ -12,19 +12,12 @@
       <a href="{% url 'action:location_view' parent_location.id %}">{{ parent_location.name }}</a>
     {% endif %}
 
-  <!-- Add button for user to add new event with same org and location and also witness_id (is that correct?) -->  
-  <form action="{% url 'action:geo_add_view' %}" method="POST">
-      {% csrf_token %}
-      <input type="hidden" value="True" name="isnewevent"/>
+  <form action="{% url 'action:geo_add_post' %}" method="POST">
+    {% csrf_token %}
+    <input type="hidden" value="True" name="isnewevent"/>
       <input type="hidden" value="{{witness_id}}" name="witness_id">
       <input type="hidden" value="{{organization.id}}" name="organization_id"/>
       <input type="hidden" value="{{this_location.id}}" name="locid"/>
-      <input type="submit" value="Add New Date">
-  </form>
-    
-  <br />
-  <form action="{% url 'action:geo_post' %}" method="POST">
-    {% csrf_token %}
     <script type="text/javascript">
       // For XHTML: <![CDATA[
       function show_unsaved(show) {
@@ -50,11 +43,6 @@
     </script>
     <table>
       <tbody id="formcommon">
-        <tr class="hide">
-          <td>
-            <input type="hidden" value="{{isnewevent}}" name="isnewevent" id="isnewevent"/>
-          </td>
-        </tr>
         <tr>
           <th>Date</th>
           <td><input required type="date" id="date" name="date" value="{{ date|date:'Y-m-d' }}" pattern="[0-9]{4}-[0-9]{2}-[0-9]{2}" placeholder="YYYY-MM-DD" oninput="check_unsaved()" onchange="check_unsaved()"/> </td>
@@ -70,19 +58,6 @@
               <option value="{{ organization.id }}" selected>{{ organization }}</option>
             </select>
           </td>
-        </tr>
-      </tbody>
-      <tbody id="formwitness">
-        <tr class="hide">
-          <td>
-            <input type="hidden" value="{{witness_id}}" name="witness_id">
-            <input type="hidden" id="prev_participants" value="{{ prev_participants }}"/>
-            <input type="hidden" id="prev_url" value="{{ prev_url }}"/>
-          </td>
-        </tr>
-        <tr>
-          <th><legend>Photo URL</legend></th>
-          <td><input placeholder="(optional) Share a photo collection from the event!" type="url" id="url" name="proof_url" value="{{ proof_url }}" size="60" oninput="check_unsaved()" onchange="check_unsaved()"/></td>
         </tr>
       </tbody>
       <tbody id="formgathering">
@@ -115,7 +90,7 @@
         </tr>
       </tbody>
     </table>
-    {% if user.is_authenticated is user.is_authenticated %}      
+    {% if user.is_authenticated is user.is_authenticated %}
       <div style="width: 100%; margin-bottom: 2em; margin-top: 0.5em;">
         <input type="submit" value="Submit" style="display: inline-block; float: left;"/>
         <div style="color:red; display: none; float: left; margin-top: -0.6em;" id="save_changes">
@@ -130,33 +105,15 @@
   </form>
 
   <br />
-  <input type="button" onclick="ToggleAdvanced()" value="Advanced Edit +" id="advanced-toggle" />
+  
   <!--Toggle script-->
   <script>
     var formgathering = document.getElementById("formgathering");
-    var formwitness = document.getElementById("formwitness");
     
-    var advancedtoggle = document.getElementById("advanced-toggle");
     var advancedtitle = document.getElementById("advanced-title");
-
+    
     var isnewevent = document.getElementById("isnewevent")
     
-    function ToggleAdvanced(){
-      if ((formwitness.style.display=="none"|| formwitness.style.display.length==0)){
-        formwitness.style="display:table-row-group;";
-        formgathering.style="display:none;";
-        advancedtoggle.value="Event Planner";
-        advancedtitle.innerHTML="{{this_location.name}} Event Witness";
-        isnewevent.value = "False";
-      } else {
-        formwitness.style="display:none;";
-        formgathering.style="display:table-row-group;";
-        advancedtoggle.value="Event Witness";
-        advancedtitle.innerHTML="{{this_location.name}} Event Planner";
-        isnewevent.value = "False";
-      }
-    }
-
     var weeks = document.getElementById("weeks")
     var weeksDisplay = document.getElementById("weeksdisplay")
 
@@ -164,14 +121,17 @@
     {
       weeksDisplay.innerHTML = weeks.value;
     }
-
-    window.onload = function()
+    
+	window.onload = function()
     {
-      ToggleAdvanced();
-      if (isnewevent.value == 'True'){
-        ToggleAdvanced();
-      }
+      formwitness.style="display:table-row-group;";
+        formgathering.style="display:none;";
+        advancedtoggle.value="Event Planner";      
+        advancedtitle.innerHTML="{{this_location.name}} Event Gathering";
+        isnewevent.value = "True";
     } 
+
+
   </script>
   
 {% endblock %}

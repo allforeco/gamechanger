@@ -49,9 +49,9 @@
   {% if witness_list %}
   <h2>Reports</h2>
     <p>{{ witness_list|length }} events with a total of {{ total_participants }} reported participants</p>
-    <form action="{% url 'action:geo_update' %}" method="POST">
+    <form action="{% url 'action:geo_add_view' %}" method="POST">
       {% csrf_token %}
-      <input type="hidden" value="False" name="isnewevent"/>
+      <input type="hidden" value="True" name="isnewevent"/>
       <input type="hidden" value="None" name="witness_id"/>
       <input type="hidden" value="{{this_location.id}}" name="locid"/>
       <input type="submit" value="Add Date">
@@ -107,10 +107,10 @@
     <p>No results registered yet.</p>
     <form action="{% url 'action:geo_update' %}" method="POST">
       {% csrf_token %}
-      <input type="hidden" value="False" name="isnewevent"/>
+      <input type="hidden" value="True" name="isnewevent"/>
       <input type="hidden" value="None" name="witness_id"/>
       <input type="hidden" value="{{this_location.id}}" name="locid"/>
-      <input type="submit" value="Add Date">
+      <input type="submit" value="Event Planner">
     </form>
   {% endif %}
 
