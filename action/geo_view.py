@@ -23,7 +23,7 @@ from django.contrib.auth.decorators import login_required, permission_required
 from django import forms
 from .models import Gathering, Gathering_Belong, Gathering_Witness, Location, UserHome, Organization
 from django.shortcuts import redirect
-import datetime
+import datetime, base64, hashlib
 
 def geo_view_handler(request, locid):
   #print(f"TOWH {locid}")
@@ -247,11 +247,11 @@ def geo_update_post_gathering(request):
 # Creating a dummy regid just to be able to continue:
   create_dummy_regid = True
   if create_dummy_regid:
-    import random
-    import string
-    new_regid = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
-    gathering.regid = new_regid
-    print("new gathering regid created=", new_regid)  
+    cemail = 'unknown@user_email.com'
+    rtime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    gen_regid = base64.urlsafe_b64encode(hashlib.md5(str(rtime+':'+cemail).encode()).digest()).decode()[:8]
+    print("generated gathering regid =", gen_regid)  
+    gathering.regid = gen_regid
 
   gathering.save()
 # But there is still no gathering witness => nothing can bee seen in GC :(
@@ -261,24 +261,27 @@ def geo_update_post_gathering(request):
 # assuming this is the case, find the gathering_id of any gathering in the current location
   gathering_id = None
   try:
-    gatheringobj = Gathering.objects.filter(location__id=locid).first()
-    
-    print("gatheringobj=", gatheringobj)
-    if gatheringobj != None and gatheringobj.regid != "":
-      gatheringbelong = Gathering_Belong.objects.filter(regid=gatheringobj.regid).first()
-      print("gatheringbelong=", gatheringbelong)
-      gathering_id = gatheringbelong.gathering_id
-      
-      print("gatheringid=", gathering_id)
-      print("gathering object=", gathering)
-      belong = Gathering_Belong(regid=gathering.regid, gathering=gatheringobj)
-      print("saving belong")
-      belong.save()
-      witness = Gathering_Witness()
-      witness.gathering_id = gathering_id
-      witness.date = datetime.datetime.strptime(request.POST.get('date'), '%Y-%m-%d').replace(tzinfo=datetime.timezone.utc)
-      witness.save()
-      print("saved witness with gathering_id=", gathering_id)
+    gatheringobjs = Gathering.objects.filter(location__id=locid)
+    for go in gatheringobjs:    
+      print("gatheringobj=", go)
+      if go != None and go.regid != "":
+        gatheringbelong = Gathering_Belong.objects.filter(regid=go.regid).first()
+        if gatheringbelong == None:
+          print("gatheringbelong was None, skipping")
+          continue
+        print("gatheringbelong=", gatheringbelong)
+        gathering_id = gatheringbelong.gathering_id
+        print("gatheringid=", gathering_id)
+        print("gathering object=", gathering)
+        belong = Gathering_Belong(regid=gathering.regid, gathering=go)
+        print("saving belong")
+        belong.save()
+        witness = Gathering_Witness()
+        witness.gathering_id = gathering_id
+        witness.date = datetime.datetime.strptime(request.POST.get('date'), '%Y-%m-%d').replace(tzinfo=datetime.timezone.utc)
+        witness.save()
+        print("saved witness with gathering_id=", gathering_id)
+        break
      
     print("gathering_id=", gathering_id)
   except Exception as e:
