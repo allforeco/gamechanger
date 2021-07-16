@@ -123,7 +123,7 @@ class LocationAutocomplete(autocomplete.Select2QuerySetView):
     qs = Location.objects.all()
     print(f"AUTL {len(qs)} locations")
     if self.q:
-      qs = qs.filter(name__icontains=self.q).exclude(name__icontains=", ")
+      qs = qs.filter(name__istartswith=self.q)
     return qs
 
 class OrganizationAutocomplete(autocomplete.Select2QuerySetView):
