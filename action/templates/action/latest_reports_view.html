@@ -8,7 +8,7 @@
 {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
 
   <div>
-    <h3>Weeks: <span id="amountinput">{{filter_amount}}</span></h3>
+    <h3>Items: <span id="amountinput">{{filter_amount}}</span></h3>
     <form action="{% url 'action:latest_reports' %}" method="POST">
       {% csrf_token%}
       <input type="range"  id="amountoutput" name="filter_amount" value="{{filter_amount}}" step="25" min="50" max="800" oninput="document.getElementById('amountinput').innerHTML = document.getElementById('amountoutput').value"/>
@@ -21,8 +21,8 @@
     <table>
       <thead>
         <tr>
-          <th sort="dat-true">Latest</th>
-          <th sort="dat-false">Date</th>
+          <th sort="dat-true">Reported</th>
+          <th sort="dat-false">Event Date</th>
           <th>Map</th>
           <th sort="str-false">Location</th>
           <th sort="str-false">Host</th>

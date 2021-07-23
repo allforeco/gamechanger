@@ -252,9 +252,11 @@
           <p style="float: left; margin: initial; margin-right: 1em;">Welcome, {{ user.get_username }}</p>
 					<a href="{% url 'action:logout' %}?next={{request.path}}">Logout</a>
 				{% else %}
-					<p style="float: left; margin: initial; margin-right: 1em;">Hello, Stranger!</p>
+          <p style="float: left; margin: initial; margin-right: 1em;">Hello, Stranger!</p>
+          <!--
 					<a href="{% url 'action:login' %}?next={{request.path}}" style="margin-right: initial;">Login</a> or
-					<a href="{% url 'action:join_us' %}?next={{request.path}}">Join Us</a>
+          <a href="{% url 'action:join_us' %}?next={{request.path}}">Join Us</a>
+          -->
         {% endif %}
 			</div>
 		</div>
