@@ -50,6 +50,16 @@ def start_view_handler(request):
       report_data.append(report.organization)
       report_data.append(report.participants)
       report_data.append(report.proof_url)
+      if report.proof_url:
+        if report.proof_url.split('/')[2]:
+          if report.proof_url.split('/')[2] in icon_dict:
+            report_data.append(icon_dict(report.proof_url.split('/')[2]))
+          else:
+            report_data.append('')
+        else:
+          report_data.append('')
+      else:
+          report_data.append('')  
 
       reports.append(report_data)
   
