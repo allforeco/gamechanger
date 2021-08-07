@@ -13,12 +13,12 @@ def start_view_handler(request):
     filter_weeks = int(request.POST.get('filter_weeks'))
   else:
     filter_weeks = 2
-  list_lenght = 50
+  list_length = 50
 
   #GATHERING PLAN LOGIC
   gathering_list = list(Gathering.objects.filter(start_date__gte=(datetime.datetime.today()-datetime.timedelta(days=1))))
   gathering_list.sort(key=lambda e: e.start_date, reverse=False)
-  gathering_list = gathering_list[:list_lenght]
+  gathering_list = gathering_list[:list_length]
 
   gatherings = list()
   for gathering in gathering_list:
@@ -35,7 +35,7 @@ def start_view_handler(request):
   #EVENT WITNESSING LOGIC
   report_list = list(Gathering_Witness.objects.filter(updated__gte=datetime.datetime.today()-datetime.timedelta(days=7*filter_weeks)))
   report_list.sort(key=lambda e: e.updated, reverse=True)
-  report_list = report_list[:list_lenght]
+  report_list = report_list[:list_length]
 
   reports = list()
   i = 0
@@ -100,7 +100,7 @@ def start_view_handler(request):
   
   leaderboard = list(leaderboard_dict.values()) 
   leaderboard.sort(key=lambda e: e[2], reverse=True)
-  leaderboard = leaderboard[:list_lenght]
+  leaderboard = leaderboard[:list_length]
 
   template = loader.get_template('action/start.html')
   context = {

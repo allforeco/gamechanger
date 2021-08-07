@@ -29,59 +29,60 @@ def _send_to_fff_web_server(self,payload,files=None):
     raise (result.status_code, result.text)
 
 def eventmap_data(request):
-  with open('eventmap_data/eventmap_data.csv', 'w', newline='') as csvfile:
-    datawriter = csv.writer(csvfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-    datawriter.writerow(['FFF Global Map generated on ' + dateTime.datetime.today().strftime('%Y-%m-%d %H:%M')]+['']*16)
-    datawriter.writerow(
-      ['Country']+
-      ['Town']+
-      ['Address']+
-      ['Time']+
-      ['Date']+
-      ['End Date']+
-      ["Link to event (URL), e.g. Facebook, Instagram, Twitter, web"]+
-      ['Event Type']+
-      ['Lat']+
-      ['Lon']+
-      ['Your name']+
-      ['Email Address']+
-      ['Phone number in international format (optional)']+
-      ['Notes (optional)']+
-      ['Organization that you represent (optional)']+
-      ['Organizational Color']+
-      ['gclink'])
+  loginbypass = False
+  if request.user.is_authenticated or loginbypass:
+    with open('eventmap_data/eventmap_data.csv', 'w', newline='') as csvfile:
+      datawriter = csv.writer(csvfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+      datawriter.writerow(['FFF Global Map generated on ' + dateTime.datetime.today().strftime('%Y-%m-%d %H:%M')]+['']*16)
+      datawriter.writerow(
+        ['Country']+
+        ['Town']+
+        ['Address']+
+        ['Time']+
+        ['Date']+
+        ['End Date']+
+        ["Link to event (URL), e.g. Facebook, Instagram, Twitter, web"]+
+        ['Event Type']+
+        ['Lat']+
+        ['Lon']+
+        ['Your name']+
+        ['Email Address']+
+        ['Phone number in international format (optional)']+
+        ['Notes (optional)']+
+        ['Organization that you represent (optional)']+
+        ['Organizational Color']+
+        ['gclink'])
 
-    data_rows = dict()
+      data_rows = dict()
 
-    locations = list(Location.objects.filter(lat__isnull=False)[:]) #remove [:num] for full list
-    for location in locations:
-      eventmap_data = Eventmap_Data()
-      eventmap_data.object_location = location
+      locations = list(Location.objects.filter(lat__isnull=False)[:]) #remove [:num] for full list
+      for location in locations:
+        eventmap_data = Eventmap_Data()
+        eventmap_data.object_location = location
 
-      gatherings = list(Gathering.objects.filter(location=location))
-      gatherings.sort(key=lambda gathering: gathering.start_date if gathering.start_date else datetime.datetime(1970,1,1), reverse=True)
-      if (len(gatherings) > 0):
-        for gathering in gatherings:
-          eventmap_data.object_gathering = gathering
+        gatherings = list(Gathering.objects.filter(location=location))
+        gatherings.sort(key=lambda gathering: gathering.start_date if gathering.start_date else datetime.datetime(1970,1,1), reverse=True)
+        if (len(gatherings) > 0):
+          for gathering in gatherings:
+            eventmap_data.object_gathering = gathering
 
-          witnesses = list(Gathering_Witness.objects.filter(gathering=gathering))
-          witnesses.sort(key=lambda witness: witness.date if witness.date else datetime.datetime(1970,1,1), reverse=True)
-          if (len(witnesses) > 0):
-            for witness in witnesses:
-              eventmap_data.object_witness = witness
-              
+            witnesses = list(Gathering_Witness.objects.filter(gathering=gathering))
+            witnesses.sort(key=lambda witness: witness.date if witness.date else datetime.datetime(1970,1,1), reverse=True)
+            if (len(witnesses) > 0):
+              for witness in witnesses:
+                eventmap_data.object_witness = witness
+                
+                data_rows.update({eventmap_data.key: eventmap_data.data_row()})
+                #if not eventmap_data.key in data_rows:
+                #  data_rows.update({eventmap_data.key: eventmap_data.data_row()})
+            else:
               data_rows.update({eventmap_data.key: eventmap_data.data_row()})
               #if not eventmap_data.key in data_rows:
               #  data_rows.update({eventmap_data.key: eventmap_data.data_row()})
-          else:
-            data_rows.update({eventmap_data.key: eventmap_data.data_row()})
-            #if not eventmap_data.key in data_rows:
-            #  data_rows.update({eventmap_data.key: eventmap_data.data_row()})
 
-    print(f"EDDR {data_rows}")
-    datawriter.writerows(data_rows.values())
+      print(f"EDDR {data_rows}")
+      datawriter.writerows(data_rows.values())
       
-  
   return redirect('action:eventmap_data_view')
 
 def eventmap_data_view(request):
@@ -92,7 +93,7 @@ def eventmap_data_view(request):
       eventlist.append(row)
 
   context = {
-    'eventlist_lenght': (len(eventlist)-2),
+    'eventlist_length': (len(eventlist)-2),
     'eventlist': eventlist,
   }
   
