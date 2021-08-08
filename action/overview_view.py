@@ -31,13 +31,15 @@ def locations_view(request):
 
   logginbypass = False
   location_list=list()
+  template = loader.get_template('static/locations_overview.html')
+
   if request.user.is_authenticated or logginbypass:
+    template = loader.get_template('action/locations_overview.html')
     location_list = Location.countries(false)
     location_list.sort(key=lambda e: e[0], reverse=False)
     for location in location_list:
       location[2].sort(key=lambda e: e[0], reverse=False)
 
-  template = loader.get_template('action/locations_overview.html')
   context = {
     'location_list': location_list,
     'logginbypass': logginbypass,
