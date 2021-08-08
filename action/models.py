@@ -16,7 +16,7 @@
 
 from django.db import models
 from django.contrib.auth.models import User
-
+from .static_lists import valid_location_ids
 class Verification(models.Model):
   created_by = models.ForeignKey('UserHome', on_delete=models.PROTECT, editable=False)
   created_on = models.TimeField(auto_now_add=True, editable=False)
@@ -47,6 +47,56 @@ class Location(models.Model):
   lat = models.FloatField(blank=True, null=True)
   lon = models.FloatField(blank=True, null=True)
   #verified = models.ForeignKey(Verification, on_delete=models.CASCADE, editable=False)
+
+  def country():
+    toplocation = this
+    for i in range(5):
+      if toplocation.in_location:
+        toplocation = in_location
+      else:
+        return toplocation
+
+  @staticmethod
+  def countries(generate = True):
+    if generate:
+      location_list = Location.objects.filter(lat__isnull=False)[:]
+    else:
+      location_list = Location.valid_ids(False)
+    location_dict=dict()
+
+    for location in location_list:
+      country = location
+      for x in range(5):
+        if country.in_location:
+          country = country.in_location
+        else:
+          break
+      
+      if country.name in location_dict:
+        location_dict[country.name][2].append([location.name, location.id])
+      else:
+        location_dict.update({country.name:[country.name, country.id, list()]})
+        location_dict[country.name][2].append([location.name, location.id])
+
+    location_list = list(location_dict.values())
+    
+    return location_list
+
+  @staticmethod
+  def valid_ids(generate = False):
+    generate = True
+    if generate:
+      location_list = Location.countries(True)
+      location_id_list=list()
+
+      for country in location_list:
+        location_id_list.append(country[1])
+        for location in country[2]:
+          location_id_list.append(location[1])
+      
+      return location_id_list
+    else:
+      return valid_location_ids()
 
   @staticmethod
   def _split_location_name_test():

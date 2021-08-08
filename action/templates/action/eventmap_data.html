@@ -21,8 +21,10 @@
 
   {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
 
-  <h2>List of {{eventlist_lenght}} events in defined locations</h2>
+  <h2>List of {{eventlist_length}} events in defined locations</h2>
+  {% if user.is_authenticated %}
   <a href="{% url 'action:eventmap_data' %}" style="float: right; margin-top: -1.5em;"><small>Update CSV</small></a>
+  {% endif %}
   <table>
     <tbody>
       

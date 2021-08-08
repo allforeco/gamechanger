@@ -9,49 +9,54 @@ from .models import Gathering, Gathering_Belong, Gathering_Witness, Location, Us
 import datetime
 
 def latest_reports_view(request):
-  if (request.POST.get('filter_amount')):
-    filter_amount = int(request.POST.get('filter_amount'))
-  else:
-    filter_amount = 200
+  filter_amount = int(request.POST.get('filter_amount', '200'))
+  report_list = list(Gathering_Witness.objects.order_by("-updated")[:filter_amount])
+  witness_dict = {}
+  print(f"LRV1 {len(report_list)}")
+  for report in report_list:
+    #print(f"LRV2 {report}")
+    belong_regid = report.set_gathering_to_root()
+    witness_dict[(belong_regid,report.date)] = report
 
-  report_list = list(Gathering_Witness.objects.all())
-  report_list.sort(key=lambda e: e.updated, reverse=True)
-  report_list = report_list[:filter_amount]
-
+  witness_list = list(witness_dict.values())
+  witness_list.sort(key=lambda e: e.updated, reverse=True)
+  print(f"LRV3 {len(witness_list)}")
   template = loader.get_template('action/latest_reports_view.html')
   context = {
     'filter_amount': filter_amount,
-    'report_list': report_list,
+    'report_list': witness_list,
   }
 
   return HttpResponse(template.render(context, request))
 
 def locations_view(request):
-  location_list = Location.objects.filter(lat__isnull=False)[:]
-  location_dict=dict()
+  #print(f"LEND {len(list(Location.objects.all()))} | {len(Location.valid_ids())}")
 
-  for location in location_list:
-    country = location
-    for x in range(5):
-      if country.in_location:
-        country = country.in_location
-      else:
-        break
-    
-    if country.name in location_dict:
-      location_dict[country.name][2].append([location.name, location.id])
-    else:
-      location_dict.update({country.name:[country.name, country.id, list()]})
-      location_dict[country.name][2].append([location.name, location.id])
+  logginbypass = False
+  location_list=list()
+  template = loader.get_template('static/locations_overview.html')
 
-  location_list = list(location_dict.values())
-  location_list.sort(key=lambda e: e[0], reverse=False)
-  for location in location_list:
-    location[2].sort(key=lambda e: e[0], reverse=False)
+  if request.user.is_authenticated or logginbypass:
+    template = loader.get_template('action/locations_overview.html')
+    location_list = Location.countries(false)
+    location_list.sort(key=lambda e: e[0], reverse=False)
+    for location in location_list:
+      location[2].sort(key=lambda e: e[0], reverse=False)
 
-  template = loader.get_template('action/locations_overview.html')
   context = {
     'location_list': location_list,
+    'logginbypass': logginbypass,
+  }
+
+  return HttpResponse(template.render(context, request))
+
+def help_view(request):
+
+  print(f"PLVI |{Location.valid_ids(False)}|")
+
+  template = loader.get_template('action/help_overview.html')
+  context = {
+
   }
 
   return HttpResponse(template.render(context, request))
