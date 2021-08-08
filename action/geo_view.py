@@ -40,8 +40,8 @@ def geo_view_handler(request, locid):
     raw_witness_list = list(Gathering_Witness.objects.filter(gathering=gathering))
     #print(f"TOWI {gathering} {len(raw_witness_list)} {raw_witness_list}")
     for w in raw_witness_list:
-      belong = Gathering_Belong.objects.filter(regid=w.gathering.regid).first()
-      witness_dict[(belong.gathering.regid,w.date)] = w
+      belong_regid = w.set_gathering_to_root()
+      witness_dict[(belong_regid,w.date)] = w
       #print(f"TOWD {(belong.gathering.regid,w.date)} = {w}")
   witness_list = list(witness_dict.values())
   witness_list.sort(key=lambda e: e.date, reverse=True)

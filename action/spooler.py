@@ -335,11 +335,11 @@ def update_reg(regs, import_log = None):
           db_updated = get_update_timestamp(witness.updated)
           print(f"{lineno} {regid} db_updated {db_updated} {db_updated.tzinfo} {witness.updated}", file=last_import_log)
 
-        if organization:
-          if witness.organization != organization:
-            witness.organization = organization
-            witness.save()
-            print(f"URWO {lineno} {regid} Witness organization updated to {organization}")
+        #if organization:
+        #  if not witness.organization:
+        #    witness.organization = organization
+        #    witness.save()
+        #    print(f"URWO {lineno} {regid} Witness organization updated to {organization}")
 
         # Compare if newer
         rec_updated = get_update_timestamp(rec.get('RUPD'))

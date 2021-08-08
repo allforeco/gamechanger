@@ -286,6 +286,36 @@ class Gathering_Belong(models.Model):
   regid = models.CharField(primary_key=True, max_length=8, editable=False)
   gathering = models.ForeignKey(Gathering, on_delete=models.CASCADE)
 
+  @classmethod
+  def integrity_check():
+    def detect_belongs_pointing_to_non_root_gatherings():
+      bad_gbs=[]
+      for gb in list(Gathering_Belong.objects.all()):
+        if gb.gathering != Gathering_Belong.objects.filter(regid=gb.gathering).first().gathering:
+          bad_gbs += [gb]
+      print(f"ICGB {len(bad_gbs)} Gathering_Belong objects found that point to non-root Gatherings")
+      for n, bgb in enumerate(bad_gbs,1):
+        gat = bgb.regid
+        for i in range(5): 
+          bel = Gathering_Belong.objects.filter(regid=gat)
+          print(f"ICGB {n}:{i}: {gat}/{Gathering.objects.filter(regid=gat).first().location} belongs {bel}")
+          gat = bel.first().gathering
+          if gat == Gathering_Belong.objects.filter(regid=gat).first().gathering:
+            print(f"ICGB {n}:{i}: Rooted in {gat}/{Gathering.objects.filter(regid=gat).first().location}")
+            print(f"""ICGB   Suggested fix: 
+                             b=Gathering_Belong.objects.filter(regid="{bgb.regid}").first()
+                             g=Gathering.objects.filter(regid="{gat}").first()
+                             b.gathering=g
+                             b.save()""")
+            break
+          siblings = Gathering_Belong.objects.filter(gathering=gat)
+          print(f"ICGB   There are {len(siblings)} belongings pointing to this non root Gathering_Belong")
+          for sn,sib in enumerate(siblings,1):
+            print(f"ICGB {n}:{i}:{sn} {sib}")
+      return bad_gbs
+
+    return Gathering_Belong.detect_belongs_pointing_to_non_root_gatherings()
+
 class Gathering_Witness(models.Model):
   def __str__(self):
     return str(self.gathering) + ":" + str(self.date)
@@ -322,3 +352,8 @@ class Gathering_Witness(models.Model):
           if org.name.casefold() in name.casefold():
             return col
     return "black"
+
+  def set_gathering_to_root(self):
+    belong = Gathering_Belong.objects.get(regid=self.gathering.regid)
+    self.gathering.regid = belong.gathering.regid
+    return self.gathering.regid
