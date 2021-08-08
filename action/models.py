@@ -329,6 +329,12 @@ class Gathering(models.Model):
       return None
     return self.location.in_location
 
+  def get_gathering_root(self):
+    if hasattr(self, 'root_gathering'):
+      return self.root_gathering
+    self.root_gathering = Gathering_Belong.objects.get(regid=self.regid).gathering
+    return self.root_gathering
+
 class Gathering_Belong(models.Model):
   def __str__(self):
     return str(self.regid) + "=>" + str(self.gathering.regid)
@@ -404,6 +410,6 @@ class Gathering_Witness(models.Model):
     return "black"
 
   def set_gathering_to_root(self):
-    belong = Gathering_Belong.objects.get(regid=self.gathering.regid)
-    self.gathering.regid = belong.gathering.regid
+    root_gathering = self.gathering.get_gathering_root()
+    self.gathering.regid = root_gathering.regid
     return self.gathering.regid

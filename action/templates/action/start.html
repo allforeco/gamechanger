@@ -17,30 +17,6 @@
   </div>
 
   <div>
-    <h2 style="margin-bottom: 0.25em;">Activity Leaderboard</h2>
-    <table>
-      <thead>
-        <th sort="str-false">Country</th>
-        <th sort="int-true">Events</th>
-        <th sort="int-false">Reports</th>
-      </thead>
-      {% for location in leaderboard_list %}
-      <tr>
-        <td>
-          <a href="{% url 'action:geo_view' location.1 %}" >{{location.0}}</a>
-        </td>
-        <td>
-          <span>{{location.2}}</span>
-        </td>
-        <td>
-          <span>{{location.3}}</span>
-        </td>
-      </tr>
-      {% endfor %}
-    </table>
-  </div>
-
-  <div>
     <h2 style="margin-bottom: 0.25em;">Latest Reports</h2>
     <table>
       <thead>
@@ -148,6 +124,30 @@
         </tr>
         {% endfor %}
       </tbody>
+    </table>
+  </div>
+
+  <div>
+    <h2 style="margin-bottom: 0.25em;">Activity Leaderboard</h2>
+    <table>
+      <thead>
+        <th sort="str-false">Country</th>
+        <th sort="int-true">Events</th>
+        <th sort="int-false">Reports</th>
+      </thead>
+      {% for location in leaderboard_list %}
+      <tr>
+        <td>
+          <a href="{% url 'action:geo_view' location.1 %}" >{{location.0}}</a>
+        </td>
+        <td>
+          <span>{{location.2}}</span>
+        </td>
+        <td>
+          <span>{{location.3}}</span>
+        </td>
+      </tr>
+      {% endfor %}
     </table>
   </div>
 {% endblock %}

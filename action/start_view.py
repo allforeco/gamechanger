@@ -9,23 +9,23 @@ from .models import Gathering, Gathering_Belong, Gathering_Witness, Location, Us
 import datetime
 
 def start_view_handler(request):
-  if (request.POST.get('filter_weeks')):
-    filter_weeks = int(request.POST.get('filter_weeks'))
-  else:
-    filter_weeks = 2
+  filter_weeks = int(request.POST.get('filter_weeks','2'))
   list_length = 50
 
   #GATHERING PLAN LOGIC
-  gathering_list = list(Gathering.objects.filter(start_date__gte=(datetime.datetime.today()-datetime.timedelta(days=1))))
+  gathering_list = list(Gathering.objects.filter(start_date__gte=(datetime.datetime.today()-datetime.timedelta(days=1)))[:list_length])
+  gathering_dict = {}
+  for g in gathering_list:
+    belong_regid = g.get_gathering_root()
+    gathering_dict[(belong_regid,g.start_date)] = g
+  gathering_list = list(gathering_dict.values())
   gathering_list.sort(key=lambda e: e.start_date, reverse=False)
-  gathering_list = gathering_list[:list_length]
-
   gatherings = list()
   for gathering in gathering_list:
     gathering_data = list()
     gathering_data.append(gathering.start_date.strftime('%Y-%m-%d'))
     gathering_data.append(gathering.get_gathering_type_str())
-    gathering_data.append(gathering.regid)
+    gathering_data.append(gathering.get_gathering_root())
     gathering_data.append([gathering.location.id, gathering.location.name])
     gathering_data.append(gathering.organizations.first())
     gathering_data.append(gathering.expected_participants)
@@ -33,13 +33,17 @@ def start_view_handler(request):
     gatherings.append(gathering_data)
   
   #EVENT WITNESSING LOGIC
-  report_list = list(Gathering_Witness.objects.filter(updated__gte=datetime.datetime.today()-datetime.timedelta(days=7*filter_weeks)))
-  report_list.sort(key=lambda e: e.updated, reverse=True)
-  report_list = report_list[:list_length]
+  report_list = list(Gathering_Witness.objects.filter(updated__gte=datetime.datetime.today()-datetime.timedelta(days=7*filter_weeks))[:list_length])
+  witness_dict = {}
+  for w in report_list:
+    belong_regid = w.set_gathering_to_root()
+    witness_dict[(belong_regid,w.date)] = w
+  witness_list = list(witness_dict.values())
+  witness_list.sort(key=lambda e: e.updated, reverse=True)
 
   reports = list()
   i = 0
-  for report in report_list:
+  for report in witness_list:
     report_data = list()
     i+=1
     report_data.append(i)
