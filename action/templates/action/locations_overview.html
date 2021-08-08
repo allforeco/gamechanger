@@ -13,9 +13,10 @@
           <th>Country</th>
           <th>Locations</th>
         </thead>
+        {% if user.is_authenticated or logginbypass %}
+        Auto Generate
+        {% for country in location_list %}
         <tbody>
-          {% if user.is_authenticated %}
-          {% for country in location_list %}
           <tr>
             <td style="text-align: center; margin-top: 0px; vertical-align: top;">
               <a href="{% url 'action:geo_view' country.1 %}">{{country.0}}</a>
@@ -30,9 +31,9 @@
               </ul>
             </td>
           </tr>
-          {% endfor %}
-          {% endif %}
         </tbody>
+        {% endfor %}
+        {% endif %}
       </table>
   </div>
 {% endblock %}
