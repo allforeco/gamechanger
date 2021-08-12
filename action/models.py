@@ -46,6 +46,7 @@ class Location(models.Model):
   zip_code = models.CharField(max_length=12, blank=True, null=True)
   lat = models.FloatField(blank=True, null=True)
   lon = models.FloatField(blank=True, null=True)
+  #google_name = models.CharField(max_length=100)
   #verified = models.ForeignKey(Verification, on_delete=models.CASCADE, editable=False)
 
   def country():
@@ -298,6 +299,7 @@ class Gathering(models.Model):
   address = models.CharField(blank=True, max_length=64)
   time = models.CharField(blank=True, max_length=32)
 
+  #event_link_url = models.URLField(max_length=500, blank=True)
   contact_name = models.CharField(blank=True, max_length=64)
   contact_email = models.CharField(blank=True, max_length=64)
   contact_phone = models.CharField(blank=True, max_length=64)

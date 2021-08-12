@@ -41,7 +41,7 @@ from django.contrib.auth.models import User
 from .geo_view import geo_view_handler, geo_date_view_handler, geo_update_view, geo_update_post, geo_search, geo_invalid, translate_maplink
 from .start_view import start_view_handler
 from .overview_view import latest_reports_view, locations_view, help_view
-from .map_sync import eventmap_data_view, eventmap_data, to_fff
+from .map_sync import eventmap_data_view, eventmap_data, coffer_data, to_fff
 
 class HomeView(FormView):
   class LocationSearchForm(forms.Form):
@@ -352,6 +352,7 @@ def download_post(request):
     return download_upd(request, error_message="You must specify a valid start date and time")
 
   try:
+    comment = '''
     t = datetime.datetime.fromisoformat(start_datetime+"+00:00")
     gupdates = Gathering_Witness.objects.filter(updated__gte=t)
 
@@ -359,10 +360,32 @@ def download_post(request):
       content = csv.writer(csvfile, quoting=csv.QUOTE_MINIMAL)
       for gupdate in gupdates:
         content.writerow(['Witness', 
-          gupdate.gathering, gupdate.date, 
-          gupdate.participants, gupdate.proof_url, 
-          gupdate.creation_time, gupdate.updated])
+          gupdate.gathering,
+          gupdate.date, 
+          gupdate.participants,
+          gupdate.proof_url, 
+          gupdate.creation_time,
+          gupdate.updated,])
+
+          #rtime ?|creattime
+          #rsource |'Gamechanger'
+          #CMAIL |gathering.contact_mail / defmail
+          #CNAME |gathering.contact_name
+          #CORG2 |organization
+          #CSPOKE ?| private / public
+          #ECOUNTRY x|gathering.location.country()
+          #ECITY x|gathering.location.city
+          #ELOCATION |gathering.location
+          #ETYPE |gathering.gathering_type
+          #ETIME |gathering.time
+          #EFREQ %|gathering.end_date "weekly" / "once only" [def] / "every friday"
+          #ELINK ?| (Event Invite)
+          #GLOC x|gathering.location.gloc (google name)
+          #GlAT |gathering.location.lat
+          #GLON |gathering.location.lon
       return HttpResponse(csvfile.getvalue(), content_type="text/plain")
+      '''
+    return HttpResponse(coffer_data().getvalue(), content_type="text/plain")
   except Exception as e:
     print(f"DPXX Download exception: {e}")
     return download_upd(request, error_message="Download failed")
