@@ -1,7 +1,7 @@
 {% extends "base_generic.html" %}
 
 {% block title %}
-      <title>Event Editor - Gamechanger Action Tracker</title>
+      <title>Event Report - Gamechanger Action Tracker</title>
 {% endblock %}
 
 {% block content %}
@@ -10,7 +10,7 @@
 <style>th{text-align: left;padding-left: 10px;}
 </style>
 {% if isnewevent %}
-<h1>Report new Event</h1>
+<h1>Register new Event</h1>
 <form action="{% url 'action:geo_post' %}" method="POST">
   {% csrf_token %}
   <input type="hidden" name="isnewevent" value="{{isnewevent}}"/>
@@ -142,7 +142,7 @@
 
 <br />
 <br />
-<!-- Report Toggle--
+<!-- Report/Register Toggle--
 <form action="{% url 'action:geo_update' %}" method="POST">
   {% csrf_token %}
   <input type="hidden" value="{{isneweventtoggle}}" name="isnewevent">
@@ -151,13 +151,13 @@
   {% if isnewevent %}
   <input type="submit" value="Report on Event ↩"/>
   {% else %}
-  <input type="submit" value="Repoert new Event ↩"/>
+  <input type="submit" value="Register new Event ↩"/>
   {% endif %}
 </form>
 !---->
 <br />
 <div>
-  Report a new Event with a 
+  Register new Event with a 
   <a target="blank" href="https://docs.google.com/forms/d/e/1FAIpQLSfakAGKkwd5FCt_LFgorf_Kfsd2UPU6kq6CfaRJDPgkOcqG_Q/viewform">Google Form Registration ↩</a>
 </div>
 
