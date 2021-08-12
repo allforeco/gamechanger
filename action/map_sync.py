@@ -256,6 +256,7 @@ class Eventmap_Data():
   def data_format_coffer(self):
     self.data_process()
     return [
+      'Witness',
       self.regid,
       self.date,
       self.participants,
