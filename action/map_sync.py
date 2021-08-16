@@ -7,6 +7,7 @@ from django.contrib.auth.decorators import login_required, permission_required
 from django import forms
 from django.shortcuts import redirect
 from .models import Gathering, Gathering_Belong, Gathering_Witness, Location, UserHome, Organization
+import io
 
 import csv
 import datetime as dateTime
@@ -29,9 +30,11 @@ def _send_to_fff_web_server(self,payload,files=None):
     raise (result.status_code, result.text)
 
 def coffer_data():
-  with io.StringIO(newline='') as csvfile:
+  with io.StringIO() as csvfile:
     datawriter = csv.writer(csvfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
     
+    data_rows = dict()
+
     locations = list(Location.objects.filter(lat__isnull=False)[:]) #remove [:num] for full list
     for location in locations:
       eventmap_data = Eventmap_Data()
@@ -49,12 +52,14 @@ def coffer_data():
           if (len(witnesses) > 0):
             for witness in witnesses:
               eventmap_data.object_witness = witness
-              data_rows.update({eventmap_data.key: eventmap_data.data_format_coffer()})
+              data_rows.update({eventmap_data.regid: eventmap_data.data_format_coffer()})
+              #print(f"TESV {eventmap_data.data_format_coffer()} \n \n")
 
-    print(f"EDDR {data_rows}")
+    #print(f"EDDR {data_rows}")
     datawriter.writerows(data_rows.values())
-      
-  return csvfile
+  
+    #print(f"CSVO {csvfile}")
+    return csvfile.getvalue()
 
 def eventmap_data():
   with io.StringIO(newline='') as csvfile:
@@ -99,9 +104,9 @@ def eventmap_data():
             for witness in witnesses:
               eventmap_data.object_witness = witness
               
-              data_rows.update({eventmap_data.key: eventmap_data.data_format_map()})
+              data_rows.update({eventmap_data.regid: eventmap_data.data_format_map()})
           else:
-            data_rows.update({eventmap_data.key: eventmap_data.data_format_map()()})
+            data_rows.update({eventmap_data.regid: eventmap_data.data_format_map()()})
 
     print(f"EDDR {data_rows}")
     datawriter.writerows(data_rows.values())
@@ -153,7 +158,7 @@ class Eventmap_Data():
   organization_color = '' #M
   #date = '' #CM
   date_end = '' #M
-  frequency = '' #C : 'once', 'weekly', 'every friday'
+  frequency = 'once' #C : 'once', 'weekly', 'every friday'
   time = '' #CM
   address = '' #CM
   contact_approval = 'y' #C
@@ -171,22 +176,22 @@ class Eventmap_Data():
   #organization = '' #CM
   proof_url = '' #CM
 
-  def data_process_location():
+  def data_process_location(self):
     #LOCATION; country, town, lat, lon, location_google_name
     if self.object_location:
       self.country = self.object_location.country()
       self.town = self.object_location.name
       self.lat = self.object_location.lat
       self.lon = self.object_location.lon
-      self.location_google_name = self.object_location.google_name
+      #self.location_google_name = self.object_location.google_name
 
-  def data_process_gathering():
+  def data_process_gathering(self):
     #GATHERING; create_time, update_time, 
     # regid, gathering_type, participants, organization, ?organization_color?, date, date_end, frequency, time, adress, 
     # contact_approval, contact_name, contact_email, contact_phone, contact_notes
     if self.object_gathering:
-      self.create_time = self.object_gathering.creation_time
-      self.update_time = self.object_gathering.updated
+      #self.create_time = self.object_gathering.creation_time
+      #self.update_time = self.object_gathering.updated
 
       self.regid = self.object_gathering.regid
 
@@ -196,34 +201,50 @@ class Eventmap_Data():
         self.frequency = 'weekly'
 
       self.gathering_type = self.object_gathering.get_gathering_type_str()
-      self.participants = self.object_gathering.participants
-      self.address = self.object_gathering.address
-      self.time = self.object_gathering.time
-      self.organization = ", ".join(str(elem) for elem in list(self.object_gathering.organizations.all()))
+      if self.object_gathering.expected_participants:
+        self.participants = self.object_gathering.expected_participants
+      if self.object_gathering.address:
+        self.address = self.object_gathering.address
+      if self.object_gathering.time:
+        self.time = self.object_gathering.time
+      if len(self.object_gathering.organizations.all()) > 0:
+        self.organization = ", ".join(str(elem) for elem in list(self.object_gathering.organizations.all()))
       
       if (self.contact_approval == 'y'):
-        self.contact_name = self.object_gathering.contact_name
-        self.contact_email = self.object_gathering.contact_email
-        self.contact_phone = self.object_gathering.contact_phone
-        self.contact_notes = self.object_gathering.contact_notes
+        if self.object_gathering.contact_name:
+          self.contact_name = self.object_gathering.contact_name
+        if self.object_gathering.contact_email:
+          self.contact_email = self.object_gathering.contact_email
+        if self.object_gathering.contact_phone:
+          self.contact_phone = self.object_gathering.contact_phone
+        if self.object_gathering.contact_notes:
+          self.contact_notes = self.object_gathering.contact_notes
       else:
         self.contact_name = self.object_gathering.contact_name = 'anonymus'
         self.contact_email = self.object_gathering.contact_email = 'map@fff'
         self.contact_notes = self.object_gathering.contact_notes = 'Anonymus registration'
 
-  def data_process_witness():
+  def data_process_witness(self):
     #WITNESS; 
     # >create_time<, >update_time<, 
-    # >date<, *date_end*, *frequency*, >organization<, organization_color
+    # >date<, *date_end*, *frequency*, participants, >organization<, organization_color
     if self.object_witness:
       self.create_time = self.object_witness.creation_time
       self.update_time = self.object_witness.updated
 
       self.date = self.object_witness.date
       self.date_end = self.object_witness.date
+      #DEFAULT: self.frequency = 'Once'
 
-      self.proof_url = self.object_witness.proof_url
-      self.organization = self.object_witness.organization
+      if self.object_witness.participants:
+        self.participants = self.object_witness.participants
+
+      if self.object_witness.proof_url:
+        self.proof_url = self.object_witness.proof_url
+      if self.object_witness.organization:
+        self.organization = self.object_witness.organization
+      else:
+        self.organization = ''
       self.organization_color = self.object_witness.get_pin_color()
 
   def data_process_all(self):
@@ -254,7 +275,7 @@ class Eventmap_Data():
     ]
 
   def data_format_coffer(self):
-    self.data_process()
+    self.data_process_all()
     return [
       'Witness',
       self.regid,
@@ -263,5 +284,5 @@ class Eventmap_Data():
       self.proof_url,
       self.create_time,
       self.update_time,
-      self.organization.name,
+      self.organization,
     ]

@@ -49,11 +49,11 @@ class Location(models.Model):
   #google_name = models.CharField(max_length=100)
   #verified = models.ForeignKey(Verification, on_delete=models.CASCADE, editable=False)
 
-  def country():
-    toplocation = this
+  def country(self):
+    toplocation = self
     for i in range(5):
       if toplocation.in_location:
-        toplocation = in_location
+        toplocation = toplocation.in_location
       else:
         return toplocation
 

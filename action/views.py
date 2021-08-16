@@ -385,7 +385,7 @@ def download_post(request):
           #GLON |gathering.location.lon
       return HttpResponse(csvfile.getvalue(), content_type="text/plain")
       '''
-    return HttpResponse(coffer_data().getvalue(), content_type="text/plain")
+    return HttpResponse(coffer_data(), content_type="text/plain")
   except Exception as e:
     print(f"DPXX Download exception: {e}")
     return download_upd(request, error_message="Download failed")
