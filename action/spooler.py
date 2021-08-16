@@ -323,14 +323,18 @@ def update_reg(regs, import_log = None):
         witness = witness_queryobj.first()
         print(f"{lineno} {regid} {edate} witnesses count {witness_queryobj.count()} first: {witness.__dict__ if witness else None}", file=last_import_log)
         if not witness:
-          witness = Gathering_Witness(
-            gathering = Gathering.objects.get(regid=belong.gathering.regid),
-            date = edate,
-            updated = long_ago)
-          witness.save()
-          counter['Gathering_Witness'] += 1
-          print(f"{lineno} {regid} new witness {gathering}=>{belong.gathering.regid}:{edate}", file=last_import_log)
-          #print(f"URWC {lineno} {regid} Witness created")
+          witness_belong = Gathering.objects.get(regid=belong.gathering.regid)
+          if witness_belong:
+            witness = Gathering_Witness(
+              gathering = witness_belong,
+              date = edate,
+              updated = long_ago)
+            witness.save()
+            counter['Gathering_Witness'] += 1
+            print(f"{lineno} {regid} new witness {gathering}=>{belong.gathering.regid}:{edate}", file=last_import_log)
+            #print(f"URWC {lineno} {regid} Witness created")
+          else:
+            print(f"{lineno} {regid} Broken witness {gathering}=>{belong.gathering.regid}:{edate}", file=last_import_log)
         else:
           db_updated = get_update_timestamp(witness.updated)
           print(f"{lineno} {regid} db_updated {db_updated} {db_updated.tzinfo} {witness.updated}", file=last_import_log)

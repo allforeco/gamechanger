@@ -56,10 +56,10 @@
   <form action="{% url 'action:geo_update' %}" method="POST">
     {% csrf_token %}
     <input type="hidden" value="False" name="isnewevent"/>
-    <input type="hidden" value="None" name="regid"/>
+    <input type="hidden" value="{{root_gathering.regid}}" name="regid"/>
     <input type="hidden" value="{{this_location.id}}" name="locid"/>
     <!--<input type="submit" value="Register new Event">-->
-    <input type="submit" value="Report on Event">
+    <input type="submit" value="Report on Event"/>
   </form>
   <br/>
   
@@ -80,8 +80,9 @@
               <form action="{% url 'action:geo_update' %}" method="POST">
                 {% csrf_token %}
                 <input type="hidden" value="False" name="isnewevent"/>
-                <input type="hidden" value="{{witness.gathering.id}}" name="regid"/>
+                <input type="hidden" value="{{witness.gathering.regid}}" name="regid"/>
                 <input type="hidden" value="{{this_location.id}}" name="locid"/>
+                <input type="hidden" value="{{witness.id}}" name="witness"/>
                 <input type="submit" value="{{witness.date|date:'Y-m-d' }}"/>
               </form>
             </td>

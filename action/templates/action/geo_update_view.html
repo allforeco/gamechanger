@@ -36,7 +36,7 @@
     <tr>
       <th>Date *</th>
       <td>
-        <input required type="date" name="date" value="{{gathering.start_date}}"/>
+        <input required type="date" name="date" value=""/>
       </td>
     </tr>
     <tr>
@@ -52,9 +52,9 @@
       </script>
     </tr>
     <tr>
-      <th>Expected Partisipants *</th>
+      <th>Expected Participants *</th>
       <td>
-        <input required type="number" name="participants" value="{{participants}}" min="1"/>
+        <input required type="number" name="participants" value="" min="1"/>
       </td>
     </tr>
     <tr>
@@ -84,6 +84,7 @@
   <input type="hidden" name="isnewevent" value="{{isnewevent}}"/>
   <input type="hidden" name="regid" value="{{gathering.regid}}"/>
   <input type="hidden" name="locid" value="{{location.id}}"/>
+  <input type="hidden" name="witness" value="{{witness.pk}}"/>
   <table>
     <tr>
       <th>Gathering</th>
@@ -102,27 +103,27 @@
     <tr>
       <th>Date *</th>
       <td>
-        <input required type="date" name="date" value="{{gathering.start_date}}"/>
+        <input required type="date" name="date" value="{{witness.date|date:'Y-m-d'}}"/>
       </td>
     </tr>
     <tr>
       <th>Participants *</th>
       <td>
-        <input required type="number" name="participants" value="{{participants}}" min="1"/>
+        <input required type="number" name="participants" value="{{witness.participants}}" min="1"/>
       </td>
     </tr>
     <tr>
       <th>Organization</th>
       <td>
         <select name="organization" data-minimum-input-length="3" id="id_organization" data-autocomplete-light-language="en" data-autocomplete-light-url="/action/organization-autocomplete/" data-autocomplete-light-function="select2">
-          <option value="{{organization.id}}" selected>{{organization}}</option>
+          <option value="{{witness.organization.id}}" selected>{{witness.organization}}</option>
         </select>
       </td>
     </tr>
     <tr>
       <th>Media Link URL</th>
       <td>
-        <input type="url" name="proof_url" value="{{proof_url}}" placeholder="(optional) Share a photo collection from the event!" size="60"/>
+        <input type="url" name="proof_url" value="{{witness.proof_url}}" placeholder="(optional) Share a photo collection from the event!" size="60"/>
       </td>
     </tr>
     <tr>

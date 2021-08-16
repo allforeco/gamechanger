@@ -52,7 +52,6 @@ def geo_view_handler(request, locid):
   except:
     favorite_location = False
   
-  new_report = Gathering_Witness()
   context = {
     'this_location': this_location,
     'parent_location': parent_location,
@@ -60,6 +59,7 @@ def geo_view_handler(request, locid):
     'witness_list': witness_list,
     'total_participants': total_participants,
     'favorite_location': favorite_location,
+    'root_gathering': witness_list[0].gathering,
   }
 
   if request.POST.get('favorite'):
@@ -94,7 +94,13 @@ def geo_date_view_handler(request, locid, date):
 def geo_update_view(request):
   isnewevent = (request.POST.get('isnewevent') == 'True')
   regid = request.POST.get('regid')
-  this_gathering = Gathering.objects.filter(regid=regid).first()
+  wintess_id = request.POST.get('witness')
+  this_gathering = Gathering.objects.get(regid=regid)
+  this_witness = Gathering_Witness.objects.filter(pk=wintess_id)
+  if this_witness:
+    this_witness = this_witness.first()
+  else:
+    this_witness = None
 
   locid = request.POST.get('locid')
   this_location = Location.objects.filter(id=locid).first()
@@ -104,6 +110,7 @@ def geo_update_view(request):
     'isnewevent': isnewevent,
     'isneweventtoggle': (not isnewevent),
     'gathering': this_gathering,
+    'witness': this_witness,
     'location': this_location,
     'gathering_types': Gathering.gathering_type.field.choices,
   }
@@ -120,11 +127,16 @@ def geo_update_post(request):
 def geo_update_post_witness(request):
   locid = request.POST.get('locid')
   regid = request.POST.get('regid')
+  witness_id = request.POST.get('witness')
 
-  print(f"JKLO {locid} : {regid}")
+  print(f"JKLO {locid} : {regid} : {witness_id}")
 
-  witness = Gathering_Witness()
-  witness.gathering = Gathering.objects.filter(regid=regid).first()
+  gathering = Gathering.objects.get(regid=regid)
+  if witness_id:
+    witness = Gathering_Witness.objects.get(pk=witness_id)
+  else:
+    witness = Gathering_Witness(gathering=gathering)
+  witness.gathering = gathering
 
   #RuntimeWarning: DateTimeField Gathering_Witness.updated received a naive datetime (2021-05-07 11:52:41.502616) while time zone support is active.
   witness.date = datetime.datetime.strptime(request.POST.get('date'), '%Y-%m-%d').replace(tzinfo=datetime.timezone.utc)
@@ -145,7 +157,7 @@ def geo_update_post_witness(request):
   return redirect('action:geo_view', locid)
 
 def geo_update_post_gathering(request):
-  gathering = Gathering()
+  return ## FIXME missing regid! gathering = Gathering()
   locid = request.POST.get('locid')
   gathering.location_id = locid
   gathering.start_date = datetime.datetime.strptime(request.POST.get('date'), '%Y-%m-%d').replace(tzinfo=datetime.timezone.utc)

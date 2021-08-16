@@ -22,15 +22,18 @@ def start_view_handler(request):
   gathering_list.sort(key=lambda e: e.start_date, reverse=False)
   gatherings = list()
   for gathering in gathering_list:
-    gathering_data = list()
-    gathering_data.append(gathering.start_date.strftime('%Y-%m-%d'))
-    gathering_data.append(gathering.get_gathering_type_str())
-    gathering_data.append(gathering.get_gathering_root())
-    gathering_data.append([gathering.location.id, gathering.location.name])
-    gathering_data.append(gathering.organizations.first())
-    gathering_data.append(gathering.expected_participants)
+    try:
+      gathering_data = list()
+      gathering_data.append(gathering.start_date.strftime('%Y-%m-%d'))
+      gathering_data.append(gathering.get_gathering_type_str())
+      gathering_data.append(gathering.get_gathering_root())
+      gathering_data.append([gathering.location.id, gathering.location.name])
+      gathering_data.append(gathering.organizations.first())
+      gathering_data.append(gathering.expected_participants)
 
-    gatherings.append(gathering_data)
+      gatherings.append(gathering_data)
+    except:
+      print(f"SVX0 Cannot display broken {gathering}")
   
   #EVENT WITNESSING LOGIC
   report_list = list(Gathering_Witness.objects.filter(updated__gte=datetime.datetime.today()-datetime.timedelta(days=7*filter_weeks))[:list_length])
