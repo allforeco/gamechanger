@@ -92,53 +92,39 @@ def geo_date_view_handler(request, locid, date):
   return HttpResponse(template.render(context, request))
 
 def geo_update_view(request):
-  witness_id = request.POST.get('witness_id')
+  isnewevent = (request.POST.get('isnewevent') == 'True')
+  regid = request.POST.get('regid')
+  this_gathering = Gathering.objects.filter(regid=regid).first()
 
-  if (witness_id != 'None'):
-    witness = Gathering_Witness.objects.get(id=witness_id)
-    date = witness.date
-    participants = witness.participants
-    proof_url = witness.proof_url
-    organization = witness.organization
-  else:
-    date = datetime.datetime.today()
-    participants = 1
-    proof_url = ""
-    organization = ""
-  
   locid = request.POST.get('locid')
   this_location = Location.objects.filter(id=locid).first()
-  isnewevent = request.POST.get('isnewevent')
 
   template = loader.get_template('action/geo_update_view.html')
   context = { 
-    'date': date,
-    'participants': participants,
-    'proof_url': proof_url,
-    'organization': organization,
-    'witness_id': witness_id,
-    'this_location': this_location,
     'isnewevent': isnewevent,
+    'isneweventtoggle': (not isnewevent),
+    'gathering': this_gathering,
+    'location': this_location,
     'gathering_types': Gathering.gathering_type.field.choices,
   }
 
   return HttpResponse(template.render(context, request))
 
 def geo_update_post(request):
-  isnewevent = request.POST.get('isnewevent')
-  if (isnewevent == 'True'):
+  isnewevent = False #(request.POST.get('isnewevent') == 'True')
+  if (isnewevent):
     return geo_update_post_gathering(request)
   else:
     return geo_update_post_witness(request)
 
 def geo_update_post_witness(request):
   locid = request.POST.get('locid')
-  witness_id = request.POST.get('witness_id')
-  if witness_id != "None":
-    witness = Gathering_Witness.objects.get(id=witness_id)
-  else:
-    witness = Gathering_Witness(gathering=Gathering.objects.filter(location__id=locid).first())
+  regid = request.POST.get('regid')
 
+  print(f"JKLO {locid} : {regid}")
+
+  witness = Gathering_Witness()
+  witness.gathering = Gathering.objects.filter(regid=regid).first()
 
   #RuntimeWarning: DateTimeField Gathering_Witness.updated received a naive datetime (2021-05-07 11:52:41.502616) while time zone support is active.
   witness.date = datetime.datetime.strptime(request.POST.get('date'), '%Y-%m-%d').replace(tzinfo=datetime.timezone.utc)

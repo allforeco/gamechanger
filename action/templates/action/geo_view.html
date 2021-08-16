@@ -46,17 +46,24 @@
   <h2>Direct Reports for {{ this_location.name }} in addition to the locations above</h2>
   {% endif %}
 
-  {% if witness_list %}
   <h2>Reports</h2>
-    <p>{{ witness_list|length }} events with a total of {{ total_participants }} reported participants</p>
-    <form action="{% url 'action:geo_update' %}" method="POST">
-      {% csrf_token %}
-      <input type="hidden" value="False" name="isnewevent"/>
-      <input type="hidden" value="None" name="witness_id"/>
-      <input type="hidden" value="{{this_location.id}}" name="locid"/>
-      <input type="submit" value="Add Date">
-    </form>
-    <br/>
+  {% if witness_list %}
+  <p>{{ witness_list|length }} events with a total of {{ total_participants }} reported participants</p>
+  {% else %}
+  <p>No results registered yet.</p>
+  {% endif %}
+    
+  <form action="{% url 'action:geo_update' %}" method="POST">
+    {% csrf_token %}
+    <input type="hidden" value="False" name="isnewevent"/>
+    <input type="hidden" value="None" name="regid"/>
+    <input type="hidden" value="{{this_location.id}}" name="locid"/>
+    <!--<input type="submit" value="Register new Event">-->
+    <input type="submit" value="Report on Event">
+  </form>
+  <br/>
+  
+  {% if witness_list %}
     <div class="gathering">
       <table>
         <tr>
@@ -73,7 +80,7 @@
               <form action="{% url 'action:geo_update' %}" method="POST">
                 {% csrf_token %}
                 <input type="hidden" value="False" name="isnewevent"/>
-                <input type="hidden" value="{{witness.id}}" name="witness_id"/>
+                <input type="hidden" value="{{witness.gathering.id}}" name="regid"/>
                 <input type="hidden" value="{{this_location.id}}" name="locid"/>
                 <input type="submit" value="{{witness.date|date:'Y-m-d' }}"/>
               </form>
@@ -103,19 +110,5 @@
         {% endfor %}
       </table>
     </div>
-  {% else %}
-    <p>No results registered yet.</p>
-    <form action="{% url 'action:geo_update' %}" method="POST">
-      {% csrf_token %}
-      <input type="hidden" value="False" name="isnewevent"/>
-      <input type="hidden" value="None" name="witness_id"/>
-      <input type="hidden" value="{{this_location.id}}" name="locid"/>
-      <input type="submit" value="Add Date">
-    </form>
   {% endif %}
-
-  {% if user.is_authenticated %}
-  <!--Add Date user.is_authenticated-->
-  {% endif %}
-  
 {% endblock %}
