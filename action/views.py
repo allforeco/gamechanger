@@ -352,7 +352,7 @@ def download_post(request):
     return download_upd(request, error_message="You must specify a valid start date and time")
 
   try:
-    comment = '''
+    #comment = '''
     t = datetime.datetime.fromisoformat(start_datetime+"+00:00")
     gupdates = Gathering_Witness.objects.filter(updated__gte=t)
 
@@ -365,7 +365,8 @@ def download_post(request):
           gupdate.participants,
           gupdate.proof_url, 
           gupdate.creation_time,
-          gupdate.updated,])
+          gupdate.updated,
+          gupdate.organization.name if gupdate.organization else '',])
 
           #rtime ?|creattime
           #rsource |'Gamechanger'
@@ -384,8 +385,8 @@ def download_post(request):
           #GlAT |gathering.location.lat
           #GLON |gathering.location.lon
       return HttpResponse(csvfile.getvalue(), content_type="text/plain")
-      '''
-    return HttpResponse(coffer_data(), content_type="text/plain")
+    #  '''
+    #return HttpResponse(coffer_data(), content_type="text/plain")
   except Exception as e:
     print(f"DPXX Download exception: {e}")
     return download_upd(request, error_message="Download failed")

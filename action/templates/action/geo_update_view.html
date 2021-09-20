@@ -10,136 +10,143 @@
 <style>th{text-align: left;padding-left: 10px;}
 </style>
 {% if isnewevent %}
-<h1>Register new Event</h1>
-<form action="{% url 'action:geo_post' %}" method="POST">
-  {% csrf_token %}
-  <input type="hidden" name="isnewevent" value="{{isnewevent}}"/>
-  <table>
-    <tr>
-      <th>Gathering Type *</th>
-      <td>
-        <select required name="gathering-type" class="i-can-add-my-own-attrs-now">
-          {% for id, name in gathering_types %}
-            <option value="{{id}}">{{name}}</option>
-          {% endfor %}
+  <h1>Register new Event</h1>
+  <form action="{% url 'action:geo_post' %}" method="POST">
+    {% csrf_token %}
+    <input type="hidden" name="isnewevent" value="{{isnewevent}}"/>
+    <table>
+      <tr>
+        <th>Gathering Type *</th>
+        <td>
+          <select required name="gathering-type" class="i-can-add-my-own-attrs-now">
+            {% for id, name in gathering_types %}
+              <option value="{{id}}">{{name}}</option>
+            {% endfor %}
+            </select>
+        </td>
+      </tr>
+      <tr>
+        <th>Location *</th>
+        <td>
+          <select required name="locid" data-minimum-input-length="3" data-autocomplete-light-language="en" data-autocomplete-light-url="/action/location-autocomplete/" data-autocomplete-light-function="select2">
+            <option value="{{location.id}}" selected>{{location.name}}</option>
           </select>
-      </td>
-    </tr>
-    <tr>
-      <th>Location *</th>
-      <td>
-        <select required name="locid" data-minimum-input-length="3" data-autocomplete-light-language="en" data-autocomplete-light-url="/action/location-autocomplete/" data-autocomplete-light-function="select2">
-          <option value="{{location.id}}" selected>{{location.name}}</option>
-        </select>
-      </td>
-    </tr>
-    <tr>
-      <th>Date *</th>
-      <td>
-        <input required type="date" name="date" value=""/>
-      </td>
-    </tr>
-    <tr>
-      <th>Weeks *</th>
-      <td>
-        <input required type="range" id="weeks" name="weeks" value="1" min="1" max="26" oninput="WeeksDisplayUpdate()" onchange="check_unsaved()"/>
-        <span style="float: right; margin: auto;" id="weeksdisplay">1</span>
-      </td>
-      <script>
-        var weeks = document.getElementById("weeks");
-        var weeksDisplay = document.getElementById("weeksdisplay");
-        function WeeksDisplayUpdate(){weeksDisplay.innerHTML = weeks.value;}
-      </script>
-    </tr>
-    <tr>
-      <th>Expected Participants *</th>
-      <td>
-        <input required type="number" name="participants" value="" min="1"/>
-      </td>
-    </tr>
-    <tr>
-      <th>Organization</th>
-      <td>
-        <select name="organization" data-minimum-input-length="3" id="id_organization" data-autocomplete-light-language="en" data-autocomplete-light-url="/action/organization-autocomplete/" data-autocomplete-light-function="select2">
-          <option value="{{organization.id}}" selected>{{organization}}</option>
-        </select>
-      </td>
-    </tr>
-    <tr>
-      <th>
-        Register
-      </th>
-      <td>
-        {% if user.is_authenticated  == user.is_authenticated %}
-        <input type="submit" value="Submit Report"/>
-        {% endif %}
-      </td>
-    </tr>
-  </table>
-</form>
-{% else %}
-<h1>Report on Event</h1>
-<form action="{% url 'action:geo_post' %}" method="POST">
-  {% csrf_token %}
-  <input type="hidden" name="isnewevent" value="{{isnewevent}}"/>
-  <input type="hidden" name="regid" value="{{gathering.regid}}"/>
-  <input type="hidden" name="locid" value="{{location.id}}"/>
-  <input type="hidden" name="witness" value="{{witness.pk}}"/>
-  <table>
-    <tr>
-      <th>Gathering</th>
-      <td>
-        <ul>
-          <li>Type: <span>{{gathering.get_gathering_type_str}}</span></li>
-          <li>Location: <span>{{location.name}}</span></li>
-          {% if gathering.start_date != gathering.end_date %}
-          <li>Date: from <span>{{gathering.start_date|date:'Y-m-d'}}</span> to <span>{{gathering.end_date|date:'Y-m-d'}}</span></li>
-          {% else %}
-          <li>Date: <span>{{gathering.start_date|date:'Y-m-d'}}</li>
+        </td>
+      </tr>
+      <tr>
+        <th>Date *</th>
+        <td>
+          <input required type="date" name="date" value=""/>
+        </td>
+      </tr>
+      <tr>
+        <th>Weeks *</th>
+        <td>
+          <input required type="range" id="weeks" name="weeks" value="1" min="1" max="26" oninput="WeeksDisplayUpdate()" onchange="check_unsaved()"/>
+          <span style="float: right; margin: auto;" id="weeksdisplay">1</span>
+        </td>
+        <script>
+          var weeks = document.getElementById("weeks");
+          var weeksDisplay = document.getElementById("weeksdisplay");
+          function WeeksDisplayUpdate(){weeksDisplay.innerHTML = weeks.value;}
+        </script>
+      </tr>
+      <tr>
+        <th>Expected Participants *</th>
+        <td>
+          <input required type="number" name="participants" value="" min="1"/>
+        </td>
+      </tr>
+      <tr>
+        <th>Organization</th>
+        <td>
+          <select name="organization" data-minimum-input-length="3" id="id_organization" data-autocomplete-light-language="en" data-autocomplete-light-url="/action/organization-autocomplete/" data-autocomplete-light-function="select2">
+            <option value="{{organization.id}}" selected>{{organization}}</option>
+          </select>
+        </td>
+      </tr>
+      <tr>
+        <th>
+          Register
+        </th>
+        <td>
+          {% if user.is_authenticated  == user.is_authenticated %}
+          <input type="submit" value="Submit Report"/>
           {% endif %}
-        </ul>
-      </td>
-    </tr>
-    <tr>
-      <th>Date *</th>
-      <td>
-        <input required type="date" name="date" value="{{witness.date|date:'Y-m-d'}}"/>
-      </td>
-    </tr>
-    <tr>
-      <th>Participants *</th>
-      <td>
-        <input required type="number" name="participants" value="{{witness.participants}}" min="1"/>
-      </td>
-    </tr>
-    <tr>
-      <th>Organization</th>
-      <td>
-        <select name="organization" data-minimum-input-length="3" id="id_organization" data-autocomplete-light-language="en" data-autocomplete-light-url="/action/organization-autocomplete/" data-autocomplete-light-function="select2">
-          <option value="{{witness.organization.id}}" selected>{{witness.organization}}</option>
-        </select>
-      </td>
-    </tr>
-    <tr>
-      <th>Media Link URL</th>
-      <td>
-        <input type="url" name="proof_url" value="{{witness.proof_url}}" placeholder="(optional) Share a photo collection from the event!" size="60"/>
-      </td>
-    </tr>
-    <tr>
-      <th>
-        Register
-      </th>
-      <td>
-        {% if user.is_authenticated == user.is_authenticated %}
-        <input type="submit" value="Submit Report"/>
-        {% endif %}
-      </td>
-    </tr>
-  </table>
-</form>
+        </td>
+      </tr>
+    </table>
+  </form>
+{% else %}
+  {% if gathering %}
+    <h1>Report on Event</h1>
+    <form action="{% url 'action:geo_post' %}" method="POST">
+      {% csrf_token %}
+      <input type="hidden" name="isnewevent" value="{{isnewevent}}"/>
+      <input type="hidden" name="regid" value="{{gathering.regid}}"/>
+      <input type="hidden" name="locid" value="{{location.id}}"/>
+      <input type="hidden" name="witness" value="{{witness.pk}}"/>
+      <table>
+        <tr>
+          <th>Gathering</th>
+          <td>
+            <ul>
+              <li>Type: <span>{{gathering.get_gathering_type_str}}</span></li>
+              <li>Location: <span>{{location.name}}</span></li>
+              {% if gathering.start_date != gathering.end_date %}
+              <li>Date: from <span>{{gathering.start_date|date:'Y-m-d'}}</span> to <span>{{gathering.end_date|date:'Y-m-d'}}</span></li>
+              {% else %}
+              <li>Date: <span>{{gathering.start_date|date:'Y-m-d'}}</li>
+              {% endif %}
+            </ul>
+          </td>
+        </tr>
+        <tr>
+          <th>Date *</th>
+          <td>
+            <input required type="date" name="date" value="{{witness.date|date:'Y-m-d'}}"/>
+          </td>
+        </tr>
+        <tr>
+          <th>Participants *</th>
+          <td>
+            <input required type="number" name="participants" value="{{witness.participants}}" min="1"/>
+          </td>
+        </tr>
+        <tr>
+          <th>Organization</th>
+          <td>
+            <select name="organization" data-minimum-input-length="3" id="id_organization" data-autocomplete-light-language="en" data-autocomplete-light-url="/action/organization-autocomplete/" data-autocomplete-light-function="select2">
+              <option value="{{witness.organization.id}}" selected>{{witness.organization}}</option>
+            </select>
+          </td>
+        </tr>
+        <tr>
+          <th>Media Link URL</th>
+          <td>
+            <input type="url" name="proof_url" value="{{witness.proof_url}}" placeholder="(optional) Share a photo collection from the event!" size="60"/>
+          </td>
+        </tr>
+        <tr>
+          <th>
+            Register
+          </th>
+          <td>
+            {% if user.is_authenticated == user.is_authenticated %}
+            <input type="submit" value="Submit Report"/>
+            {% endif %}
+          </td>
+        </tr>
+      </table>
+    </form>
+  {% else %}
+    <p>Location {{location.name}} does not yet have any associated event details. 
+    You will need to register the event using the form link below.</p>
+  {% endif %}
 {% endif %}
-<sub>* Required</sub>
+{% if gathering %}
+  <sub>* Required</sub>
+{% endif %}
 
 <br />
 <br />

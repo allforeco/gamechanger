@@ -205,6 +205,51 @@ class Location(models.Model):
       loc_name = place_name + joiner + loc_name
     return loc_name
 
+  @staticmethod
+  def delete_all_unused(show=True,doit=False):
+    total = 0
+    to_delete = []
+    for loc in Location.objects.all():
+      cnt = Gathering.objects.filter(location=loc).count()
+      cnt += Location.objects.filter(in_location=loc).count()
+      if cnt == 0:
+        total += 1
+        if show:
+          print(loc)
+        if doit:
+          to_delete += [loc]
+    if to_delete:
+      for loc in to_delete:
+        loc.delete()
+    if doit:
+      print(f"{total} looped locations found and deleted")
+    else:
+      print(f"{total} looped locations found")
+
+  @staticmethod
+  def delete_all_loops(show=True,doit=False):
+    total = 0
+    to_delete = []
+    for loc in Location.objects.all():
+      parents = []
+      while loc:
+        if loc in parents:
+          total += 1
+          if show:
+            print(f"{loc} in chain {parents}")
+          if doit:
+            to_delete += [loc]
+          break
+        parents += [loc]
+        loc = loc.in_location
+    if to_delete:
+      for loc in to_delete:
+        loc.delete()
+    if doit:
+      print(f"{total} looped locations found and deleted")
+    else:
+      print(f"{total} looped locations found")
+
 class Organization(models.Model):
   def __str__(self):
     return self.name

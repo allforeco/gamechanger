@@ -15,8 +15,11 @@ def latest_reports_view(request):
   print(f"LRV1 {len(report_list)}")
   for report in report_list:
     #print(f"LRV2 {report}")
-    belong_regid = report.set_gathering_to_root()
-    witness_dict[(belong_regid,report.date)] = report
+    try:
+      belong_regid = report.set_gathering_to_root()
+      witness_dict[(belong_regid,report.date)] = report
+    except:
+      print(f"LRV4 Broken witness {report}")
 
   witness_list = list(witness_dict.values())
   witness_list.sort(key=lambda e: e.updated, reverse=True)
