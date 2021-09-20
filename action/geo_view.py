@@ -59,7 +59,7 @@ def geo_view_handler(request, locid):
     'witness_list': witness_list,
     'total_participants': total_participants,
     'favorite_location': favorite_location,
-    'root_gathering': witness_list[0].gathering,
+    'root_gathering': witness_list[0].gathering if witness_list else [],
   }
 
   if request.POST.get('favorite'):
@@ -95,7 +95,9 @@ def geo_update_view(request):
   isnewevent = (request.POST.get('isnewevent') == 'True')
   regid = request.POST.get('regid')
   wintess_id = request.POST.get('witness')
-  this_gathering = Gathering.objects.get(regid=regid)
+  this_gathering = Gathering.objects.filter(regid=regid)
+  if this_gathering:
+    this_gathering = this_gathering.first()
   this_witness = Gathering_Witness.objects.filter(pk=wintess_id)
   if this_witness:
     this_witness = this_witness.first()
