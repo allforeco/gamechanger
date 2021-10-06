@@ -36,7 +36,7 @@ def start_view_handler(request):
       print(f"SVX0 Cannot display broken {gathering}")
   
   #EVENT WITNESSING LOGIC
-  report_list = list(Gathering_Witness.objects.filter(updated__gte=datetime.datetime.today()-datetime.timedelta(days=7*filter_weeks))[:list_length])
+  report_list = list(Gathering_Witness.objects.order_by("-updated").filter(updated__gte=datetime.datetime.today()-datetime.timedelta(days=7*filter_weeks))[:list_length])
   witness_dict = {}
   for w in report_list:
     belong_regid = w.set_gathering_to_root()
