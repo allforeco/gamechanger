@@ -86,6 +86,19 @@
       <input type="hidden" name="regid" value="{{gathering.regid}}"/>
       <input type="hidden" name="locid" value="{{location.id}}"/>
       <input type="hidden" name="witness" value="{{witness.pk}}"/>
+      {% if user.is_authenticated %}
+        <div style="display: inline">
+          <input type="button" name="enable_delete" value="Delete this event from Gamechanger"
+            onclick='
+              var x = document.getElementById("do_delete_event");
+              if (x.style.display === "none") {
+                x.style.display = "inline";
+              } else {
+                x.style.display = "none";
+              }'/>
+          <input type="submit" id="do_delete_event" name="do_delete_event" value="Click to confirm deletion" style="color: red; display: none" />
+        </div>
+      {% endif %}
       <table>
         <tr>
           <th>Gathering</th>

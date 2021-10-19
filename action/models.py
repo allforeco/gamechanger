@@ -65,13 +65,20 @@ class Location(models.Model):
       location_list = Location.valid_ids(False)
     location_dict=dict()
 
-    for location in location_list:
-      country = location
-      for x in range(5):
-        if country.in_location:
-          country = country.in_location
-        else:
-          break
+    for location_id in location_list:
+      locations = Location.objects.filter(id=location_id)
+      if not locations:
+        continue
+      location = country = locations[0]
+      try:
+        for x in range(5):
+          if country.in_location:
+            country = country.in_location
+          else:
+            break
+      except:
+        print(f"LOLX {location} {country}")
+        continue
       
       if country.name in location_dict:
         location_dict[country.name][2].append([location.name, location.id])
@@ -85,7 +92,7 @@ class Location(models.Model):
 
   @staticmethod
   def valid_ids(generate = False):
-    generate = True
+    #generate = True
     if generate:
       location_list = Location.countries(True)
       location_id_list=list()
@@ -377,10 +384,14 @@ class Gathering(models.Model):
     return self.location.in_location
 
   def get_gathering_root(self):
-    if hasattr(self, 'root_gathering'):
+    try:
+      if hasattr(self, 'root_gathering'):
+        return self.root_gathering
+      self.root_gathering = Gathering_Belong.objects.get(regid=self.regid).gathering
       return self.root_gathering
-    self.root_gathering = Gathering_Belong.objects.get(regid=self.regid).gathering
-    return self.root_gathering
+    except:
+      print(f"GXGB Gathering_Belong object not found for Gathering '{self.regid}'")
+      return self
 
 class Gathering_Belong(models.Model):
   def __str__(self):

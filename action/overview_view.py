@@ -41,7 +41,7 @@ def locations_view(request):
 
   if request.user.is_authenticated or logginbypass:
     template = loader.get_template('action/locations_overview.html')
-    location_list = Location.countries(false)
+    location_list = Location.countries(False)
     location_list.sort(key=lambda e: e[0], reverse=False)
     for location in location_list:
       location[2].sort(key=lambda e: e[0], reverse=False)

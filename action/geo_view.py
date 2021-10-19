@@ -130,6 +130,25 @@ def geo_update_post_witness(request):
   locid = request.POST.get('locid')
   regid = request.POST.get('regid')
   witness_id = request.POST.get('witness')
+  do_delete_event = request.POST.get('do_delete_event')
+  if do_delete_event:
+    if request.user.is_authenticated:
+      print(f"JKLD Delete {locid} : {regid} : {witness_id} by {request.user}")
+      gathering_list = Gathering.objects.filter(location=locid)
+      witness = Gathering_Witness.objects.get(pk=witness_id)
+      witness_count = 0
+      for g in gathering_list:
+        print(f"JKL1 Deletable {g} {witness.date}")
+        belong = Gathering_Belong.objects.get(regid=g.regid)
+        witnesses = Gathering_Witness.objects.filter(gathering=belong.gathering, date=witness.date)
+        for w in witnesses:
+          print(f"JKL2 Deleteable {locid} : {regid} : {w.id} by {request.user}")
+          witness_count += 1
+      witness.delete()
+      print(f"JKLD Event Date {witness.date} had {witness_count} witnesses")
+    else:
+      print(f"JKLU Delete attempted by unauth user")
+    return redirect('action:geo_view', locid)
 
   print(f"JKLO {locid} : {regid} : {witness_id}")
 

@@ -14,10 +14,10 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import datetime, io, csv, os, threading, html, base64, hashlib
+import datetime, io, csv, os, traceback, threading, html, base64, hashlib
 
-from django.shortcuts import render
-from django.template import loader
+from django.shortcuts import render, redirect
+from django.template import loader, RequestContext
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.forms import ModelForm
@@ -26,7 +26,6 @@ from django.urls import reverse_lazy
 from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth.decorators import login_required, permission_required
-from django.shortcuts import redirect
 from django import forms
 from django.db.models import Sum
 from dal import autocomplete
@@ -446,3 +445,20 @@ def join_us(request):
   userhome.save()
   context = {'error_message': f"Callsign '{screenname}' successfully created."}
   return HttpResponse(template.render(context, request))
+
+def bad_request(request, exception):
+    print(f"H400 {request}")
+    return render(request, 'action/400.html', status=400)
+
+def permission_denied(request, exception):
+    print(f"H403 {request}")
+    return render(request, 'action/403.html', status=403)
+
+def page_not_found(request, exception):
+    print(f"H404 {request}")
+    return render(request, 'action/404.html', status=404)
+
+def server_error(request):
+    print(f"H500 {request}")
+    traceback.print_exc()
+    return render(request, 'action/500.html', status=500)

@@ -24,5 +24,10 @@ urlpatterns = [
     path('', include('home.urls')),
 ]
 
+handler400 = 'action.views.bad_request'
+handler403 = 'action.views.permission_denied'
+handler404 = 'action.views.page_not_found'
+handler500 = 'action.views.server_error'
+
 #if settings.DEBUG:
 #urlpatterns += static('/', document_root='static/')

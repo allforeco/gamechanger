@@ -33,35 +33,38 @@
   </div>
 
   {% if sublocation_list %}
-  <h2>{{ sublocation_list|length }} locations within {{ this_location.name }}</h2>
+    <h2>{{ sublocation_list|length }} locations within {{ this_location.name }}</h2>
 
-    <ul style="float: left; margin-bottom: 2em; width: 100%;">
-      {% for sublocation in sublocation_list %}
-      <li style="float: left; margin-left: 1.5em; margin-bottom: 0.5em;">
-        <a href="{% url 'action:geo_view' sublocation.id %}">{{ sublocation }}</a>
-      </li>
-      {% endfor %}
-    </ul>
-    
-  <h2>Direct Reports for {{ this_location.name }} in addition to the locations above</h2>
+      <ul style="float: left; margin-bottom: 2em; width: 100%;">
+        {% for sublocation in sublocation_list %}
+        <li style="float: left; margin-left: 1.5em; margin-bottom: 0.5em;">
+          <a href="{% url 'action:geo_view' sublocation.id %}">{{ sublocation }}</a>
+        </li>
+        {% endfor %}
+      </ul>
+      
+    <h2>Direct Reports for {{ this_location.name }} in addition to the locations above</h2>
   {% endif %}
 
   <h2>Reports</h2>
   {% if witness_list %}
-  <p>{{ witness_list|length }} events with a total of {{ total_participants }} reported participants</p>
+    <p>{{ witness_list|length }} events with a total of {{ total_participants }} 
+    reported participants</p>
   {% else %}
-  <p>No results registered yet.</p>
+    <p>No results registered yet.</p>
   {% endif %}
     
-  <form action="{% url 'action:geo_update' %}" method="POST">
-    {% csrf_token %}
-    <input type="hidden" value="False" name="isnewevent"/>
-    <input type="hidden" value="{{root_gathering.regid}}" name="regid"/>
-    <input type="hidden" value="{{this_location.id}}" name="locid"/>
-    <!--<input type="submit" value="Register new Event">-->
-    <input type="submit" value="Report on Event"/>
-  </form>
-  <br/>
+  {% if witness_list %}
+    <form action="{% url 'action:geo_update' %}" method="POST">
+      {% csrf_token %}
+      <input type="hidden" value="False" name="isnewevent"/>
+      <input type="hidden" value="{{root_gathering.regid}}" name="regid"/>
+      <input type="hidden" value="{{this_location.id}}" name="locid"/>
+      <!--<input type="submit" value="Register new Event">-->
+      <input type="submit" value="Report on Event"/>
+    </form>
+    <br/>
+  {% endif %}
   
   {% if witness_list %}
     <div class="gathering">
