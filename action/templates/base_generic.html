@@ -245,8 +245,17 @@
             <select name="location" data-minimum-input-length="3" id="id_location" data-autocomplete-light-language="en" data-autocomplete-light-url="/action/location-autocomplete/" data-autocomplete-light-function="select2">
               <option value="0" selected>Location Search</option>
             </select>
-            <input type="submit" value="Search" />
+            <input id="formsearch_submit" type="submit" value="Search" />
           </form>
+          <script>
+            document.onkeydown = function(e){
+              if (document.getElementById("id_location").childElementCount > 1){
+                if (e.key == "Enter"){
+                  document.getElementById("formsearch_submit").focus();
+                }
+              }
+            }
+          </script>
         </div>
 
 				{% if user.is_authenticated %}
