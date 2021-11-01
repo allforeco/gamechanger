@@ -71,11 +71,11 @@
           <td style="text-align: center;">
             {% if report.6 %}
               <a style="margin-bottom:-0em;" target="_blank" href="{{ report.6 }}">
-                {% if "facebook.com" in report.proof_url or "scontent" in report.proof_url %}
+                {% if "facebook.com" in report.6 or "scontent" in report.6 %}
                   <img src="/static/icon_fb30.jpg"/>
-                {% elif "instagram.com" in report.proof_url %}
+                {% elif "instagram.com" in report.6 %}
                   <img src="/static/icon_insta30.jpg"/>
-                {% elif "twitter.com" in report.proof_url %}
+                {% elif "twitter.com" in report.6 %}
                   <img src="/static/icon_insta30.jpg"/>
                 {% else %}🖼{% endif %}
                 <sup><sup>🔗</sup></sup></a>

@@ -99,7 +99,15 @@
             </td>
             <td style="text-align: center;">
               {% if witness.proof_url %}
-                <a target="_blank" href="{{ witness.proof_url }}">🖼<sup><sup>🔗</sup></sup></a>
+                <a target="_blank" href="{{ witness.proof_url }}">
+                  {% if "facebook.com" in witness.proof_url or "scontent" in witness.proof_url %}
+                    <img src="/static/icon_fb30.jpg"/>
+                  {% elif "instagram.com" in witness.proof_url %}
+                    <img src="/static/icon_insta30.jpg"/>
+                  {% elif "twitter.com" in witness.proof_url %}
+                    <img src="/static/icon_insta30.jpg"/>
+                  {% else %}🖼{% endif %}
+                  <sup><sup>🔗</sup></sup></a>
               {% endif %}
             </td> 
             <td>
