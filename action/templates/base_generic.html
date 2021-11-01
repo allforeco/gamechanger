@@ -242,20 +242,11 @@
           
           <form action="{% url 'action:geo_search' %}" method="post" id="searchform">
             {% csrf_token %}
-            <select name="location" data-minimum-input-length="3" id="id_location" data-autocomplete-light-language="en" data-autocomplete-light-url="/action/location-autocomplete/" data-autocomplete-light-function="select2">
+            <select onchange="document.getElementById('searchform').submit();" name="location" data-minimum-input-length="3" id="id_location" data-autocomplete-light-language="en" data-autocomplete-light-url="/action/location-autocomplete/" data-autocomplete-light-function="select2">
               <option value="0" selected>Location Search</option>
             </select>
             <input id="formsearch_submit" type="submit" value="Search" />
           </form>
-          <script>
-            document.onkeydown = function(e){
-              if (document.getElementById("id_location").childElementCount > 1){
-                if (e.key == "Enter"){
-                  document.getElementById("formsearch_submit").focus();
-                }
-              }
-            }
-          </script>
         </div>
 
 				{% if user.is_authenticated %}
