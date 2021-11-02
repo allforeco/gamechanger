@@ -226,7 +226,7 @@
         <a href="{% url 'action:start' %}">Start</a>
         <a href="{% url 'action:locations_list' %}">Locations</a>
         <a href="{% url 'action:latest_reports' %}">Reports</a>
-        <a href="https://actionnetwork.org/groups/map-count-reporting-manual" target="_blank">User Manual</a>
+        <a href="https://actionnetwork.org/groups/map-count-reporting-manual" target="_blank">User Manual <sup style="background-color: #f0fff0; border-radius:50%; padding:1px">🔗</sup></a>
       </div>
 
 			<div class="menu_right">
@@ -242,10 +242,10 @@
           
           <form action="{% url 'action:geo_search' %}" method="post" id="searchform">
             {% csrf_token %}
-            <select name="location" data-minimum-input-length="3" id="id_location" data-autocomplete-light-language="en" data-autocomplete-light-url="/action/location-autocomplete/" data-autocomplete-light-function="select2">
+            <select onchange="document.getElementById('searchform').submit();" name="location" data-minimum-input-length="3" id="id_location" data-autocomplete-light-language="en" data-autocomplete-light-url="/action/location-autocomplete/" data-autocomplete-light-function="select2">
               <option value="0" selected>Location Search</option>
             </select>
-            <input type="submit" value="Search" />
+            <input id="formsearch_submit" type="submit" value="Search" />
           </form>
         </div>
 

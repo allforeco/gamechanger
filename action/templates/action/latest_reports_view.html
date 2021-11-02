@@ -7,11 +7,11 @@
 {% block content %}
 {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
 
-  <div>
-    <h3>Items: <span id="amountinput">{{filter_amount}}</span></h3>
+  <div  style="width: 15.75em; padding: 0.25em; background-color: #ffffff; border: 1px solid #eeeeee;">
+    <h3 style="margin-top: 0.25em; margin-bottom: 0.25em;">Items: <span id="amountinput">{{filter_amount}}</span></h3>
     <form action="{% url 'action:latest_reports' %}" method="POST">
       {% csrf_token%}
-      <input type="range"  id="amountoutput" name="filter_amount" value="{{filter_amount}}" step="25" min="50" max="800" oninput="document.getElementById('amountinput').innerHTML = document.getElementById('amountoutput').value"/>
+      <input  style="margin-bottom: -0.20em;" type="range"  id="amountoutput" name="filter_amount" value="{{filter_amount}}" step="25" min="50" max="800" oninput="document.getElementById('amountinput').innerHTML = document.getElementById('amountoutput').value"/>
       <input type="submit" value="Filter"/>
     </form>
   </div>
@@ -70,7 +70,15 @@
           </td>
           <td style="text-align: center;">
             {% if report.proof_url %}
-              <a target="_blank" href="{{ report.proof_url }}">🖼<sup><sup>🔗</sup></sup></a>
+              <a style="max-height: 1em; margin-top: auto;" target="_blank" href="{{ report.proof_url }}">
+                {% if "facebook.com" in report.proof_url or "scontent" in report.proof_url %}
+                  <img src="/static/icon_fb30.jpg"/>
+                {% elif "instagram.com" in report.proof_url %}
+                  <img src="/static/icon_insta30.jpg"/>
+                {% elif "twitter.com" in report.proof_url %}
+                  <img src="/static/icon_twitter30.jpg"/>
+                {% else %}🖼{% endif %}
+                <sup><sup>🔗</sup></sup></a>
             {% endif %}
           </td>
         </tr>

@@ -7,11 +7,11 @@
 {% block content %}
 {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
 
-  <div>
-    <h3>Weeks: <span id="weeksinput">{{filter_weeks}}</span></h3>
+  <div style="width: 15.75em; padding: 0.25em; background-color: #ffffff; border: 1px solid #eeeeee;">
+    <h3 style="margin-top: 0.25em; margin-bottom: 0.25em;">Weeks: <span id="weeksinput">{{filter_weeks}}</span></h3>
     <form action="{% url 'action:start' %}" method="POST">
       {% csrf_token%}
-      <input type="range"  id="weeksoutput" name="filter_weeks" value="{{filter_weeks}}" min="1" max="4" oninput="document.getElementById('weeksinput').innerHTML = document.getElementById('weeksoutput').value"/>
+      <input style="margin-bottom: -0.20em;" type="range"  id="weeksoutput" name="filter_weeks" value="{{filter_weeks}}" min="1" max="4" oninput="document.getElementById('weeksinput').innerHTML = document.getElementById('weeksoutput').value"/>
       <input type="submit" value="Filter"/>
     </form>
   </div>
@@ -70,7 +70,15 @@
           </td>
           <td style="text-align: center;">
             {% if report.6 %}
-              <a target="_blank" href="{{ report.6 }}">🖼<sup><sup>🔗</sup></sup></a>
+              <a style="margin-bottom:-0em;" target="_blank" href="{{ report.6 }}">
+                {% if "facebook.com" in report.6 or "scontent" in report.6 %}
+                  <img src="/static/icon_fb30.jpg"/>
+                {% elif "instagram.com" in report.6 %}
+                  <img src="/static/icon_insta30.jpg"/>
+                {% elif "twitter.com" in report.6 %}
+                  <img src="/static/icon_twitter30.jpg"/>
+                {% else %}🖼{% endif %}
+                <sup><sup>🔗</sup></sup></a>
             {% endif %}
           </td>
         </tr>
