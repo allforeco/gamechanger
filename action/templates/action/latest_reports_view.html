@@ -41,14 +41,14 @@
           </td>
           {% if report.gathering.location %}
           <td style="text-align: center;">
-            <a target="_blank" href="https://map.fridaysforfuture.org/?e={{report.gathering.regid}}">🌐<sup><sup>🔗</sup></sup></a>
+            <a target="_blank" href="https://map.fridaysforfuture.org/?e={{report.gathering.regid}}"><img src="/static/icon_globe.png"/><sup><sup><img style="width: 16px;" src="/static/icon-external.png"/></sup></sup></a>
           </td>
           <td>
             <a href="{% url 'action:geo_view' report.gathering.location.id %}">{{report.gathering.location.name}}</a>
           </td>
           {% else %}
           <td style="text-align: center;">
-            ❌
+            <img src="/static/icon-cross.png"/>
           </td>
           <td>
             <span>Unknown Place</span>
@@ -72,13 +72,17 @@
             {% if report.proof_url %}
               <a style="max-height: 1em; margin-top: auto;" target="_blank" href="{{ report.proof_url }}">
                 {% if "facebook.com" in report.proof_url or "scontent" in report.proof_url %}
-                  <img src="/static/icon_fb30.jpg"/>
+                  <img src="/static/icon_fb30.png"/>
                 {% elif "instagram.com" in report.proof_url %}
-                  <img src="/static/icon_insta30.jpg"/>
+                  <img src="/static/icon_insta30.png"/>
                 {% elif "twitter.com" in report.proof_url %}
-                  <img src="/static/icon_twitter30.jpg"/>
-                {% else %}🖼{% endif %}
-                <sup><sup>🔗</sup></sup></a>
+                  <img src="/static/icon_twitter30.png"/>
+                {% elif "youtube.com" in report.proof_url %}
+                  <img src="/static/icon_yt30.png"/>
+                {% else %}
+                  <img src="/static/icon_pic.png"/>
+                {% endif %}
+                <sup><sup><img style="width: 16px;" src="/static/icon-external.png"/></sup></sup></a>
             {% endif %}
           </td>
         </tr>

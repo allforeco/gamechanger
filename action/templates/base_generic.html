@@ -143,12 +143,12 @@
             if (th.attributes[0].name == "sort"){
               let data = th.attributes[0].value.split('-');
 
-              th.children[0].innerHTML = "↕";
+              th.children[0].innerHTML = "<img style='width: 16px;' src='/static/icon-arrow-bi.png'/>";
               if (th.cellIndex == colid){
                 th.onclick = function(){ sort_table(tableid, colid, sortby, !greater);}
                 if (greater)
-                {th.children[0].innerHTML = "⬇";} else 
-                {th.children[0].innerHTML = "⬆";}
+                {th.children[0].innerHTML = "<img style='width: 16px;' src='/static/icon-arrow-down.png'/>";} else 
+                {th.children[0].innerHTML = "<img style='width: 16px;' src='/static/icon-arrow-up.png'/>";}
               }
             }
           }
@@ -197,8 +197,8 @@
               if (th.attributes[0].name == "sort"){
                 let data = th.attributes[0].value.split('-');
                 th.onclick = function(){ sort_table(tables[i].id, th.cellIndex, data[0], (data[1] == 'true'));}
-                th.innerHTML += "<span>↕</span>";
-                if (data[1] == 'true'){th.children[0].innerHTML = "⬆";}
+                th.innerHTML += "<span><img style='width: 16px;' src='/static/icon-arrow-bi.png'/></span>";
+                if (data[1] == 'true'){th.children[0].innerHTML = "<img style='width: 16px;' src='/static/icon-arrow-up.png'/>";}
               }
             }
           }
@@ -226,7 +226,7 @@
         <a href="{% url 'action:start' %}">Start</a>
         <a href="{% url 'action:locations_list' %}">Locations</a>
         <a href="{% url 'action:latest_reports' %}">Reports</a>
-        <a href="https://actionnetwork.org/groups/map-count-reporting-manual" target="_blank">User Manual <sup style="background-color: #f0fff0; border-radius:50%; padding:1px">🔗</sup></a>
+        <a href="https://actionnetwork.org/groups/map-count-reporting-manual" target="_blank">User Manual <sup><sup><img style="width: 16px;" src='/static/icon-external.png'/></sup></sup></a>
       </div>
 
 			<div class="menu_right">
