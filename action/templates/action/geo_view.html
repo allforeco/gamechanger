@@ -89,7 +89,7 @@
                 <input type="submit" value="{{witness.date|date:'Y-m-d' }}"/>
               </form>
             </td>
-            <td style="text-align: center;"><a target="_blank" href="https://map.fridaysforfuture.org/?e={{witness.gathering.regid}}">🌐<sup><sup>🔗</sup></sup></a></td>
+            <td style="text-align: center;"><a target="_blank" href="https://map.fridaysforfuture.org/?e={{witness.gathering.regid}}"><img src="/static/icon_globe.png"/><sup><sup><img style="width: 16px;" src="/static/icon-external.png"/></sup></sup></a></td>
             <td style="text-align: right;">
               {% if witness.participants %}
                 <span>{{ witness.participants }}</span>
@@ -101,13 +101,17 @@
               {% if witness.proof_url %}
                 <a target="_blank" href="{{ witness.proof_url }}">
                   {% if "facebook.com" in witness.proof_url or "scontent" in witness.proof_url %}
-                    <img src="/static/icon_fb30.jpg"/>
+                    <img src="/static/icon_fb30.png"/>
                   {% elif "instagram.com" in witness.proof_url %}
-                    <img src="/static/icon_insta30.jpg"/>
+                    <img src="/static/icon_insta30.png"/>
                   {% elif "twitter.com" in witness.proof_url %}
-                    <img src="/static/icon_twitter30.jpg"/>
-                  {% else %}🖼{% endif %}
-                  <sup><sup>🔗</sup></sup></a>
+                    <img src="/static/icon_twitter30.png"/>
+                  {% elif "youtube.com" in witness.proof_url %}
+                    <img src="/static/icon_yt30.png"/>
+                  {% else %}
+                    <img src="/static/icon_pic.png"/>
+                  {% endif %}
+                  <sup><sup><img style="width: 16px;" src="/static/icon-external.png"/></sup></sup></a>
               {% endif %}
             </td> 
             <td>

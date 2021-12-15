@@ -41,14 +41,14 @@
           </td>
           {% if report.2 %}
           <td style="text-align: center;">
-            <a target="_blank" href="https://map.fridaysforfuture.org/?e={{report.2}}">🌐<sup><sup>🔗</sup></sup></a>
+            <a target="_blank" href="https://map.fridaysforfuture.org/?e={{report.2}}"><img src="/static/icon_globe.png"/><sup><sup><img src="/static/icon-external.png"/></sup></sup></a>
           </td>
           <td>
             <a href="{% url 'action:geo_view' report.3|first %}">{{report.3|last}}</a>
           </td>
           {% else %}
           <td style="text-align: center;">
-            ❌
+            <img src="/static/icon-cross.png"/>
           </td>
           <td>
             <span>Unknown Place</span>
@@ -72,13 +72,17 @@
             {% if report.6 %}
               <a style="margin-bottom:-0em;" target="_blank" href="{{ report.6 }}">
                 {% if "facebook.com" in report.6 or "scontent" in report.6 %}
-                  <img src="/static/icon_fb30.jpg"/>
+                  <img src="/static/icon_fb30.png"/>
                 {% elif "instagram.com" in report.6 %}
-                  <img src="/static/icon_insta30.jpg"/>
+                  <img src="/static/icon_insta30.png"/>
                 {% elif "twitter.com" in report.6 %}
-                  <img src="/static/icon_twitter30.jpg"/>
-                {% else %}🖼{% endif %}
-                <sup><sup>🔗</sup></sup></a>
+                  <img src="/static/icon_twitter30.png"/>
+                {% elif "youtube.com" in report.6 %}
+                <img src="/static/icon_yt30.png"/>
+                {% else %}
+                  <img src="/static/icon_pic.png"/>
+                {% endif %}
+                <sup><sup><img style="width: 16px;" src="/static/icon-external.png"/></sup></sup></a>
             {% endif %}
           </td>
         </tr>
@@ -110,7 +114,7 @@
             <span>{{gathering.1}}</span>
           </td>
           <td style="text-align: center;">
-            <a target="_blank" href="https://map.fridaysforfuture.org/map?e={{gathering.2}}">🌐<sup><sup>🔗</sup></sup></a>
+            <a target="_blank" href="https://map.fridaysforfuture.org/map?e={{gathering.2}}"><img src="/static/icon_globe.png"/><sup><sup><img src="/static/icon-external.png"/></sup></sup></a>
           </td>
           <td>
             <a href="{% url 'action:geo_view' gathering.3|first %}">{{gathering.3|last}}</a>
