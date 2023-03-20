@@ -24,7 +24,7 @@ from django.forms import ModelForm
 from django.views.generic.edit import FormView, CreateView, UpdateView, DeleteView
 from django.urls import reverse_lazy
 from django.core.exceptions import ValidationError
-from django.utils.translation import ugettext_lazy as _
+#from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth.decorators import login_required, permission_required
 from django import forms
 from django.db.models import Sum
