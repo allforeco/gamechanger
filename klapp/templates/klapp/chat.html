@@ -1,0 +1,17 @@
+{% block title %}
+  <title>Gamechanger BotChat</title>
+{% endblock %}
+
+{% block content %}
+  {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+
+  <div style="width: 15.75em; padding: 0.25em; background-color: #ffffff; border: 1px solid #eeeeee;">
+    <h3 style="margin-top: 0.25em; margin-bottom: 0.25em;">Bot input:</h3>
+    <form action="{% url 'klapp:botchat' %}" method="POST">
+      {% csrf_token%}
+      <p>Username <input required type="text" name="username" value=""/></p>
+      <p>Displayname <input required type="text" name="displayname" value=""/></p>
+      <input type="submit" value="Submit"/>
+    </form>
+  </div>
+{% endblock %}

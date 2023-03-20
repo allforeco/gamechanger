@@ -24,21 +24,23 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ['GAMECHANGER_SECRET_KEY']
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True #False
+DEBUG = False
 
-ALLOWED_HOSTS = ['www.gamechanger.eco', '127.0.0.1']
+ALLOWED_HOSTS = ['www.gamechanger.eco', 'gamechanger.eco', '127.0.0.1']
 
 
 # Application definition
 
 INSTALLED_APPS = [
     'action.apps.ActionConfig',
+    'klapp.apps.KlappConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_cron',
     'jquery',
     'dal', # django-autocomplete-light
     'dal_select2', # django-autocomplete-light
@@ -52,6 +54,10 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+]
+
+CRON_CLASSES = [
+    "gamechanger.cron.TwiffCronJob"
 ]
 
 ROOT_URLCONF = 'gamechanger.urls'
@@ -128,4 +134,3 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = '/var/www/gamechanger.eco/static/'
-STATICFILES_DIRS = ['static/']
