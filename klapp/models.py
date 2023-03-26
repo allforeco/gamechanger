@@ -44,10 +44,10 @@ class Post(models.Model):
     return "<Post: " + str(self.name) + ">"
   name = models.CharField(max_length=80)
   body = models.CharField(max_length=2000)
-  media_url = models.CharField(max_length=80)
-  settings = models.CharField(max_length=2000)
+  media_url = models.CharField(max_length=80, blank=True, null=True)
+  settings = models.CharField(max_length=2000, blank=True, null=True)
   related_to = models.ManyToManyField(Topic, related_name="posts_related", blank=True)
-  created_by = models.ForeignKey(Actor, on_delete=models.PROTECT, editable=False)
+  created_by = models.ForeignKey(Actor, on_delete=models.PROTECT, blank=True, null=True, editable=False)
   owners = models.ManyToManyField(Actor, related_name="actions_owned", blank=True)
   editors = models.ManyToManyField(Actor, related_name="actions_editor", blank=True)
   backers = models.ManyToManyField(Actor, related_name="actions_backer", blank=True)

@@ -19,9 +19,15 @@ from django.views.generic.edit import FormView, CreateView, UpdateView, DeleteVi
 from django.views.decorators.csrf import csrf_exempt
 from django.urls import reverse_lazy
 from django.http import JsonResponse, HttpResponse, HttpResponseNotAllowed
-from .models import Actor, Quote, Conversation
+from .models import Actor, Quote, Post, Conversation
+from html.parser import HTMLParser
+from io import StringIO
+import json
 
 # TODO: Add LoginRequiredMixin
+
+KLAPP_ACTOR_ID = 7
+POST_ROOT_ID = 4
 
 @csrf_exempt
 def botchat_view(request):
@@ -38,7 +44,6 @@ def botchat_view(request):
     user = user[0]
   else:
     # Unknown/new user
-    new_user_flag = True
     print(f"botchat_view: New user {username}. Welcome!")
     
     conversation = Conversation(settings = {})
@@ -51,15 +56,17 @@ def botchat_view(request):
     )
     user.save()
 
-  klapp = Actor.objects.get(pk=7) # Klapp is actor #7
+  klapp = Actor.objects.get(pk=KLAPP_ACTOR_ID)
+
+  users_message = params.get('message')
 
   new_quote = Quote(
-    quote = params.get('message'),
+    quote = users_message,
     quote_from = user,
     quote_to = klapp)
   new_quote.save()
 
-  message = f"Hej {params.get('display_name')}!" + ("\Trevligt att träffas!" if new_user_flag else "")
+  message = reply_to_user(user, users_message)
 
   new_quote = Quote(
     quote = message,
@@ -76,44 +83,67 @@ def botchat_view(request):
   return HttpResponse(response)
 
 
+def reply_to_user(user, msg):
+  command = get_command(msg)
+  if command:
+    print(f"reply_to_user: Got command '{command}'")
 
+  conv = user.conversation
+  try:
+    conv_settings = json.loads(conv.settings)
+    old_post_id = conv_settings['post']
+  except:
+    print(f"reply_to_user: could not find conversation {conv.settings}")
+    old_post_id = None
 
-from django import forms
-from django.utils.decorators import method_decorator
+  if not old_post_id: # New/blank user
+    old_post_id = POST_ROOT_ID
+    command = ''
 
-class ChatView(FormView):
-  class ChatForm(forms.Form):
-    username = forms.CharField()
-    displayname = forms.CharField()
+  print(f"reply_to_user: post_id = {old_post_id}")
+  old_post = Post.objects.get(pk=old_post_id)
+  print(f"reply_to_user: post.settings = {old_post.settings}")
+  old_post_settings = json.loads(old_post.settings)
+  responses = old_post_settings['responses']
+  if command:
+    if command not in responses:
+      print(f'reply_to_user: got unknown command "{command}"')
+      return "Jag förstod inte riktigt. Här är de svar jag förstår just nu: " + ", ".join(list(responses.keys()))
+    else:
+      print(f'reply_to_user: got command "{command}"')
+      new_post_id = responses[command]
+  else:
+    new_post_id = old_post_id
+  post = Post.objects.get(pk=new_post_id)
+  message = post.name + "\n\n" + post.body
+  conv.settings = "{" + f'"post": {post.pk}' + "}"
+  conv.save()
 
-  template_name = 'klapp/chat.html'
-  success_url = '/klapp/chat'
-  form_class = ChatForm
+  return message
 
-  @method_decorator(csrf_exempt)
-  def dispatch(self, *args, **kwargs):
-      print(f"KCHV dispatch()")
-      print(f"KCHV {args} {kwargs}")
-      print(f"KCHV args.method")
-      #if isinstance(args, HttpRequest):
-      #  request = args
-      #  if request.method == "POST":
-      #    self.chat_respond(request)
-      return super(ChatView, self).dispatch(*args, **kwargs)
+def get_command(msg):
+  print(f"get_command({msg})")
+  msg = msg.lower()
+  msg = strip_tags(msg)
+  msg = msg.strip()
+  msg = " ".join(msg.split()[1:])
+  print(f"-> '{msg}'")
+  return msg
 
-  def form_valid(self, form):
-    print(f"KCHV form_valid()")
-    # Call super to let it do its work, but we compose the response
-    super().form_valid(form)
-    # We got valid data, let's respond
-    return self.chat_respond(form)
-    #return super().form_valid(form)
+# Stolen from https://stackoverflow.com/questions/753052/strip-html-from-strings-in-python
+class MLStripper(HTMLParser):
+  def __init__(self):
+    super().__init__()
+    self.reset()
+    self.strict = False
+    self.convert_charrefs= True
+    self.text = StringIO()
+  def handle_data(self, d):
+    self.text.write(d)
+  def get_data(self):
+    return self.text.getvalue()
 
-  def chat_respond(self, form):
-    response = JsonResponse(
-      {'ok':[{
-        'operation':'send', 
-        'to': form.cleaned_data.get('username'), 
-        'message': f"Hej {form.cleaned_data.get('display_name')}!"
-      }]})
-    return response
+def strip_tags(html):
+  s = MLStripper()
+  s.feed(html)
+  return s.get_data()

@@ -87,7 +87,7 @@ class Klapp(StreamListener):
         for instr in json["ok"]:
           if instr["operation"] == "send":
             self.mastodon.status_post(
-              f'@{instr["to"]}, {instr["message"]}!', 
+              f'@{instr["to"]}, {instr["message"]}', 
               in_reply_to_id=None, 
               visibility="direct")
           else:
