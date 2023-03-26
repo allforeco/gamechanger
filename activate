@@ -1,2 +1,2 @@
-python3.7 -m pipenv shell
+python3 -m pipenv shell
 . .env/gamechanger.env 

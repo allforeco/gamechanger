@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3.8
 
 #   Gamechanger Klapp Mastodon Interface
 #   Copyright (C) 2023 Jan Lindblad
@@ -50,7 +50,8 @@ class Klapp(StreamListener):
 
       response = requests.post(self.post_path, data={
         'username':notification.account.username,
-        'displayname':notification.account.display_name
+        'display_name':notification.account.display_name,
+        'message':notification.status.content or "No Content",
       })
       self.process_klapp_response(response)
 
@@ -75,7 +76,11 @@ class Klapp(StreamListener):
 
   def process_klapp_response(self, response):
     if response.status_code == 200:
-      json = response.json()
+      try:
+        json = response.json()
+      except: 
+        logging.error(f'PKR JSON decoding failed \n{response.text}')
+        return
       logging.info(f"PKR received JSON {json}")
       #{"ok": [{"operation": "send", "to": "jarlix", "message": "Hej Jan L!"}]}
       if "ok" in json:

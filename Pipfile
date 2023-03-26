@@ -10,6 +10,9 @@ django = "*"
 psycopg2 = "*"
 django-autocomplete-light = "*"
 django-jquery = "*"
+requests = "*"
+"mastodon.py" = "*"
+django-cron = "*"
 
 [requires]
-python_version = "3.7"
+python_version = "3.8"
