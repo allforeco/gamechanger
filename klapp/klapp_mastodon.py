@@ -17,7 +17,7 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import os, sys, getopt, logging, time, requests
-from mastodon import Mastodon, StreamListener, MastodonError
+from mastodon import Mastodon, StreamListener, MastodonError, MastodonNetworkError
 
 ############################################################
 # Klapp
@@ -52,6 +52,7 @@ class Klapp(StreamListener):
         'username':notification.account.username,
         'display_name':notification.account.display_name,
         'message':notification.status.content or "No Content",
+        'lang':notification.status.language or None,
       })
       self.process_klapp_response(response)
 
@@ -116,7 +117,11 @@ class Klapp(StreamListener):
 
   def serve(self):
     logging.info(f"Klapp.serve()")
-    self.mastodon.stream_user(self)
+    try:
+      self.mastodon.stream_user(self)
+    except MastodonNetworkError:
+      time.sleep(15)
+      raise
 
 ############################################################
 # Main
