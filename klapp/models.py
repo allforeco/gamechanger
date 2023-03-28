@@ -18,8 +18,8 @@ class Quote(models.Model):
   def __str__(self):
     return "<Quote " + str(self.quote_from) + " to " + str(self.quote_to) + ": " + str(self.quote) + ">"
   quote = models.CharField(max_length=2000, blank=True, null=True)
-  quote_from = models.ForeignKey('Actor', on_delete=models.PROTECT, editable=False, related_name='quotes_by_me')
-  quote_to = models.ForeignKey('Actor', on_delete=models.PROTECT, editable=False, related_name='quotes_to_me')
+  quote_from = models.ForeignKey('Actor', on_delete=models.CASCADE, editable=False, related_name='quotes_by_me')
+  quote_to = models.ForeignKey('Actor', on_delete=models.CASCADE, editable=False, related_name='quotes_to_me')
   created_on = models.TimeField(auto_now_add=True, editable=False)
   updated_on = models.TimeField(auto_now=True, editable=False)
 

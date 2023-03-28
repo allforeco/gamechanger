@@ -20,7 +20,6 @@ from io import StringIO
 import json, logging, random
 
 PK_SELF_ACTOR_ID = 7
-PK_NEW_USER_POST_ID = 4
 SUPPORTED_LANGUAGES = ["sv"]
 
 logging.basicConfig(
@@ -31,23 +30,23 @@ logging.info(f"Responder initialized")
 class Responder:
   def __init__(self, request):
     self.request = request
+    self.inc_message = self.request.get('message')
     self.curr_post = None
     self.conv = None
     self.commands = None
     self.child_commands = None
-    self.command_line = None
     self.message_params = {}
     self.responses = []
-    logging.info(f"Responder: {self.get_username()} {self.get_display_name()} {self.get_lang()} {self.get_usable_lang()}")
+    logging.info(f"Responder: {self.get_user_handle()} {self.get_display_name()} {self.get_lang()} {self.get_usable_lang()}")
 
-  def get_username(self):
-    return self.request.get('username')
+  def get_user_handle(self):
+    return self.request.get('user_handle')
 
   def get_display_name(self):
     return self.request.get('display_name')
 
   def get_message(self):
-    return self.request.get('message')
+    return self.inc_message
 
   def get_lang(self):
     return self.request.get('lang')
@@ -59,21 +58,27 @@ class Responder:
     return lang
 
   def get_user(self):
-    users = Actor.objects.filter(user_handle=self.get_username())
+    users = Actor.objects.filter(user_handle=self.get_user_handle())
     if users.exists():
       return users.first()
     else:
       # Unknown/new user
-      logging.info(f"Responder.get_user: New user {self.get_username()}. Welcome!")
+      logging.info(f"Responder.get_user: New user {self.get_user_handle()}. Welcome!")
       
       conversation = Conversation(settings = {})
       conversation.save()
 
       user = Actor(
-        user_handle = self.get_username(),
+        user_handle = self.get_user_handle(),
         conversation = conversation,
       )
       user.save()
+      self.respond_to_user(
+        self.get_user(),
+        self.get_named_post("welcome").body)
+      
+      # Whatever greeting user sends, don't take it as a command
+      self.inc_message = ''
     return user
 
   def get_self(self):
@@ -104,11 +109,10 @@ class Responder:
       curr_post_id = None
 
     if not curr_post_id: # New conversation
-      curr_post_id = self.get_named_post("welcome")
-      command = None
+      curr_post_id = self.get_named_post("start").pk
 
-    #print(f"Responder.fetch_curr_post: post_id = {curr_post_id}")
     self.curr_post = Post.objects.get(pk=curr_post_id)
+    logging.debug(f"Responder.fetch_curr_post: curr_post {self.curr_post} post_id = {curr_post_id}")
 
   def collect_commands(self):
     def child_command_name(child_post_name):
@@ -159,22 +163,23 @@ class Responder:
   def handle_post_settings(self):
     curr_post_preprocessors = self.get_setting(self.curr_post.settings,'preprocessors') or []
     logging.debug(f"Responder.handle_post_settings: post preprocessors = {curr_post_preprocessors}")
-    for (precmd, arg) in curr_post_preprocessors:
-      if precmd == 'set-command':
-        self.command_line = arg
+    for dct in curr_post_preprocessors:
+      instr = dct.get('instr')      
+      if instr == 'set-command':
+        self.command_line = dct.get('val','')
       else:
-        logging.error(f"Unknown preprocessor command {precmd}, ignoring")
+        logging.error(f"Unknown preprocessor command {instr}, ignoring")
 
   def execute_command(self):
     def parse_command(command_line, commands):
       for c in commands:
         if command_line.startswith(c):
-          return (c, command_line[len(c):])
+          return (c, command_line[len(c):].strip())
       return (None, command_line)
 
     logging.debug(f"Responder.execute_command: command '{self.command_line}'")
     if not self.command_line:
-      return self.respond_to_user(self.curr_post_id)
+      return self.new_post_to_user(self.curr_post.pk)
     (command, arg) = parse_command(self.command_line, self.commands)
     if not command:
       logging.warning(f'Responder.execute_command: unknown command')
@@ -195,21 +200,35 @@ class Responder:
         self.get_named_post("system-error-internal").body,
         {'code':'PEX'})
 
+  def get_zip_prefix(self, zip):
+    return zip[:2] # FIXME Swedish assumption
+
   def process_special_command(self, command, arg):
     # historia .uppdatera .visa inbox
     if command == "zip":
       logging.debug(f"zip {arg} {self.get_user()}")
       user = Actor.objects.get(pk=self.get_user().pk) # Why is this needed??
-      user.zip_code = str(arg)
+      user.zip_code = str(arg.upper())[:user._meta.get_field('zip_code').max_length]
       user.save(update_fields=['zip_code'])
       self.respond_to_user(
         self.get_user(),
         self.get_named_post("thanks-for-info-bit").body,
         {'arg':self.get_user().zip_code})
+
+      for receiving_user in Actor.objects.filter(
+        country_code=self.get_user().country_code,
+        zip_code__startswith=self.get_zip_prefix(self.get_user().zip_code)):
+        print(f"Zip in vicinity: {receiving_user.user_handle}")
+        self.respond_to_user(
+          receiving_user,
+          self.get_named_post("invitation-to-connect").body,
+          {'senders_zip_code': self.get_user().zip_code})
+
     elif command == "country":
       logging.debug(f"country {arg}")
-      self.get_user().country_code = arg
-      self.get_user().save(update_fields=['country_code'])
+      user = Actor.objects.get(pk=self.get_user().pk) # Why is this needed??
+      user.country_code = str(arg.upper())[:user._meta.get_field('country_code').max_length]
+      user.save(update_fields=['country_code'])
       self.respond_to_user(
         self.get_user(),
         self.get_named_post("thanks-for-info-bit").body,
@@ -230,7 +249,7 @@ class Responder:
   def new_post_to_user(self, next_post_id):
     post = Post.objects.get(pk=next_post_id)
     self.conv.settings = json.dumps({'post': post.pk, 'history':{**self.get_setting(self.conv.settings, 'history'),**self.child_commands}})
-    self.conv.save()
+    self.conv.save(update_fields=['settings'])
     self.respond_to_user(self.get_user(), post.body)
 
   def respond_to_user(self, to_user, message, extra_bindings = {}):
@@ -244,6 +263,7 @@ class Responder:
         'to': to_user.user_handle,
         'message': bound_message,
       }]
+    logging.info(f"Responder queued message to {to_user.user_handle}:\n{bound_message}")
 
   def bind_message(self, message, bindings):
     logging.debug(f"Responder.bind_message: var subst {bindings}")
@@ -253,7 +273,7 @@ class Responder:
     while True:
       idx = message.find('${')
       if idx < 0:
-        logging.info(f"Responder.bind_message: {message}")
+        logging.debug(f"Responder.bind_message: {message}")
         return message
       idx_end = message[idx:].find('}')
       var_name = message[idx+2:idx+idx_end]
@@ -261,9 +281,11 @@ class Responder:
       if not subst:
         if var_name == "display_name":
           subst = str(self.get_display_name())
-        elif var_name == "zip":
+        elif var_name == "user_handle":
+          subst = str(self.get_user_handle())
+        elif var_name == "zip_code":
           subst = str(self.get_user().zip_code)
-        elif var_name == "country":
+        elif var_name == "country_code":
           subst = str(self.get_user().country_code)
         else:
           logging.error(f"Responder.bind_message: suspect subst {subst}, replacing with ??")

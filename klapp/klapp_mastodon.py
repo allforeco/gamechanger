@@ -49,7 +49,7 @@ class Klapp(StreamListener):
       logging.info(f"Mentioned by {notification.account.display_name}!")
 
       response = requests.post(self.post_path, data={
-        'username':notification.account.username,
+        'user_handle':notification.account.username,
         'display_name':notification.account.display_name,
         'message':notification.status.content or "No Content",
         'lang':notification.status.language or None,
