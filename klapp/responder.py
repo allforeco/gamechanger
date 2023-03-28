@@ -17,10 +17,16 @@
 from .models import Actor, Quote, Post, Conversation
 from html.parser import HTMLParser
 from io import StringIO
-import json
+import json, logging, random
 
 PK_SELF_ACTOR_ID = 7
 PK_NEW_USER_POST_ID = 4
+SUPPORTED_LANGUAGES = ["sv"]
+
+logging.basicConfig(
+  level=logging.INFO, 
+  format='%(asctime)s: %(message)s')
+logging.info(f"Responder initialized")
 
 class Responder:
   def __init__(self, request):
@@ -32,7 +38,7 @@ class Responder:
     self.command_line = None
     self.message_params = {}
     self.responses = []
-    print(f"Responder: {self.get_username()} {self.get_display_name()} {self.get_lang()}")
+    logging.info(f"Responder: {self.get_username()} {self.get_display_name()} {self.get_lang()} {self.get_usable_lang()}")
 
   def get_username(self):
     return self.request.get('username')
@@ -46,14 +52,19 @@ class Responder:
   def get_lang(self):
     return self.request.get('lang')
 
+  def get_usable_lang(self):
+    lang = self.get_lang().lower()
+    if lang not in SUPPORTED_LANGUAGES:
+      lang = "sv" # FIXME: Swedish
+    return lang
+
   def get_user(self):
     users = Actor.objects.filter(user_handle=self.get_username())
     if users.exists():
       return users.first()
-      #return Actor.objects.get(pk=users.first().pk)
     else:
       # Unknown/new user
-      print(f"Responder.get_user: New user {self.get_username()}. Welcome!")
+      logging.info(f"Responder.get_user: New user {self.get_username()}. Welcome!")
       
       conversation = Conversation(settings = {})
       conversation.save()
@@ -87,27 +98,29 @@ class Responder:
     self.conv = self.get_user().conversation
     try:
       curr_post_id = self.get_setting(self.conv.settings, 'post')
-      print(f"Responder.fetch_curr_post: post id '{curr_post_id}'")
+      logging.debug(f"Responder.fetch_curr_post: post id '{curr_post_id}'")
     except:
-      print(f"Responder.fetch_curr_post: could not find conversation {self.conv.settings}")
+      logging.info(f"Responder.fetch_curr_post: could not find conversation {self.conv.settings}")
       curr_post_id = None
 
     if not curr_post_id: # New conversation
-      curr_post_id = PK_NEW_USER_POST_ID
+      curr_post_id = self.get_named_post("welcome")
       command = None
 
     #print(f"Responder.fetch_curr_post: post_id = {curr_post_id}")
     self.curr_post = Post.objects.get(pk=curr_post_id)
 
   def collect_commands(self):
+    def child_command_name(child_post_name):
+      return '-'.join(child_post_name.split('-')[1:]).lower()
     curr_post_children = self.curr_post.children.all()
-    print(f"Responder.fetch_curr_post: self.post.children = {curr_post_children}")
+    logging.debug(f"Responder.fetch_curr_post: self.post.children = {curr_post_children}")
     history_commands = self.get_setting(self.conv.settings, 'history')
     post_specfic_commands = self.get_setting(self.curr_post.settings, 'actions')
-    self.child_commands = {c.name.lower():c.pk for c in self.curr_post.children.all()}
+    self.child_commands = {child_command_name(c.name):c.pk for c in self.curr_post.children.all()}
     admin_commands = {".uppdatera":"update",".kommentera":"comment"} # FIXME: Swedish
     self.commands = {**history_commands,**post_specfic_commands,**self.child_commands,**admin_commands}
-    print(f'Responder.collect_commands(): commands = {self.commands.keys()}')
+    logging.debug(f'Responder.collect_commands(): commands = {self.commands.keys()}')
 
   def get_setting(self, settings, key):
     try:
@@ -145,12 +158,12 @@ class Responder:
 
   def handle_post_settings(self):
     curr_post_preprocessors = self.get_setting(self.curr_post.settings,'preprocessors') or []
-    print(f"Responder.handle_post_settings: post preprocessors = {curr_post_preprocessors}")
+    logging.debug(f"Responder.handle_post_settings: post preprocessors = {curr_post_preprocessors}")
     for (precmd, arg) in curr_post_preprocessors:
       if precmd == 'set-command':
         self.command_line = arg
       else:
-        print(f"Unknown preprocessor command {precmd}, ignoring")
+        logging.error(f"Unknown preprocessor command {precmd}, ignoring")
 
   def execute_command(self):
     def parse_command(command_line, commands):
@@ -159,59 +172,69 @@ class Responder:
           return (c, command_line[len(c):])
       return (None, command_line)
 
-    print(f"Responder.execute_command: command '{self.command_line}'")
+    logging.debug(f"Responder.execute_command: command '{self.command_line}'")
     if not self.command_line:
       return self.respond_to_user(self.curr_post_id)
     (command, arg) = parse_command(self.command_line, self.commands)
     if not command:
-      print(f'Responder.execute_command: unknown command')
-      self.respond_to_user(
-        self.get_user(), # FIXME: Swedish
-        "Jag förstod inte riktigt. Här är de svar jag förstår just nu: " + ", ".join(list(self.commands.keys())))
+      logging.warning(f'Responder.execute_command: unknown command')
+      return self.respond_to_user(
+        self.get_user(),
+        self.get_named_post("system-error-unknown-command").body, 
+        {'commands':", ".join(list(self.commands.keys()))})
     if isinstance(self.commands[command], int):
-      self.new_post_to_user(self.commands[command])
-      print(f'Responder.execute_command: new post "{command}" -> post {self.commands[command]}')
+      logging.debug(f'Responder.execute_command: new post "{command}" -> post {self.commands[command]}')
+      return self.new_post_to_user(self.commands[command])
     elif isinstance(self.commands[command], str):
-      print(f'Responder.execute_command: calling special command "{self.commands[command]}"')
-      self.process_special_command(self.commands[command], arg)
+      logging.debug(f'Responder.execute_command: calling special command "{self.commands[command]}"')
+      return self.process_special_command(self.commands[command], arg)
     else:
-      print(f'Responder.execute_command: unknown command type "{self.commands[command]}"')
-      self.respond_to_user(
-        self.get_user(), # FIXME: Swedish
-        "Nu blev jag yr i mössan och förvirrad. Vad hände???")
+      logging.error(f'Responder.execute_command: unknown command type "{self.commands[command]}"')
+      return self.respond_to_user(
+        self.get_user(),
+        self.get_named_post("system-error-internal").body,
+        {'code':'PEX'})
 
   def process_special_command(self, command, arg):
     # historia .uppdatera .visa inbox
     if command == "zip":
-      print(f"zip {arg} {self.get_user()}")
+      logging.debug(f"zip {arg} {self.get_user()}")
       user = Actor.objects.get(pk=self.get_user().pk) # Why is this needed??
       user.zip_code = str(arg)
       user.save(update_fields=['zip_code'])
       self.respond_to_user(
-        self.get_user(), # FIXME: Swedish
-        f"Tack för det! {self.get_user().zip_code}, noterat.")
+        self.get_user(),
+        self.get_named_post("thanks-for-info-bit").body,
+        {'arg':self.get_user().zip_code})
     elif command == "country":
-      print(f"country {arg}")
+      logging.debug(f"country {arg}")
       self.get_user().country_code = arg
       self.get_user().save(update_fields=['country_code'])
       self.respond_to_user(
-        self.get_user(), # FIXME: Swedish
-        f"Tack för det! {arg}, memorerat.")
+        self.get_user(),
+        self.get_named_post("thanks-for-info-bit").body,
+        {'arg':self.get_user().country_code})
     else:
-      print(f"Unknown processor command {command}, ignoring")
+      logging.error(f"Unknown processor command {command}, ignoring")
       self.respond_to_user(
-        self.get_user(), # FIXME: Swedish
-        "Hoppsan, det där blev konstigt. Vad hände???")
+        self.get_user(),
+        self.get_named_post("system-error-internal").body,
+        {'code':'PESC'})
+
+  def get_named_post(self, post_name):
+    posts = Post.objects.filter(name=self.get_usable_lang() + "-" + post_name)
+    if posts.exists():
+      return posts.first()
+    return None
 
   def new_post_to_user(self, next_post_id):
     post = Post.objects.get(pk=next_post_id)
     self.conv.settings = json.dumps({'post': post.pk, 'history':{**self.get_setting(self.conv.settings, 'history'),**self.child_commands}})
     self.conv.save()
-    message = post.name + "\n\n" + post.body
-    self.respond_to_user(self.get_user(), message)
+    self.respond_to_user(self.get_user(), post.body)
 
-  def respond_to_user(self, to_user, message):
-    bound_message = self.bind_message(message)
+  def respond_to_user(self, to_user, message, extra_bindings = {}):
+    bound_message = self.bind_message(message, {**self.message_params,**extra_bindings})
     self.quote_message(
       quote = bound_message,
       quote_from = self.get_self(),
@@ -222,26 +245,31 @@ class Responder:
         'message': bound_message,
       }]
 
-  def bind_message(self, message):
-    print(f"Responder.bind_message: var subst {self.message_params}")
+  def bind_message(self, message, bindings):
+    logging.debug(f"Responder.bind_message: var subst {bindings}")
+    message = random.choice(message.split('||'))
+    message = message.replace('\\n',"""
+""")
     while True:
       idx = message.find('${')
       if idx < 0:
-        print(f"Responder.bind_message: {message}")
+        logging.info(f"Responder.bind_message: {message}")
         return message
       idx_end = message[idx:].find('}')
       var_name = message[idx+2:idx+idx_end]
-      subst = self.message_params.get(var_name)
+      subst = bindings.get(var_name)
       if not subst:
-        if var_name == "zip":
+        if var_name == "display_name":
+          subst = str(self.get_display_name())
+        elif var_name == "zip":
           subst = str(self.get_user().zip_code)
         elif var_name == "country":
           subst = str(self.get_user().country_code)
         else:
-          print(f"Responder.bind_message: suspect subst {subst}, replacing with ??")
+          logging.error(f"Responder.bind_message: suspect subst {subst}, replacing with ??")
           subst = "??"
       if subst.find('${') >= 0:
-        print(f"Responder.bind_message: suspect subst {subst}, replacing with ???")
+        logging.error(f"Responder.bind_message: suspect subst {subst}, replacing with ???")
         subst = "???"
       message = message[:idx] + subst + message[idx+idx_end+1:]
 

@@ -20,6 +20,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.urls import reverse_lazy
 from django.http import JsonResponse, HttpResponse, HttpResponseNotAllowed
 from .responder import Responder
+import logging
 
 # TODO: Add LoginRequiredMixin
 @csrf_exempt
@@ -36,16 +37,15 @@ def botchat_view(request):
     quote_from = user,
     quote_to = klapp)
 
-  if True:
-#  try:
+  try:
     responses = responder.get_response_actions()
     return HttpResponse(JsonResponse(responses))
-#  finally:
-    pass
+  except:
+    logging.exception("Responder raised an exception")
     problem_response = JsonResponse(
       {'ok':[{
         'operation':'send', 
         'to': user.user_handle,
-        'message': "Hmm. @$@!&!??? Oops.",
+        'message': "Hmm. @$@!&!??? Oops. (BCVW)",
       }]})
     return HttpResponse(problem_response)
