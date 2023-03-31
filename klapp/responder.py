@@ -20,7 +20,7 @@ from io import StringIO
 import json, logging, random
 
 PK_SELF_ACTOR_ID = 7
-SUPPORTED_LANGUAGES = ["sv"]
+SUPPORTED_LANGUAGES = ["en", "sv"]
 
 logging.basicConfig(
   level=logging.INFO, 
@@ -49,12 +49,12 @@ class Responder:
     return self.inc_message
 
   def get_lang(self):
-    return self.request.get('lang')
+    return "en" # self.request.get('lang')
 
   def get_usable_lang(self):
-    lang = self.get_lang().lower()
+    lang = self.get_lang().lower()[:2]
     if lang not in SUPPORTED_LANGUAGES:
-      lang = "sv" # FIXME: Swedish
+      lang = SUPPORTED_LANGUAGES[0]
     return lang
 
   def get_user(self):
@@ -128,8 +128,6 @@ class Responder:
 
   def get_setting(self, settings, key):
     try:
-      #print(f"get_json_setting: {settings} {key}")
-      #print(f"get_json_setting: {json.loads(settings)}")
       return json.loads(settings).get(key,{})
     except:
       return {}
@@ -153,11 +151,9 @@ class Responder:
       def get_data(self):
         return self.text.getvalue()
 
-    #print(f"get_command({msg})")
     msg = strip_tags(self.get_message().lower())
     msg = msg.strip()
     msg = " ".join(msg.split()[1:])
-    #print(f"-> '{msg}'")
     self.command_line = msg
 
   def handle_post_settings(self):
@@ -207,38 +203,46 @@ class Responder:
     # historia .uppdatera .visa inbox
     if command == "zip":
       logging.debug(f"zip {arg} {self.get_user()}")
-      user = Actor.objects.get(pk=self.get_user().pk) # Why is this needed??
+      user = Actor.objects.get(pk=self.get_user().pk)
       user.zip_code = str(arg.upper())[:user._meta.get_field('zip_code').max_length]
       user.save(update_fields=['zip_code'])
       self.respond_to_user(
         self.get_user(),
         self.get_named_post("thanks-for-info-bit").body,
         {'arg':self.get_user().zip_code})
-
-      for receiving_user in Actor.objects.filter(
-        country_code=self.get_user().country_code,
-        zip_code__startswith=self.get_zip_prefix(self.get_user().zip_code)):
-        print(f"Zip in vicinity: {receiving_user.user_handle}")
-        self.respond_to_user(
-          receiving_user,
-          self.get_named_post("invitation-to-connect").body,
-          {'senders_zip_code': self.get_user().zip_code})
+      self.send_invitations_to_connect()
 
     elif command == "country":
       logging.debug(f"country {arg}")
-      user = Actor.objects.get(pk=self.get_user().pk) # Why is this needed??
+      user = Actor.objects.get(pk=self.get_user().pk)
       user.country_code = str(arg.upper())[:user._meta.get_field('country_code').max_length]
-      user.save(update_fields=['country_code'])
+      user.zip_code = None
+      user.save(update_fields=['country_code', 'zip_code'])
       self.respond_to_user(
         self.get_user(),
         self.get_named_post("thanks-for-info-bit").body,
         {'arg':self.get_user().country_code})
+      self.send_invitations_to_connect()
+
     else:
       logging.error(f"Unknown processor command {command}, ignoring")
       self.respond_to_user(
         self.get_user(),
         self.get_named_post("system-error-internal").body,
         {'code':'PESC'})
+
+  def send_invitations_to_connect(self):
+    if not self.get_user().country_code or not self.get_user().zip_code:
+      return
+
+    for receiving_user in Actor.objects.filter(
+      country_code=self.get_user().country_code,
+      zip_code__startswith=self.get_zip_prefix(self.get_user().zip_code)):
+      print(f"Zip in vicinity: {receiving_user.user_handle}")
+      self.respond_to_user(
+        receiving_user,
+        self.get_named_post("invitation-to-connect").body,
+        {'senders_zip_code': self.get_user().zip_code})
 
   def get_named_post(self, post_name):
     posts = Post.objects.filter(name=self.get_usable_lang() + "-" + post_name)
