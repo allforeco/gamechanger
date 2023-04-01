@@ -16,7 +16,8 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import os, sys, getopt, logging, time, requests
+import os, sys, getopt, logging, time, requests, datetime
+from dateutil.tz import tzutc
 from mastodon import Mastodon, StreamListener, MastodonError, MastodonNetworkError
 
 ############################################################
@@ -31,8 +32,9 @@ class Klapp(StreamListener):
   KLAPP_SERVER = "http://127.0.0.1:8000"
   KLAPP_POST_PATH = "klapp/botchat"
 
-  def __init__(self):
+  def __init__(self, sim = False):
     logging.info(f"Klapp.__init__()")
+    self.sim = sim
     self.post_path = f"{Klapp.KLAPP_SERVER}/{Klapp.KLAPP_POST_PATH}"
 
   def on_update(self, status):
@@ -87,10 +89,13 @@ class Klapp(StreamListener):
       if "ok" in json:
         for instr in json["ok"]:
           if instr["operation"] == "send":
-            self.mastodon.status_post(
-              f'@{instr["to"]}, {instr["message"]}', 
-              in_reply_to_id=None, 
-              visibility="direct")
+            if self.sim:
+              print(f'\n\n@{instr["to"]}, {instr["message"]}')
+            else:
+              self.mastodon.status_post(
+                f'@{instr["to"]}, {instr["message"]}', 
+                in_reply_to_id=None, 
+                visibility="direct")
           else:
             logging.error(f'PKR unknown operqation "{instr["operation"]}"')
       else:
@@ -107,6 +112,8 @@ class Klapp(StreamListener):
 
   def login(self):
     logging.info(f"Klapp.login()")
+    if self.sim:
+      return
     self.mastodon = Mastodon(
       client_id = Klapp.CLIENT_ID_FILE,)
     self.access_token = self.mastodon.log_in(
@@ -118,10 +125,35 @@ class Klapp(StreamListener):
   def serve(self):
     logging.info(f"Klapp.serve()")
     try:
-      self.mastodon.stream_user(self)
+      if self.sim:
+        self.sim_user()
+      else:
+        self.mastodon.stream_user(self)
     except MastodonNetworkError:
       time.sleep(15)
       raise
+
+  def sim_user(self):
+    class SimNotification:
+      class Account:
+        def __init__(self, username, display_name):
+          self.username = username
+          self.display_name = display_name
+      class Status:
+        def __init__(self, content, language):
+          self.content = content
+          self.language = language
+      def __init__(self, ntype, username, display_name, content, language):
+        self.type = ntype
+        self.account = SimNotification.Account(username, display_name)
+        self.status = SimNotification.Status(content, language)
+
+    while True:
+      print(f"\n\n=== {datetime.datetime.now()} ==>\n")
+      commandline = input("@klapp ")
+      print(f"\n<== {datetime.datetime.now()} ===\n")
+      content = f'<p><span class="h-card"><a href="https://mastodon.nu/@Klapp" class="u-url mention">@<span>Klapp</span></a></span> {commandline}</p>'
+      self.on_notification(SimNotification('mention', 'jarlix', 'Jan Lindblad', content, 'sv'))
 
 ############################################################
 # Main
@@ -134,9 +166,10 @@ def main():
     level=logging.INFO, 
     format='%(asctime)s: %(message)s')
   logging.info(f"Klapp main() running")
+  sim = False
   try:
-    opts, args = getopt.getopt(sys.argv[1:],"hd",
-      ["help", "debug", "selector=", "frequency=", "refresh="])
+    opts, args = getopt.getopt(sys.argv[1:],"hds",
+      ["help", "debug", "sim"])
   except getopt.GetoptError:
     usage()
     sys.exit(2)
@@ -146,11 +179,14 @@ def main():
       sys.exit()
     elif opt in ("-d", "--debug"):
       logging.basicConfig(level=logging.DEBUG)
-
-    elif opt in ("-s", "--selector"):
-      pass
+    elif opt in ("-s", "--sim"):
+      sim = True
+      print(f"Running in local SIMULATION mode.")
+    else:
+      print(f"Unknown flag '{opt}', exiting")
+      sys.exit(2)
   
-  klapp = Klapp()
+  klapp = Klapp(sim)
   klapp.login()
   while True:
     try:
