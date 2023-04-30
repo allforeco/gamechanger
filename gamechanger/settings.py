@@ -34,6 +34,7 @@ ALLOWED_HOSTS = ['www.gamechanger.eco', 'gamechanger.eco', '127.0.0.1']
 INSTALLED_APPS = [
     'action.apps.ActionConfig',
     'klapp.apps.KlappConfig',
+    'twiff2.apps.Twiff2Config',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',

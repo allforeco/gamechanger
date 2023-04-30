@@ -21,6 +21,7 @@ from django.conf import settings
 urlpatterns = [
     path('action/', include('action.urls')),
     path('klapp/', include('klapp.urls')),
+    path('twiff2/', include('twiff2.urls')),
     path('admin/', admin.site.urls),
     path('', include('home.urls')),
 ]
