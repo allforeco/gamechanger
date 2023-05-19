@@ -4,15 +4,9 @@ import json
 import logging
 import googlemaps
 import datetime
-from pathlib import Path
 from typing import *
 from abc import ABC, abstractmethod
 from .geodata import Geodata
-
-sys.path.append('/home/deploy/gamechanger/gamechanger')
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "gamechanger.settings")
-from django.conf import settings
-sys.path.append('/home/deploy/gamechanger/action')
 from models import Location, Organization, Gathering, Gathering_Witness, Gmaps_LookupString, \
     Gmaps_Locations
 
@@ -48,20 +42,21 @@ class T4FActionRecorder(ActionRecorder):
 
     """
 
-    def __init__(self, path: str) -> None:
+    def __init__(self) -> None:
         '''
         Initialise the ActionRecorder instance.
         '''
-        super(T4FActionRecorder, self).__init__(path)
+        super(T4FActionRecorder, self).__init__()
         self.City = None
         self.State = None
         self.Country = None
 
     def __call__(self, parsed_tweet: Dict, api_key: str) -> Dict:
-        """ Record an action
+        """ Record an action to the database
 
             Args:
                 parsed_tweet (Dict): Parsed tweet
+                api_key (str): Key for the Google maps API
 
             Returns:
                 parsed_tweet (Dict): Parsed tweet with updated location and organisation data
@@ -75,57 +70,58 @@ class T4FActionRecorder(ActionRecorder):
         """
 
         # Check if the parsing was done with success, otherwise we can not record anyways.
+        eOrg = None
         if parsed_tweet["response"] == "success":
             # First try to find the organisation.
             # FIXME OPTION: name= : For case sensitive lookup
-            eOrg = Organization.objects.filter(name__iExact=parsed_tweet["organization"]).first()
+            eOrg = Organization.objects.filter(name__iexact=parsed_tweet["data"]["organization"]).first()
             if eOrg is None:
                 parsed_tweet["errors"] = AddError_v2(parsed_tweet["errors"], "organization_not_found")
                 parsed_tweet["response"] = "failed"
                 return parsed_tweet # No need to look for location if Organisation failed
-            # Report back which org and location were recorded
-            parsed_tweet["organization"] = eOrg.name
         # Let's try to find the location
-        self.gmaps = googlemaps.Client(key=api_key)
-        eFinal_location, parsed_tweet = self.find_location(parsed_tweet)
+        eFinal_location, parsed_tweet = self.find_location(parsed_tweet, api_key)
         # Check again to determine the location was found
         if parsed_tweet["response"] == "success":
             witness_id = None  # FIXME add twiff as witness???
-            gathering = Gathering.objects.get(location=eFinal_location, organizations=eOrg)
+            gathering = Gathering.objects.filter(location=eFinal_location, organizations=eOrg).order_by('-start_date')
             if len(gathering) == 0:
-                gathering = Gathering.objects.get(location=eFinal_location)
+                gathering = Gathering.objects.filter(location=eFinal_location).order_by('-start_date')
             if len(gathering) == 0:
+                # A location can exist (e.g. a state) when no gathering was made for the location.
                 parsed_tweet["errors"] = AddError_v2(parsed_tweet["errors"], "no_gathering_found")
                 parsed_tweet["response"] = "failed"
                 return parsed_tweet
-            witness = Gathering_Witness(gathering=gathering)
+            witness = Gathering_Witness(gathering=gathering[0])
             # RuntimeWarning: DateTimeField Gathering_Witness.updated received a naive datetime (2021-05-07 11:52:41.502616) while time zone support is active.
-            witness.date = datetime.datetime.strptime(parsed_tweet["created_at"], '%Y-%m-%d').replace(
+            witness.date = datetime.datetime.strptime(parsed_tweet["data"]["created_at"], '%d-%m-%Y').replace(
                 tzinfo=datetime.timezone.utc)
-            witness.participants = parsed_tweet["num_people"]
-            witness.proof_url = parsed_tweet["url"]
+            witness.participants = parsed_tweet["data"]["num_people"]
+            witness.proof_url = parsed_tweet["data"]["url"]
             witness.organization = eOrg
             witness.updated = datetime.datetime.today()
             witness.save()
         # Report back which org and location were recorded
         if eOrg:
-            parsed_tweet["organization"] = eOrg.name
+            parsed_tweet["data"]["organization"] = eOrg.name
         if eFinal_location:
-            parsed_tweet["location"] = eFinal_location.name
+            parsed_tweet["data"]["location"] = eFinal_location.name
             loc = eFinal_location
             while loc.in_location is not None:
                 loc = loc.in_location
-                parsed_tweet["location"] = parsed_tweet["location"] + ", " + loc.name
+                parsed_tweet["data"]["location"] = parsed_tweet["data"]["location"] + ", " + loc.name
         return parsed_tweet
 
 
-    def find_location(self, parsed_tweet: Dict) -> Tuple[Any, Dict]:
+    def find_location(self, parsed_tweet: Dict, api_key: str) -> Tuple[Any, Dict]:
         """ find the given location
 
             Args:
                 parsed_tweet (Dict): Parsed tweet
+                api_key (str): Key for the Google maps API
 
             Returns:
+                The location found and...
                 parsed_tweet (Dict): Parsed tweet with updated location and organisation data
                 A new error sets the response param to failed
                 New errors which could be added to the parsed tweet
@@ -139,19 +135,24 @@ class T4FActionRecorder(ActionRecorder):
         """
 
         lookup_string = parsed_tweet["data"]["location"]
+        log.info("Looking up location: " + lookup_string)
         lookup = Gmaps_LookupString.objects.filter(lookup_string=lookup_string).first()
         if lookup is None:
+            log.info("Using API")
             # If this lookup_string is not in the DB then find the location using google maps API
             try:
+                self.gmaps = googlemaps.Client(key=api_key)
                 geocode_result = self.gmaps.geocode(parsed_tweet["data"]["location"])[0]
                 location_key = geocode_result["place_id"]
-            except:
+            except Exception as ex:
                 parsed_tweet["errors"] = AddError_v2(parsed_tweet["errors"], "api_lookup_failure")
+                parsed_tweet["errors"] = AddError_v2(parsed_tweet["errors"], ex)
                 parsed_tweet["response"] = "failed"
                 # no chance of finishing the record
                 return None, parsed_tweet
             gmap_loc = Gmaps_Locations.objects.filter(place_id=location_key).first()
             if gmap_loc is None:
+                log.info("Creating new location: " + geocode_result["formatted_address"])
                 # The place_id from the lookup was never used before, we need to create a new location.
                 loc, parsed_tweet = self.create_new_gmaps_location(geocode_result["formatted_address"], parsed_tweet)
                 if loc is None:
@@ -159,11 +160,13 @@ class T4FActionRecorder(ActionRecorder):
                 gmap_loc = Gmaps_Locations(place_id=location_key, location=loc)
                 gmap_loc.save()
             else:
+                log.info("Using existing location")
                 loc = gmap_loc.location
                 # This location is now / already known, create an entry in lookup table
             lookup = Gmaps_LookupString(lookup_string=lookup_string, Gmaps_Location=gmap_loc)
             lookup.save()
         else:
+            log.info("Using Database")
             gmap_loc = lookup.Gmaps_Location
             loc = gmap_loc.location
         return loc, parsed_tweet
