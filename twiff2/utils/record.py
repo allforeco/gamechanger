@@ -7,7 +7,7 @@ import datetime
 from typing import *
 from abc import ABC, abstractmethod
 from .geodata import Geodata
-from models import Location, Organization, Gathering, Gathering_Witness, Gmaps_LookupString, \
+from action.models import Location, Organization, Gathering, Gathering_Witness, Gmaps_LookupString, \
     Gmaps_Locations
 
 
@@ -84,14 +84,15 @@ class T4FActionRecorder(ActionRecorder):
         # Check again to determine the location was found
         if parsed_tweet["response"] == "success":
             witness_id = None  # FIXME add twiff as witness???
+            # Find the latest gathering for the location
             gathering = Gathering.objects.filter(location=eFinal_location, organizations=eOrg).order_by('-start_date')
             if len(gathering) == 0:
                 gathering = Gathering.objects.filter(location=eFinal_location).order_by('-start_date')
-            if len(gathering) == 0:
-                # A location can exist (e.g. a state) when no gathering was made for the location.
-                parsed_tweet["errors"] = AddError_v2(parsed_tweet["errors"], "no_gathering_found")
-                parsed_tweet["response"] = "failed"
-                return parsed_tweet
+                if len(gathering) == 0:
+                    # A location can exist (e.g. a state) when no gathering was made for the location.
+                    parsed_tweet["errors"] = AddError_v2(parsed_tweet["errors"], "no_gathering_found")
+                    parsed_tweet["response"] = "failed"
+                    return parsed_tweet
             witness = Gathering_Witness(gathering=gathering[0])
             # RuntimeWarning: DateTimeField Gathering_Witness.updated received a naive datetime (2021-05-07 11:52:41.502616) while time zone support is active.
             witness.date = datetime.datetime.strptime(parsed_tweet["data"]["created_at"], '%d-%m-%Y').replace(
