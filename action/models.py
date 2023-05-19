@@ -16,7 +16,7 @@
 
 from django.db import models
 from django.contrib.auth.models import User
-from .static_lists import valid_location_ids
+from action.static_lists import valid_location_ids
 class Verification(models.Model):
   created_by = models.ForeignKey('UserHome', on_delete=models.PROTECT, editable=False)
   created_on = models.TimeField(auto_now_add=True, editable=False)
@@ -471,3 +471,15 @@ class Gathering_Witness(models.Model):
     root_gathering = self.gathering.get_gathering_root()
     self.gathering.regid = root_gathering.regid
     return self.gathering.regid
+
+
+class Gmaps_Locations(models.Model):
+    place_id = models.CharField(max_length=30)
+    location = models.ForeignKey(Location, on_delete=models.CASCADE)
+
+
+class Gmaps_LookupString(models.Model):
+    lookup_string = models.CharField(max_length=100)
+    Gmaps_Location = models.ForeignKey(Gmaps_Locations, on_delete=models.CASCADE)
+
+  
