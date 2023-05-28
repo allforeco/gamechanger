@@ -1,0 +1,46 @@
+{
+  "level_names" : {
+    "country": "country",
+    "administrative_area_level_1": "state",
+    "postal_town": "city",
+    "locality": "city",
+    "sublocality_level_1": "sublocation",
+    "route": "sublocation",
+    "establishment": "sublocation"
+  },
+  "overrides": {
+    "Australia":{
+      "administrative_area_level_1_include" : true,
+      "administrative_area_level_1_type" : "short_name",
+      "VIC": {
+        "Phillip Island":{
+          "state": "Victoria"
+        }
+      }
+    },
+    "Canada":{
+      "administrative_area_level_1_include" : true,
+      "administrative_area_level_1_type" : "short_name"
+    },
+    "India":{
+      "administrative_area_level_1_include" : true
+    },
+    "Türkiye":{
+      "country": "Turkey",
+      "reload": true
+    },
+    "Turkey":{
+      "İstanbul": {
+        "city": "Istanbul"
+      }
+    },
+    "United Kingdom":{
+      "country": "UK"
+    },
+    "United States":{
+      "administrative_area_level_1_include" : true,
+      "administrative_area_level_1_type" : "short_name",
+      "country": "USA"
+    }
+  }
+}
