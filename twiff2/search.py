@@ -155,6 +155,7 @@ def record(tweets: Dict, api_key: str, recorder: Callable) -> Dict:
             success += 1
         except:
             log.exception(f"Could not record {id_str}")
+            tweet["response"] = "failed"
             parsed_tweets[id_str] = tweet
     log.info(
         f"Successfully recorded {success} tweets out of {len(tweets)}.")
