@@ -80,7 +80,8 @@ class T4FReplyGenerator(ReplyGenerator):
             else:
                 if "errors" in parsed_tweet:
                     if parsed_tweet["errors"] is not None:
-                        sResponseType = sResponseType + "-" + parsed_tweet["errors"][0]
+                        if len(parsed_tweet["errors"]) > 0:
+                            sResponseType = sResponseType + "-" + parsed_tweet["errors"][0]
             # 2: Create the response
             sResponse = self.responses[sResponseType].format(parsed_tweet["data"]["num_people"], sPerson,
                                     parsed_tweet["data"]["location"],
