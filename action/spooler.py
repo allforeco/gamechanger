@@ -20,6 +20,8 @@ from .models import Country, Location, Gathering, Gathering_Belong, Gathering_Wi
 from .push_notifier import Push_Notifier
 from .map_sync import to_fff
 
+static_location_file = "/var/www/gamechanger.eco/static/cached_locations.htmlbody"
+
 try:
   import uwsgi
   from uwsgidecorators import spool
@@ -69,22 +71,75 @@ def task_update_reg(body, import_log=None, cleanup_log=None):
   print(f"UCLN unused places cleanup")
   try:
     cleanup_locations(cleanup_log)
+    loc_map = generate_static_location_list(cleanup_log)
+    write_static_location_countries(cleanup_log, loc_map)
+
   except Exception as ex:
     print(f"UCLN top level exception: {ex}")
   print(f"UCLN unused places cleanup done")
 
-def cleanup_locations(cleanup_log = None):
-  last_cleanup_log_name = "/var/log/gamechanger-spooler/last_cleanup.log"
-  if cleanup_log:
-    last_cleanup_log_name = cleanup_log
-  with open(last_cleanup_log_name, "w") as last_cleanup_log:
-    print(f"Action spooler cleanup log taken on {datetime.datetime.ctime(datetime.datetime.utcnow())}", file=last_cleanup_log)
+def logprint(log, s):
+  print(s)
+  print(s, file=log)
 
+def generate_static_location_list(log):
+  non_roots = Location.objects.filter(in_location_id__isnull=False)
+  logprint(log,f"LLL0 Generating static location list, {len(non_roots)} items")
+  loc_root_map = {}
+  loc_map = {}
+  for nr,loc in enumerate(non_roots):
+    if nr%100 == 0:
+      logprint(log,f"LLL1 Generating static location list, item {nr}")
+    ploc = loc_root_map.get(loc.id, None)
+    if not ploc:
+      ploc = loc
+      loops_left = 10
+      while ploc.in_location and loops_left:
+        ploc = ploc.in_location
+        loops_left -= 1
+      if not loops_left:
+        logprint(log,f"LLLL Location nesting too deep for loc {loc} id {loc.id}, skipping")
+        continue
+    loc_root_map[loc.id]=ploc
+    loc_map[ploc.id] = loc_map.get(ploc.id,[]) + [loc]
+  return loc_map
+
+def write_static_location_countries(log, loc_map):
+  with open(static_location_file, "w") as stat:
+    roots = Location.objects.filter(in_location_id__isnull=True).order_by('name')
+    for root in roots:
+      try:
+        if not root.name or root.id not in loc_map:
+          continue
+        logprint(log,f"LLCO Country {root.name}")
+        members = [(loc.name, loc.id) for loc in loc_map[root.id]]
+        members.sort(key = lambda x: x[0])
+        logprint(log,f"LLCL Country locations {[(member[0], member[1]) for member in members]}")
+        stat.write(f"""
+                <tr>
+                <td style="text-align: center; margin-top: 0px; vertical-align: top;">
+                  <a href="/action/geo/{root.id}/">{root.name}</a>
+                </td>
+                <td>
+                  <ul style="float: left; margin-bottom: 1em; width: 100%;">""")
+        stat.write("".join([f"""
+                    <li style="float: left; margin-left: 1.5em; margin-bottom: 0.5em;">
+                      <a href="/action/geo/{member[1]}/">{member[0]}</a>
+                    </li>""" for member in members]))
+        stat.write(f"""
+                  </ul>
+                </td>
+              </tr>""")
+      except:
+        logprint(log,f"LLFX Country {root.name} failed")
+  logprint(log,f"LLL9 Generated static location list")
+
+def cleanup_locations(cleanup_log = None):
+  def drop_orphans(log):
     # Initally all locations are candidates for dropping
     dropset = set(Location.objects.all())
     # Keep all locations that have gatherings in them
-    print(f"UCRG go through {Gathering.objects.count()} gatherings")
-    print(f"UCRG go through {Gathering.objects.count()} gatherings", file=last_cleanup_log)
+    logprint(log,f"UCRG go through {Gathering.objects.count()} gatherings")
     for gat in Gathering.objects.all():
       loc = gat.location
       # Keep all locations that are parents of the location with a gathering
@@ -94,32 +149,39 @@ def cleanup_locations(cleanup_log = None):
         loc = loc.in_location
         max_depth -= 1
         if max_depth <= 0:
-          print(f"UCRG location loop detected for {loc}")
-          print(f"UCRG location loop detected for {loc}", file=last_cleanup_log)
+          logprint(log, f"UCRG location loop detected for {loc}")
           break
 
-    print(f"UCRG {len(dropset)} locations are not referenced by any gatherings")
-    print(f"UCRG {len(dropset)} locations are not referenced by any gatherings", file=last_cleanup_log)
+    logprint(log,f"UCRG {len(dropset)} locations are not referenced by any gatherings")
 
     while dropset:
-      print(f"UCRS Starting drop round with {len(dropset)} locations remaining", file=last_cleanup_log)
+      logprint(log,f"UCRS Starting drop round with {len(dropset)} locations remaining")
       next_dropset = set()
       progress = False
       for droploc in dropset:
         try:
           droploc.delete()
-          print(f"UCRD dropped {droploc}", file=last_cleanup_log)
+          logprint(log,f"UCRD dropped {droploc}")
           progress = True
         except:
-          print(f"UCRR {droploc} still referenced, dropping later", file=last_cleanup_log)
+          logprint(log,f"UCRR {droploc} still referenced, dropping later")
           next_dropset.add(droploc)
       if not progress:
-        print(f"UCRX no progress with {len(dropset)} locations remaining", file=last_cleanup_log)
+        logprint(log,f"UCRX no progress with {len(dropset)} locations remaining")
         break
       dropset = next_dropset
 
-    print(f"UCRG done")
-    print(f"UCRG done", file=last_cleanup_log)
+  last_cleanup_log_name = "/var/log/gamechanger-spooler/last_cleanup.log"
+  if cleanup_log:
+    last_cleanup_log_name = cleanup_log
+  with open(last_cleanup_log_name, "w") as log:
+    logprint(log,f"Action spooler cleanup log taken on {datetime.datetime.ctime(datetime.datetime.utcnow())}")
+    drop_orphans(log)
+    #remap_duplicates(log)
+    #remap_loops(log)
+    #remap_nameless(log)
+    #rename_bad_names(log)
+    logprint(log,f"UCRG done")
 
 def get_update_timestamp(timeinfo):
   if isinstance(timeinfo, datetime.datetime):

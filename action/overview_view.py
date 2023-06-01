@@ -8,6 +8,8 @@ from django import forms
 from .models import Gathering, Gathering_Belong, Gathering_Witness, Location, UserHome, Organization
 import datetime
 
+static_location_file = "/var/www/gamechanger.eco/static/cached_locations.htmlbody"
+
 def latest_reports_view(request):
   filter_amount = int(request.POST.get('filter_amount', '200'))
   report_list = list(Gathering_Witness.objects.order_by("-updated")[:filter_amount])
@@ -37,7 +39,10 @@ def locations_view(request):
 
   logginbypass = False
   location_list=list()
-  template = loader.get_template('static/locations_overview.html')
+  #FIXME: Remove static template file
+  #template = loader.get_template('static/locations_overview.html')
+  template = loader.get_template('action/spooled_locations_overview.html')
+  htmlbody = ""
 
   if request.user.is_authenticated or logginbypass:
     template = loader.get_template('action/locations_overview.html')
@@ -45,10 +50,17 @@ def locations_view(request):
     location_list.sort(key=lambda e: e[0], reverse=False)
     for location in location_list:
       location[2].sort(key=lambda e: e[0], reverse=False)
+  else:
+    try:
+      with open(static_location_file, "r") as text:
+        htmlbody = text.read()
+    except:
+      htmlbody = """<tr><td colspan="2"><h1>Data currently not available.</h1></td></tr>"""
 
   context = {
     'location_list': location_list,
     'logginbypass': logginbypass,
+    'htmlbody': htmlbody,
   }
 
   return HttpResponse(template.render(context, request))
