@@ -128,18 +128,19 @@ def parse(tweets:Dict, users:Dict, parser:Callable) -> Dict:
 
 
 def record(tweets: Dict, api_key: str, recorder: Callable) -> Dict:
-    """ Handles parsing of tweets using the provided tweet parsing method.
+    """ Handles recording of tweets using the provided recording method.
 
         NOTE:
-            Contract for returned parsed tweet should be a dictionary containing the necessary key, value pairs that
-            the response_generator can use to determine an approriate response from.
+            Contract: the parsed tweet key, value pairs will be used and updated accoring to achieved results so that
+            the response_generator can use this to determine an approriate response from.
 
         Args:
-            tweets (Dict):
-            recorder (Callable):
+            tweets (Dict): The parsed tweets
+            api_key (str): API key for the Google maps API
+            recorder (Callable): Recorder module
 
         Returns:
-            parsed_tweets (Dict): Dictionary containing parsed tweets. Key=tweet_id, Values=...
+            parsed_tweets (Dict): Dictionary containing parsed tweets.
 
         Example::
             >>> x
@@ -147,10 +148,17 @@ def record(tweets: Dict, api_key: str, recorder: Callable) -> Dict:
 
     """
     parsed_tweets = {}
+    success = 0
     for idx, (id_str, tweet) in enumerate(tweets.items()):
-        parsed_tweets[id_str] = recorder(tweet, api_key)
+        try:
+            parsed_tweets[id_str] = recorder(tweet, api_key)
+            success += 1
+        except:
+            log.exception(f"Could not record {id_str}")
+            tweet["response"] = "failed"
+            parsed_tweets[id_str] = tweet
     log.info(
-        f"Successfully recorded {len([None for val in parsed_tweets.values() if val is not None])} tweets out of {len(tweets)}.")
+        f"Successfully recorded {success} tweets out of {len(tweets)}.")
 
     return parsed_tweets
 
@@ -258,8 +266,11 @@ def reply(client:Any, parsed_tweets:Dict, generator:Callable, max_requests:Optio
                 response = generator(parsed_tweet)
                 if response is not None:
                     if response != "":
-                        client.create_tweet(in_reply_to_tweet_id=id_str, text=response)
-                        success += 1
+                        try:
+                            client.create_tweet(in_reply_to_tweet_id=id_str, text=response)
+                            success += 1
+                        except:
+                            log.exception("Could not reply to " + id_str + ", intended reply was: " + response)
             else:
                 log.info(f"Tweet ID ({id_str}) has already been processed.")
             if success >= max_requests: break
@@ -308,7 +319,7 @@ def run(args:Namespace) -> None:
     parsed_tweets = parse(tweets=tweets, users=users, parser=load_module(config, "parser"))
 
     # Try to record the parsed tweets, adjust likes, retweets and responses accordingly
-#    parsed_tweets = record(tweets=parsed_tweets, api_key=keys['GMAPS_SECRET'], parser=load_module(config, "recorder"))
+    parsed_tweets = record(tweets=parsed_tweets, api_key=keys['GMAPS_SECRET'], recorder=load_module(config, "recorder"))
 
     # Like retrieved tweets: like parsed tweets
     like(client=client, parsed_tweets=parsed_tweets, condition=load_module(config, "like-condition"), max_requests=args.max_requests)
@@ -322,7 +333,7 @@ def run(args:Namespace) -> None:
     # Export/dump data to disk for longer-term storage.
     load_module(config, "exporter", data={id_str:tweet for (id_str, tweet) in tweets.items()}, subdir="tweets")
     load_module(config, "exporter", data={id_str:user for (id_str, user) in users.items()}, subdir="users")
-    load_module(config, "exporter", data={id_str:data["data"] for (id_str, data) in parsed_tweets.items()}, subdir="parsed-tweets")
+    load_module(config, "exporter", data={id_str:data for (id_str, data) in parsed_tweets.items()}, subdir="parsed-tweets")
     
     
 def get_arg_parser() -> ArgumentParser:

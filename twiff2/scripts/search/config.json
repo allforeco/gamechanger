@@ -1,0 +1,51 @@
+{
+    "search": {
+        "module": "twiff2.search",
+        "call": "search",
+        "config": {
+            "cursor": "/home/deploy/gamechanger/twiff2/logs/cursor.json",
+            "query": "(#twiff OR #Twiff) -is:retweet -from:twiff_bot"
+        }
+    },
+    "like-condition": {
+        "module": "twiff2.interact.like",
+        "call": "T4FLikeCondition",
+        "config": {
+            "kwarg1": null
+        }
+    },
+    "parser": {
+        "module": "twiff2.interact.parse",
+        "call": "T4FParser",
+        "config": {
+            "config": "/home/deploy/gamechanger/twiff2/scripts/search/parser.json"
+        }
+    },
+    "recorder": {
+        "module": "twiff2.utils.record",
+        "call": "T4FActionRecorder",
+        "config": {
+        }
+    },
+    "reply-generator": {
+        "module": "twiff2.interact.reply",
+        "call": "T4FReplyGenerator",
+        "config": {
+            "path": "/home/deploy/gamechanger/twiff2/scripts/search/responses.json"
+        }
+    },
+    "retweet-condition": {
+        "module": "twiff2.interact.reply",
+        "call": "T4FReplyGenerator",
+        "config": {
+            "path": "/home/deploy/gamechanger/twiff2/scripts/search/responses.json"
+        }
+    },
+    "exporter": {
+        "module": "twiff2.utils.io",
+        "call": "dump_json_items",
+        "config": {
+            "output": "/home/deploy/gamechanger/twiff2/output"
+        }
+    }
+}
