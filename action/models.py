@@ -28,7 +28,7 @@ class Country(models.Model):
   def __str__(self):
     return self.name
 
-  name = models.CharField(max_length=25)
+  name = models.CharField(max_length=50)
   phone_prefix = models.CharField(max_length=5, blank=True)
 
   @staticmethod
