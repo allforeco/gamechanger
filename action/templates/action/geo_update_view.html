@@ -1,7 +1,7 @@
 {% extends "base_generic.html" %}
 
 {% block title %}
-      <title>Event Report - Gamechanger Action Tracker</title>
+  <title>Event Record - Gamechanger Action Tracker</title>
 {% endblock %}
 
 {% block content %}
@@ -71,7 +71,7 @@
         </th>
         <td>
           {% if user.is_authenticated  == user.is_authenticated %}
-          <input type="submit" value="Submit Report"/>
+          <input type="submit" value="Submit Record"/>
           {% endif %}
         </td>
       </tr>
@@ -79,7 +79,7 @@
   </form>
 {% else %}
   {% if gathering %}
-    <h1>Report on Event</h1>
+    <h1>Record of Event</h1>
     <form action="{% url 'action:geo_post' %}" method="POST">
       {% csrf_token %}
       <input type="hidden" name="isnewevent" value="{{isnewevent}}"/>
@@ -146,7 +146,7 @@
           </th>
           <td>
             {% if user.is_authenticated == user.is_authenticated %}
-            <input type="submit" value="Submit Report"/>
+            <input type="submit" value="Submit Record"/>
             {% endif %}
           </td>
         </tr>
@@ -163,14 +163,14 @@
 
 <br />
 <br />
-<!-- Report/Register Toggle--
+<!-- Record/Register Toggle--
 <form action="{% url 'action:geo_update' %}" method="POST">
   {% csrf_token %}
   <input type="hidden" value="{{isneweventtoggle}}" name="isnewevent">
   <input type="hidden" value="{{gathering.regid}}" name="regid">
   <input type="hidden" value="{{location.id}}" name="locid">
   {% if isnewevent %}
-  <input type="submit" value="Report on Event ↩"/>
+  <input type="submit" value="Record Event ↩"/>
   {% else %}
   <input type="submit" value="Register new Event ↩"/>
   {% endif %}

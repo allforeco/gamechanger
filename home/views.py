@@ -5,7 +5,7 @@ from django.template import loader
 from django.http import HttpResponse
 
 def index(request):
-  context = { 'latest_report_list': None }
+  context = { 'latest_record_list': None }
   template = loader.get_template('action/index.html')
   return HttpResponse(template.render(context, request))
 

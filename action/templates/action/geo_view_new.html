@@ -1,14 +1,14 @@
 {% extends "base_generic.html" %}
 
 {% block title %}
-  <title>Records for {{ this_location.name }} - Gamechanger Action Tracker</title>
+      <title>Reports for {{ this_location.name }} - Gamechanger Action Tracker</title>
 {% endblock %}
 
 {% block content %}
 {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
 
   <div style="width: 100%; float:right;">
-    <h1 style="float: left; margin: auto;">Records for {{ this_location.name }}</h1>
+    <h1 style="float: left; margin: auto;">Reports for {{ this_location.name }}</h1>
     {% if user.is_authenticated %}
     <form style="float: left; margin-left: 0.5em; margin-right: 0.5em;" action="" method="post">
       {% csrf_token %}
@@ -24,7 +24,7 @@
     <div style="float: left; margin-bottom: 1.5em;">
       <p style="margin-top:0.35em;">
         {% if parent_location %}
-          &nbsp;&nbsp;in <a href="{% url 'action:geo_view' parent_location.id %}">{{ parent_location.name }}</a>
+          &nbsp;&nbsp;in <a href="{% url 'action:geo_view_new' parent_location.id %}">{{ parent_location.name }}</a>
         {% else %}
         <p style="margin-left: -25.95em; margin-top: -0.5em;">.</p>
         {% endif %}
@@ -38,36 +38,75 @@
       <ul style="float: left; margin-bottom: 2em; width: 100%;">
         {% for sublocation in sublocation_list %}
         <li style="float: left; margin-left: 1.5em; margin-bottom: 0.5em;">
-          <a href="{% url 'action:geo_view' sublocation.id %}">{{ sublocation }}</a>
+          <a href="{% url 'action:geo_view_new' sublocation.id %}">{{ sublocation }}</a>
         </li>
         {% endfor %}
       </ul>
-      
-    <h2>Direct Records for {{ this_location.name }} in addition to the locations above</h2>
   {% endif %}
 
-  <h2>Records</h2>
+  <h2>Registrations</h2>
+  {% if gathering_list %}
+    <p>{{ this_location.name }} has {{ gathering_list|length }} active registrations</p>
+    <div class="gathering">
+      <table>
+        <tr>
+          <th sort="dat-true">Start date</th>
+          <th sort="dat-false">End date</th>
+          <th sort="str-false">Time</th>
+          <th sort="str-false">Address</th>
+          <th sort="str-false">Host</th>
+          <th sort="str-false">Expected participants</th>
+        </tr>
+        {% for gathering in gathering_list %}
+          <tr>
+            <td style="text-align: right;">
+              <span>{{ gathering.start_date }}</span>
+            </td>
+            <td style="text-align: right;">
+              <span>{{ gathering.end_date }}</span>
+            </td>
+            <td style="text-align: right;">
+              {% if gathering.time %}
+                <span>{{ gathering.time }}</span>
+              {% else %}
+                <span>?</span>
+              {% endif %}
+            </td>
+            <td style="text-align: right;">
+              {% if gathering.address %}
+                <span>{{ gathering.address }}</span>
+              {% else %}
+                <span>?</span>
+              {% endif %}
+            </td>
+            <td style="text-align: right;">
+              {% if gathering.organization %}
+                <span>{{ gathering.organization }}</span>
+              {% else %}
+                <span>?</span>
+              {% endif %}
+            </td>
+            <td style="text-align: right;">
+              {% if gathering.expected_participants %}
+                <span>{{gathering.expected_participants}}</span>
+              {% else %}
+                <span>?</span>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </table>
+    </div>
+  {% else %}
+    <p>{{ this_location.name }} has no active registrations, please register using this
+      <a target="_blank" href="https://fridaysforfuture.org/action-map/register-report-strikes/">form</a></p>
+  {% endif %}
+
+  <h2>Reports</h2>
   {% if witness_list %}
     <p>{{ witness_list|length }} events with a total of {{ total_participants }} 
-    recorded participants</p>
-  {% else %}
-    <p>No results registered yet.</p>
-  {% endif %}
-    
-  {% if witness_list %}
-    <form action="{% url 'action:geo_update' %}" method="POST">
-      {% csrf_token %}
-      <input type="hidden" value="False" name="isnewevent"/>
-      <input type="hidden" value="{{root_gathering.regid}}" name="regid"/>
-      <input type="hidden" value="{{this_location.id}}" name="locid"/>
-      <!--<input type="submit" value="Register new Event">-->
-      <input type="submit" value="Record Event"/>
-    </form>
-    <br/>
-  {% endif %}
-  
-  {% if witness_list %}
-    <div class="gathering">
+    reported participants</p>
+    <div class="witness">
       <table>
         <tr>
           <th sort="dat-true">Date</th>
@@ -113,7 +152,7 @@
                   {% endif %}
                   <sup><sup><img style="width: 16px;" src="/static/icon-external.png"/></sup></sup></a>
               {% endif %}
-            </td> 
+            </td>
             <td>
               {% if witness.organization %}
               <span hidden="true">{{ witness.organization }}</span>
@@ -126,5 +165,8 @@
         {% endfor %}
       </table>
     </div>
+  {% else %}
+    <p>No results registered yet.</p>
   {% endif %}
+
 {% endblock %}

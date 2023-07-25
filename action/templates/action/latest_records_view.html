@@ -1,7 +1,7 @@
 {% extends "base_generic.html" %}
 
 {% block title %}
-      <title>Event Overview - Gamechanger Action Tracker</title>
+  <title>Event Overview - Gamechanger Action Tracker</title>
 {% endblock %}
 
 {% block content %}
@@ -9,7 +9,7 @@
 
   <div  style="width: 15.75em; padding: 0.25em; background-color: #ffffff; border: 1px solid #eeeeee;">
     <h3 style="margin-top: 0.25em; margin-bottom: 0.25em;">Items: <span id="amountinput">{{filter_amount}}</span></h3>
-    <form action="{% url 'action:latest_reports' %}" method="POST">
+    <form action="{% url 'action:latest_records' %}" method="POST">
       {% csrf_token%}
       <input  style="margin-bottom: -0.20em;" type="range"  id="amountoutput" name="filter_amount" value="{{filter_amount}}" step="25" min="50" max="800" oninput="document.getElementById('amountinput').innerHTML = document.getElementById('amountoutput').value"/>
       <input type="submit" value="Filter"/>
@@ -17,11 +17,11 @@
   </div>
 
   <div>
-    <h2 style="margin-bottom: 0.25em;">Latest Reports</h2>
+    <h2 style="margin-bottom: 0.25em;">Latest Records</h2>
     <table>
       <thead>
         <tr>
-          <th sort="dat-true">Reported</th>
+          <th sort="dat-true">Recorded</th>
           <th sort="dat-false">Event Date</th>
           <th>Map</th>
           <th sort="str-false">Location</th>
@@ -31,20 +31,20 @@
         </tr>
       </thead>
       <tbody>
-        {% for report in report_list %}
+        {% for record in record_list %}
         <tr>
           <td style="text-align: center;">
-            <span>{{report.updated|date:"Y-m-d"}}</span>
+            <span>{{record.updated|date:"Y-m-d"}}</span>
           </td>
           <td> 
-            <span>{{report.date|date:"Y-m-d"}}</span>
+            <span>{{record.date|date:"Y-m-d"}}</span>
           </td>
-          {% if report.gathering.location %}
+          {% if record.gathering.location %}
           <td style="text-align: center;">
-            <a target="_blank" href="https://map.fridaysforfuture.org/?e={{report.gathering.regid}}"><img src="/static/icon_globe.png"/><sup><sup><img style="width: 16px;" src="/static/icon-external.png"/></sup></sup></a>
+            <a target="_blank" href="https://map.fridaysforfuture.org/?e={{record.gathering.regid}}"><img src="/static/icon_globe.png"/><sup><sup><img style="width: 16px;" src="/static/icon-external.png"/></sup></sup></a>
           </td>
           <td>
-            <a href="{% url 'action:geo_view' report.gathering.location.id %}">{{report.gathering.location.name}}</a>
+            <a href="{% url 'action:geo_view' record.gathering.location.id %}">{{record.gathering.location.name}}</a>
           </td>
           {% else %}
           <td style="text-align: center;">
@@ -55,29 +55,29 @@
           </td>
           {% endif %}
           <td>
-            {% if report.organization %}
-            <span>{{report.organization}}</span>
+            {% if record.organization %}
+            <span>{{record.organization}}</span>
             {% else %}
             <span hidden="true">z-sort</span>
             {% endif %}
           </td>
           <td style="text-align: right;">
-            {% if report.participants %}
-            <span>{{report.participants}}</span>
+            {% if record.participants %}
+            <span>{{record.participants}}</span>
             {% else %}
             <span>?</span>
             {% endif %}
           </td>
           <td style="text-align: center;">
-            {% if report.proof_url %}
-              <a style="max-height: 1em; margin-top: auto;" target="_blank" href="{{ report.proof_url }}">
-                {% if "facebook.com" in report.proof_url or "scontent" in report.proof_url %}
+            {% if record.proof_url %}
+              <a style="max-height: 1em; margin-top: auto;" target="_blank" href="{{ record.proof_url }}">
+                {% if "facebook.com" in record.proof_url or "scontent" in record.proof_url %}
                   <img src="/static/icon_fb30.png"/>
-                {% elif "instagram.com" in report.proof_url %}
+                {% elif "instagram.com" in record.proof_url %}
                   <img src="/static/icon_insta30.png"/>
-                {% elif "twitter.com" in report.proof_url %}
+                {% elif "twitter.com" in record.proof_url %}
                   <img src="/static/icon_twitter30.png"/>
-                {% elif "youtube.com" in report.proof_url %}
+                {% elif "youtube.com" in record.proof_url %}
                   <img src="/static/icon_yt30.png"/>
                 {% else %}
                   <img src="/static/icon_pic.png"/>

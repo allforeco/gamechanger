@@ -1,4 +1,5 @@
 from django.urls import include, path, re_path
+from django.views.generic.base import RedirectView
 from . import views
 
 app_name = 'action'
@@ -6,9 +7,11 @@ app_name = 'action'
 urlpatterns = [
   path('join_us', views.join_us, name='join_us'),
   path('', views.index, name='index'),
-  path('report_results/date/<str:regid>/<str:date>/', views.translate_maplink, name='report_date'),
-  path('report_results/', views.overview_by_name, name='overview_by_name'),
-  path('report_results/', views.overview_by_name, name='overview'),
+  path('record_results/date/<str:regid>/<str:date>/', views.translate_maplink, name='record_date'),
+  path('report_results/date/<str:regid>/<str:date>/', RedirectView.as_view(url='record_results/date/%(regid)s/%(date)s>/')),
+  path('record_results/', views.overview_by_name, name='overview_by_name'),
+  path('record_results/', views.overview_by_name, name='overview'),
+  path('report_results/', RedirectView.as_view(url='record_results/')),
   path('geo/<int:locid>/', views.geo_view_handler, name='geo_view'),
   path('geo/<int:locid>/<str:date>', views.geo_date_view_handler, name='geo_date_view'),
   path('geo/invalid/', views.geo_invalid, name='geo_invalid'),
@@ -23,6 +26,7 @@ urlpatterns = [
   path('download_upd/post', views.download_post, name='download_post'),
   path('accounts/', include('django.contrib.auth.urls')),
   path('home', views.HomeView.as_view(), name='home'),
+  path('geo_new/<int:locid>/', views.geo_view_handler_new, name='geo_view_new'),
   path('tools', views.tools_view_handler, name='tools_view'),
   path('tools/post', views.tools_view_post, name='tools_post'),
   path('tools/<str:result>', views.tools_view_handler, name='tools_result'),
@@ -30,7 +34,8 @@ urlpatterns = [
   path('organization-autocomplete/', views.OrganizationAutocomplete.as_view(), name='organization-autocomplete'),
   path('start', views.start_view_handler),
   path('start/', views.start_view_handler, name='start'),
-  path('start/latest_reports', views.latest_reports_view, name='latest_reports'),
+  path('start/latest_records', views.latest_records_view, name='latest_records'),
+  path('start/latest_reports', RedirectView.as_view(url='start/latest_records')),
   path('start/locations_list', views.locations_view, name='locations_list'),
   path('start', views.start_view_handler, name='start'),
   path('eventmap_data/', views.eventmap_data_view, name='eventmap_data_view'),

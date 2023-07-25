@@ -1,0 +1,44 @@
+{% extends "base_generic.html" %}
+
+{% block title %}
+  <title>Locations Overview - Gamechanger Action Tracker</title>
+{% endblock %}
+
+{% block content %}
+  {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+  <div>
+    <h2>Locations List</h2>
+    <table>
+      <thead>
+        <th>Country</th>
+        <th>Locations</th>
+      </thead>
+      {% if user.is_authenticated or logginbypass %}
+        {% for country in location_list %}
+        <tbody>
+          <tr>
+            <td style="text-align: center; margin-top: 0px; vertical-align: top;">
+              <a href="{% url 'action:geo_view' country.1 %}">{{country.0}}</a>
+            </td>
+            <td>
+              <ul style="float: left; margin-bottom: 1em; width: 100%;">
+                {% for location in country.2 %}
+                <li style="float: left; margin-left: 1.5em; margin-bottom: 0.5em;">
+                  <a href="{% url 'action:geo_view' location.1 %}">{{location.0}}</a>
+                </li>
+                {% endfor %}
+              </ul>
+            </td>
+          </tr>
+        </tbody>
+        {% endfor %}
+      {% else %}
+        <tbody>
+          {% autoescape off %}
+            {{ htmlbody }}
+          {% endautoescape %}
+        </tbody>
+      {% endif %}
+    </table>
+  </div>
+{% endblock %}

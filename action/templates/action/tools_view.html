@@ -1,0 +1,58 @@
+{% extends "base_generic.html" %}
+
+{% block title %}
+      <title>Administrative tools - Gamechanger Action Tracker</title>
+{% endblock %}
+
+{% block content %}
+{% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+
+  {% if user.is_authenticated %}
+    <div style="margin-bottom: 2em;">
+      <h2 style="margin-bottom: -0.25em;">Tool: Merge 2 locations </h2>
+      <h3>This section is still being build</h3>
+      <p>This tool merges the actions from 2 locations and deletes the location that is being merged from.</p>
+          <form action="{% url 'action:tools_post' %}" method="POST">
+    {% csrf_token %}
+      <table>
+       <tr>
+          <th>Merge from:</th>
+          <td>
+            <input type="url" name="merge_from_url" value="{{merge_from_url}}" placeholder="Input the link of the location that needs to be deleted" size="120"/>
+          </td>
+        </tr>
+        <tr>
+          <th>Merge to:</th>
+          <td>
+            <input type="url" name="merge_to_url" value="{{merge_to_url}}" placeholder="Input the link of the location that need to be merge in to" size="120"/>
+          </td>
+        </tr>
+        <tr>
+          <th>
+            Merge and delete
+          </th>
+          <td>
+            {% if user.is_authenticated == user.is_authenticated %}
+              <div style="display: inline">
+                <input type="button" name="enable_merge" value="Merge these 2 locations and delete the top one."
+                  onclick='
+                    var x = document.getElementById("do_merge_event");
+                    if (x.style.display === "none") {
+                      x.style.display = "inline";
+                    } else {
+                      x.style.display = "none";
+                    }'/>
+                <input type="submit" id="do_merge_event" name="do_merge_event" value="Are you sure? This can not be undone!" style="color: red; display: none" />
+              </div>
+            {% endif %}
+          </td>
+        </tr>
+        <tr>
+          <th>Result:</th>
+          <td>{{test_text}} {{ merge_result }}</td>
+        </tr>
+      </table>
+                </form>
+    </div>
+  {% endif %}
+{% endblock %}

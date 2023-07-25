@@ -36,29 +36,29 @@ def start_view_handler(request):
       print(f"SVX0 Cannot display broken {gathering}")
   
   #EVENT WITNESSING LOGIC
-  report_list = list(Gathering_Witness.objects.order_by("-updated").filter(updated__gte=datetime.datetime.today()-datetime.timedelta(days=7*filter_weeks))[:list_length])
+  record_list = list(Gathering_Witness.objects.order_by("-updated").filter(updated__gte=datetime.datetime.today()-datetime.timedelta(days=7*filter_weeks))[:list_length])
   witness_dict = {}
-  for w in report_list:
+  for w in record_list:
     belong_regid = w.set_gathering_to_root()
     witness_dict[(belong_regid,w.date)] = w
   witness_list = list(witness_dict.values())
   witness_list.sort(key=lambda e: e.updated, reverse=True)
 
-  reports = list()
+  records = list()
   i = 0
-  for report in witness_list:
-    report_data = list()
+  for record in witness_list:
+    record_data = list()
     i+=1
-    report_data.append(i)
-    report_data.append(report.date.strftime('%Y-%m-%d'))
-    if report.gathering:
-      report_data.append(report.gathering.regid)
-      report_data.append([report.gathering.location.id, report.gathering.location.name])
-      report_data.append(report.organization)
-      report_data.append(report.participants)
-      report_data.append(report.proof_url)
+    record_data.append(i)
+    record_data.append(record.date.strftime('%Y-%m-%d'))
+    if record.gathering:
+      record_data.append(record.gathering.regid)
+      record_data.append([record.gathering.location.id, record.gathering.location.name])
+      record_data.append(record.organization)
+      record_data.append(record.participants)
+      record_data.append(record.proof_url)
 
-      reports.append(report_data)
+      records.append(record_data)
   
   #LEADERBOARD LOGIC
   leaderboard_dict=dict()
@@ -79,7 +79,7 @@ def start_view_handler(request):
     else:
       leaderboard_dict.update({location.name: [location.name, location.id, 1, 0]})
 
-  for witness in report_list:
+  for witness in record_list:
     if (witness.gathering):
       location = witness.gathering.location
       for x in range(5):
@@ -102,7 +102,7 @@ def start_view_handler(request):
   template = loader.get_template('action/start.html')
   context = {
     'filter_weeks': filter_weeks,
-    'report_list': reports,
+    'record_list': records,
     'gathering_list': gatherings,
     'leaderboard_list': leaderboard,
   }

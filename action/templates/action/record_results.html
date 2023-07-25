@@ -1,0 +1,154 @@
+{% extends "base_generic.html" %}
+
+{% block title %}
+  <title>Record Results for {{ place_name }} - Gamechanger Action Tracker</title>
+{% endblock %}
+
+
+{% block content %}
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+<script src="https://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/js/select2.full.js"></script>
+
+<style>
+  div.favoriteform > input {display: inline-block;}
+
+  div.gathering ul {
+    list-style: none; /* Remove default bullets */
+  }
+  {% for color in colors %}
+    div.gathering ul li.{{color}}::before { content: "\2743"; color: {{color}}; display: inline-block; width: 1em; margin-left: -1em; }
+  {% endfor %}
+</style>
+
+{% if date %}
+  <form action="{% url 'action:record_date' regid date %}" method="post">
+{% else %}
+  <form action="{% url 'action:record_results' regid %}" method="post">
+{% endif %}
+  {% csrf_token %}
+  <div class="favoriteform" style="white-space:nowrap; display:inline-block;">
+    <h1>Record Results for{% if favorite_location == 'True' %} favorite location{% endif %}</h1>
+    <h1 style="display: inline-block;">{{ place_name }}
+      <!--a href="https://map.fridaysforfuture.org/?e={{regid}}/{{date}}">&nbsp;🌐&nbsp;</a-->
+      <a href="https://map.fridaysforfuture.org/?e={{regid}}">&nbsp;🌐&nbsp;</a>
+    </h1>
+    {% if favorite_location == 'True' %}
+      <input type="submit" name="favorite" id="favorite" value="Remove from Favorites" style="color:red; display: inline-block;"/>
+    {% endif %}
+    {% if favorite_location == 'False' %}
+      <input type="submit" name="favorite" id="favorite" value="Add to Favorites" style="color:green; display: inline-block;"/>
+    {% endif %}
+  </div>
+  <p>{% if in_location %} in <a href="{% url 'action:overview_by_name' %}?locid={{ in_location.id }}">{{ in_location.name }}</a>. {% endif %}
+    {{ gat_type }}
+    {% if gat.end_date %}
+      {% if gat.start_date == gat.end_date %} started {{ gat.start_date }}
+      {% else %} since {{ gat.start_date }} until {{ gat.end_date }}{% endif %}
+    {% else %}
+      {{ gat.start_date }}
+    {% endif %}
+    {% if gat.duration %} each time for {{ gat.duration }} hours{% endif %}
+  </p>
+  {% if gat_organizations %}
+    <p>Arranged by {{ gat_organizations|join:" // " }}</p>
+  {% endif %}  
+</form>
+
+{% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+
+<form action="{% url 'action:record_results' regid %}" method="post">
+  {% csrf_token %}
+  <input type="date" name="date" value="{{ date|default:today }}" onchange="this.form.submit()"/>
+</form>
+{% if date %}
+  <form action="{% url 'action:record_date' regid date %}" method="post" id="form">
+    {% csrf_token %}
+    <input type="hidden" id="prev_participants" value="{{ prev_participants }}"/>
+    <input type="hidden" id="prev_url" value="{{ prev_url }}"/>
+    <script type="text/javascript">
+      // For XHTML: <![CDATA[
+      function show_unsaved(show) {
+        if(show) {
+          document.getElementById("save_changes").style.display = "inline-block";
+          document.getElementById("form").style.backgroundColor = "#ffeeee";
+          document.getElementById("favorite").style.display = "none";
+        } else {
+          document.getElementById("save_changes").style.display = "none";
+          document.getElementById("form").style.backgroundColor = "";
+          document.getElementById("favorite").style.display = "inline-block";
+        }
+      }
+      function check_unsaved() {
+        if(document.getElementById("prev_participants").value == document.getElementById("participants").value &&
+           document.getElementById("prev_url").value == document.getElementById("url").value) {
+          show_unsaved(false);
+        } else {
+          show_unsaved(true);
+        }
+      }
+      // For XHTML: ]]>
+    </script>
+    <table>
+      <tr>
+        <td><legend>Participants</legend></td>
+        <td><input type="number" id="participants" name="participants" value="{{ prev_participants }}" min="1" max="99999" oninput="check_unsaved()" onchange="check_unsaved()"/></td>
+      </tr>
+      <tr>
+        <td/>
+        <td><p>You are welcome to share a photo from the event (optional) that we can show the world.</p></td>
+      </tr>
+      <tr>
+        <td><legend>URL to Photo</legend></td>
+        <td><input type="url" id="url" name="url" value="{{ prev_url }}" size="60" oninput="check_unsaved()" onchange="check_unsaved()"/></td>
+      </tr>
+      <tr>
+        <td>Organization (if any)</td>
+        <td>
+          <select name="organization" data-minimum-input-length="3" id="id_organization" data-autocomplete-light-language="en" data-autocomplete-light-url="/action/organization-autocomplete/" data-autocomplete-light-function="select2">
+            <option value="{{ gat_organizations|first }}" selected>{{ gat_organizations|first }}</option>
+          </select>
+        </td>
+        <link href="/static/admin/css/vendor/select2/select2.min.css" type="text/css" media="screen" rel="stylesheet">
+        <link href="/static/admin/css/autocomplete.css" type="text/css" media="screen" rel="stylesheet">
+        <link href="/static/autocomplete_light/select2.css" type="text/css" media="screen" rel="stylesheet">
+        <script src="/static/admin/js/vendor/select2/select2.full.js"></script>
+        <script src="/static/autocomplete_light/autocomplete_light.min.js"></script>
+        <script src="/static/autocomplete_light/select2.min.js"></script>
+        <script src="/static/autocomplete_light/i18n/en.js"></script>
+      </tr>
+      {% if user.is_authenticated is user.is_authenticated %}
+        <tr>
+          <td style="white-space:nowrap;">
+            <input type="submit" value="Record Result" style="display: inline-block;"/>
+          </td>
+          <td style="white-space:nowrap;">
+            <div style="color:red; display: none;" id="save_changes">&nbsp;&nbsp;&nbsp;↤&nbsp;&nbsp;Save Your Changes</div>
+          </td>
+        </tr>
+      {% endif %}
+    </table>
+    {% if True is False %}
+      <p style="color:red">Recording temporarily closed for maintenance. Use this form instead: <a href="https://docs.google.com/forms/d/e/1FAIpQLSeyRjvtBZZAEXUbLDe_P4tTIKncQaGxrkrxUcmmiyaZDdLFtg/viewform">Record!</a></p>
+    {% endif %}
+  </form>
+{% endif %}
+<h2>Records</h2>
+{% if gathering_list %}
+  <div class="gathering">
+    <ul>
+      {% for witness in gathering_list %}
+        <li class="{{colmap|get_item:witness.date}}">
+          <a href="/action/record_results/date/{{ regid }}/{{ witness.date|date:'Y-m-d' }}/">{{ witness.date|date:"Y-m-d" }}</a>
+          : {% if witness.participants %}{{ witness.participants }}{% else %}?{% endif %}
+          {% if witness.proof_url %}  <a href="{{ witness.proof_url }}">View Photo</a>{% endif %}
+          {% if witness.organization %} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<small>({{ witness.organization }})</small>{% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+{% else %}
+  <p>No results registered yet.</p>
+{% endif %}
+{% endblock %}
