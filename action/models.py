@@ -430,6 +430,39 @@ class Gathering_Belong(models.Model):
 
     return Gathering_Belong.detect_belongs_pointing_to_non_root_gatherings()
 
+  def group_singleton_gatherings_by_loc(regid_list):
+    # May be invoked manually by admin, not used by system
+    for regid in regid_list:
+      gat = models.Gathering.objects.filter(regid=regid).first()
+      if not gat:
+        print(f"Gat {regid} not found")
+        continue
+      loc = gat.location
+      if not loc:
+        print(f"Gat {regid} has no loc")
+        continue
+      cologat = None
+      cologats = models.Gathering.objects.filter(location=loc)
+      for colo in cologats:
+        if colo.regid == regid:
+          continue
+        cologat = colo
+        break
+      if not cologat:
+        print(f"Gat {gat} has no other gat at loc {loc}")
+        continue
+      print(f"Gat {gat} could be moved to gat {cologat}")
+      bel = models.Gathering_Belong.objects.filter(regid=regid).first()
+      if not bel:
+        print(f"Gat {gat} has no Gathering_Belong")
+        continue
+      if bel.gathering.regid == colo.regid:
+        print(f"Bel {regid} already moved to {colo.regid}")
+        continue
+      bel.gathering = colo
+      bel.save()
+      print(f"Bel {regid} moved to {colo.regid}")
+
 class Gathering_Witness(models.Model):
   def __str__(self):
     return str(self.gathering) + ":" + str(self.date)

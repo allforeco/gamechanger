@@ -14,7 +14,7 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import datetime, io, csv
+import datetime, io, csv, traceback
 
 from .models import Country, Location, Gathering, Gathering_Belong, Gathering_Witness, Organization
 from .push_notifier import Push_Notifier
@@ -393,19 +393,19 @@ def update_reg(regs, import_log = None):
               updated = long_ago)
             witness.save()
             counter['Gathering_Witness'] += 1
-            print(f"{lineno} {regid} new witness {gathering}=>{belong.gathering.regid}:{edate}", file=last_import_log)
+            print(f"{lineno} {regid} {edate} new witness {gathering}=>{belong.gathering.regid}:{edate}", file=last_import_log)
             #print(f"URWC {lineno} {regid} Witness created")
           else:
-            print(f"{lineno} {regid} Broken witness {gathering}=>{belong.gathering.regid}:{edate}", file=last_import_log)
+            print(f"{lineno} {regid} {edate} Broken witness {gathering}=>{belong.gathering.regid}:{edate}", file=last_import_log)
         else:
           db_updated = get_update_timestamp(witness.updated)
-          print(f"{lineno} {regid} db_updated {db_updated} {db_updated.tzinfo} {witness.updated}", file=last_import_log)
+          print(f"{lineno} {regid} {edate} db_updated {db_updated} {db_updated.tzinfo} {witness.updated}", file=last_import_log)
 
-        #if organization:
-        #  if not witness.organization:
-        #    witness.organization = organization
-        #    witness.save()
-        #    print(f"URWO {lineno} {regid} Witness organization updated to {organization}")
+        if organization:
+          if not witness.organization:
+            witness.organization = organization
+            witness.save()
+            print(f"URWO {lineno} {regid} {edate} Witness organization updated to {organization}")
 
         # Compare if newer
         rec_updated = get_update_timestamp(rec.get('RUPD'))
@@ -430,6 +430,7 @@ def update_reg(regs, import_log = None):
       except Exception as e:
         print(f"{lineno} {regid} exception {e}", file=last_import_log)
         print(f"URXX === Exception on {lineno} updated recs:\n{e}")
+        traceback.print_exc()
     print(f"URDN {lineno} records results: {counter}")
     if lineno:
       if counter['Completed'] < lineno * 0.90:

@@ -45,12 +45,18 @@ from .tools_view import tools_view_handler, tools_view_post
 
 class HomeView(FormView):
   class LocationSearchForm(forms.Form):
+    #class InLocationChoiceFieldDecorator(forms.ModelChoiceField):
+    #  def label_from_instance(self, obj):
+    #    return f"<<{obj.name}>>"
+
+    #location = InLocationChoiceFieldDecorator(
     location = forms.ModelChoiceField(
       queryset=Location.objects.all(),
       widget=autocomplete.ModelSelect2(
         url='/action/location-autocomplete/',
         attrs={'data-minimum-input-length': 3}),
       label='Select Particular',
+      #label_from_instance=lambda obj:f"<<<{obj.name}>>>",
       required=False,
     )
     #freetext = forms.CharField(
@@ -197,6 +203,13 @@ def overview_by_name(request):
   loc_exact = request.GET.get('exact','')
   loc_id = request.GET.get('locid','')
   return _overview_by_name(request, loc_name, loc_exact, loc_id)
+
+def bad_link(request, error_message):
+  context = {
+    'error_message': error_message,
+  }
+  template = loader.get_template('action/bad_link.html')
+  return HttpResponse(template.render(context, request))
 
 def _overview_by_name(request, loc_name='', loc_exact='', loc_id=''):
   if not loc_name and not loc_id:
