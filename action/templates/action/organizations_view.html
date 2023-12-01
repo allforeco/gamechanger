@@ -1,0 +1,32 @@
+{% extends "base_generic.html" %}
+
+{% block title %}
+    <title>Organizations Overview - Gamechanger Action Tracker</title>
+{% endblock %}
+
+{% block content %}
+{% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+<div>
+  <h2>Organizations List</h2>
+    <table>
+      <thead>
+        <th>Organization</th>
+        <th>Contact</th>
+      </thead>
+      {% if user.is_authenticated or logginbypass %}
+        {% for organization in organizations_list %}
+        <tbody>
+          <tr>
+            <td style="text-align: center; margin-top: 0px; vertical-align: top;">
+              {{organization.name}}
+            </td>
+            <td>
+              {{organization.email}}
+            </td>
+          </tr>
+        </tbody>
+        {% endfor %}
+      {% endif %}
+    </table>
+</div>
+{% endblock %}

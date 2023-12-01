@@ -32,12 +32,12 @@ urlpatterns = [
   path('tools/<str:result>', views.tools_view_handler, name='tools_result'),
   path('location-autocomplete/', views.LocationAutocomplete.as_view(), name='location-autocomplete'),
   path('organization-autocomplete/', views.OrganizationAutocomplete.as_view(), name='organization-autocomplete'),
-  path('start', views.start_view_handler),
   path('start/', views.start_view_handler, name='start'),
   path('start/latest_records', views.latest_records_view, name='latest_records'),
   path('start/latest_reports', RedirectView.as_view(url=f"/{app_name}/start/latest_records")),
   path('start/locations_list', views.locations_view, name='locations_list'),
   path('start', views.start_view_handler, name='start'),
+  path('start/organizations_list', views.organizations_view, name='organizations_list'),
   path('eventmap_data/', views.eventmap_data_view, name='eventmap_data_view'),
   path('eventmap_data/update_csv', views.eventmap_data, name='eventmap_data'),
 ]

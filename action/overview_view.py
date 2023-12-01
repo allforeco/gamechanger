@@ -65,6 +65,14 @@ def locations_view(request):
 
   return HttpResponse(template.render(context, request))
 
+def organizations_view(request):
+  organizations_list = Organization.objects.all()
+  print("o_list", organizations_list)
+  template = loader.get_template('action/organizations_view.html')
+  context = {'organizations_list':organizations_list}
+
+  return HttpResponse(template.render(context, request))
+
 def help_view(request):
 
   print(f"PLVI |{Location.valid_ids(False)}|")
