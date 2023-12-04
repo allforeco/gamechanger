@@ -262,8 +262,29 @@ class Organization(models.Model):
     return self.name
 
   name = models.CharField(max_length=50, unique=True)
-  email = models.EmailField(blank=True)
+  primary_email = models.EmailField(blank=True)
+  primary_location = models.ForeignKey(Location, on_delete=models.CASCADE, blank=True, null=True)
   #verified = models.ForeignKey(Verification, on_delete=models.CASCADE, editable=False)
+
+class OrganizationContact(models.Model):
+  def __str__(self):
+    return f"{self.organization} [{self.contacttype}:{self.name}]"
+
+  EMAIL="MAIL"
+  PHONE="PHON"
+  OTHER="OTHR"
+
+  _contact_type_choices =[
+    (EMAIL, "Email Adress"),
+    (PHONE, "Phone Number"),
+    (OTHER, "Other Contact Adress")
+  ]
+
+  organization=models.ForeignKey(Organization, on_delete=models.CASCADE, blank=False, null=False)
+  contacttype=models.CharField(max_length=4, choices=_contact_type_choices, default=OTHER)
+  adress=models.CharField(max_length=200, blank=False, null=False)
+  info=models.CharField(max_length=200, blank=True, null=True)
+
 
 class UserHome(models.Model):
   def __str__(self):
