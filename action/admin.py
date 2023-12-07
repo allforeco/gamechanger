@@ -2,11 +2,12 @@ from django.contrib import admin
 
 # Register your models here.
 
-from .models import Country, Location, Organization, UserHome, Action, Gathering, Gathering_Witness
+from .models import Country, Location, Organization, OrganizationContact, UserHome, Action, Gathering, Gathering_Witness
 
 admin.site.register(Country)
 admin.site.register(Location)
 admin.site.register(Organization)
+admin.site.register(OrganizationContact)
 admin.site.register(UserHome)
 admin.site.register(Action)
 admin.site.register(Gathering)

@@ -33,7 +33,12 @@
               {{region}}
             </td>
             <td>
-              {{organization.name}}
+              {% with name=organization.name|slugify %}
+              {% if name %}
+              <a href="{% url 'action:organization_view' org=name %}">{{organization.name}}</a>
+              {% endif %}
+              {% endwith %}
+
             </td>
             <td>
               {{organization.primary_email}}

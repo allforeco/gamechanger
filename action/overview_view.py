@@ -5,7 +5,7 @@ from django.urls import reverse_lazy
 #from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth.decorators import login_required, permission_required
 from django import forms
-from .models import Gathering, Gathering_Belong, Gathering_Witness, Location, UserHome, Organization
+from .models import Gathering, Gathering_Belong, Gathering_Witness, Location, UserHome, Organization, OrganizationContact
 import datetime
 
 static_location_file = "/var/www/gamechanger.eco/static/cached_locations.htmlbody"
@@ -81,10 +81,19 @@ def organizations_view(request):
 
   return HttpResponse(template.render(context, request))
 
-def organization_view(request, organizationname):
-  organization = Organization.objects.filter(name=organizationname).first()
+def organization_view(request, org):
+  organization = Organization.objects.filter(name=org).first()
+  contact_list = OrganizationContact.objects.filter(organization=organization)
+  gathering_witness_list = Gathering_Witness.objects.filter(organization=organization)
+  print("org", organization)
+  print("cl", contact_list)
+  print("gwl", gathering_witness_list)
   template = loader.get_template('action/organization_overview.html')
-  context = {'organization':organization}
+  context = {
+    'organization':organization,
+    'contact_list': contact_list,
+    'gathering_witness_list': gathering_witness_list,
+    }
 
   return HttpResponse(template.render(context, request))
 

@@ -37,7 +37,8 @@ urlpatterns = [
   path('start/latest_reports', RedirectView.as_view(url=f"/{app_name}/start/latest_records")),
   path('start/locations_list', views.locations_view, name='locations_list'),
   path('start', views.start_view_handler, name='start'),
-  path('start/organizations_list', views.organizations_view, name='organizations_list'),
+  path('start/organizations', views.organizations_view, name='organizations_list'),
+  path('start/organizations/<str:org>/', views.organization_view, name='organization_view'),
   path('eventmap_data/', views.eventmap_data_view, name='eventmap_data_view'),
   path('eventmap_data/update_csv', views.eventmap_data, name='eventmap_data'),
 ]
