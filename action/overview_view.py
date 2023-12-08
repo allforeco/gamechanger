@@ -66,14 +66,15 @@ def locations_view(request):
   return HttpResponse(template.render(context, request))
 
 def organizations_view(request):
-  organizations_list = Organization.objects.all().order_by('primary_location')
+  organizations_list = Organization.objects.exclude(primary_location=None).order_by('primary_location')
 
   organizations_region_dict = {}
   for organization in organizations_list:
-    if not organization.primary_location in organizations_region_dict.keys():
-      organizations_region_dict[organization.primary_location] = [organization]
+    contacts = OrganizationContact.objects.filter(organization=organization)
+    if not organization.primary_location.country() in organizations_region_dict.keys():
+      organizations_region_dict[organization.primary_location.country()] = [[organization,contacts]]
     else:
-      organizations_region_dict[organization.primary_location] += [organization]
+      organizations_region_dict[organization.primary_location.country()] += [[organization,contacts]]
 
   print("o_r_d", organizations_region_dict)
   template = loader.get_template('action/organizations_overview.html')

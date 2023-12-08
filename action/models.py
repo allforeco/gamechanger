@@ -268,16 +268,24 @@ class Organization(models.Model):
 
 class OrganizationContact(models.Model):
   def __str__(self):
-    return f"{self.organization} [{self.contacttype}:{self.name}]"
+    return f"{self.organization} [{self.contacttype}:{self.adress}]"
 
+  OTHER="OTHR"
   EMAIL="MAIL"
   PHONE="PHON"
-  OTHER="OTHR"
+  WEBSITE="WEBS"
+  TWITTER="TWTR"
+  FACEBOOK="FCBK"
+  INSTAGRAM="INSG"
 
   _contact_type_choices =[
+    (OTHER, "Other Contact Adress"),
     (EMAIL, "Email Adress"),
     (PHONE, "Phone Number"),
-    (OTHER, "Other Contact Adress")
+    (WEBSITE, "Organization Website URL"),
+    (TWITTER, "X (formerly twitter) URL"),
+    (FACEBOOK, "Facebook URL"),
+    (INSTAGRAM, "Instagram URL"),
   ]
 
   organization=models.ForeignKey(Organization, on_delete=models.CASCADE, blank=False, null=False)
