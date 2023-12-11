@@ -82,14 +82,24 @@ def organizations_view(request):
 
   return HttpResponse(template.render(context, request))
 
-def organization_view(request, org):
-  organization = Organization.objects.filter(name=org).first()
+def organization_view(request, orgid):
+  template = loader.get_template('action/organization_overview.html')
+
+  organization = Organization.objects.filter(id=orgid).first()
+  #organization = Organization.objects.first()
+  if organization == None:
+    context={
+      'organization':None,
+      'contact_list': [],
+      'gathering_witness_list': [],
+    }
+    return HttpResponse(template.render(context, request))
   contact_list = OrganizationContact.objects.filter(organization=organization)
-  gathering_witness_list = Gathering_Witness.objects.filter(organization=organization)
+  gathering_witness_list = Gathering_Witness.objects.filter(organization=organization).order_by('-date')[:100]
   print("org", organization)
   print("cl", contact_list)
   print("gwl", gathering_witness_list)
-  template = loader.get_template('action/organization_overview.html')
+  
   context = {
     'organization':organization,
     'contact_list': contact_list,

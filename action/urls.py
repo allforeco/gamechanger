@@ -38,7 +38,7 @@ urlpatterns = [
   path('start/locations_list', views.locations_view, name='locations_list'),
   path('start', views.start_view_handler, name='start'),
   path('start/organizations', views.organizations_view, name='organizations_list'),
-  path('start/organizations/<str:org>/', views.organization_view, name='organization_view'),
+  path('start/organizations/<int:orgid>/', views.organization_view, name='organization_view'),
   path('eventmap_data/', views.eventmap_data_view, name='eventmap_data_view'),
   path('eventmap_data/update_csv', views.eventmap_data, name='eventmap_data'),
 ]

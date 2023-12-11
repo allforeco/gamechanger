@@ -288,11 +288,30 @@ class OrganizationContact(models.Model):
     (INSTAGRAM, "Instagram URL"),
   ]
 
+  _contact_type_adress= [
+    (OTHER, ""),
+    (EMAIL, "@"),
+    (PHONE, "#"),
+    (WEBSITE, "https://"),
+    (TWITTER, "www.twitter.com"),
+    (FACEBOOK, "www.facebook.com"),
+    (INSTAGRAM, "www.instagram.com"),
+  ]
+
   organization=models.ForeignKey(Organization, on_delete=models.CASCADE, blank=False, null=False)
   contacttype=models.CharField(max_length=4, choices=_contact_type_choices, default=OTHER)
   adress=models.CharField(max_length=200, blank=False, null=False)
   info=models.CharField(max_length=200, blank=True, null=True)
 
+  def description(self):
+    for ctype in self._contact_type_choices:
+      if ctype[0] == self.contacttype:
+        return ctype[1]
+  
+  def adressacces(self):
+    for aatype in self._contact_type_adress:
+      if aatype[0] == self.contacttype:
+        return aatype[1]
 
 class UserHome(models.Model):
   def __str__(self):
