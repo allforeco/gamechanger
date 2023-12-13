@@ -262,8 +262,8 @@ class Organization(models.Model):
     return self.name
 
   name = models.CharField(max_length=50, unique=True)
-  primary_email = models.EmailField(blank=True)
   primary_location = models.ForeignKey(Location, on_delete=models.CASCADE, blank=True, null=True)
+  #contacts = models.ManyToManyField(Contact, blank=True)
   #verified = models.ForeignKey(Verification, on_delete=models.CASCADE, editable=False)
 
 class OrganizationContact(models.Model):
