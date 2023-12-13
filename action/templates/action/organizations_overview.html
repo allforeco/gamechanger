@@ -37,7 +37,7 @@
                 {% endif %}
                 {% for contact in organizationcontact|last %}
                 <li>
-                  <a href="{{contact.adress}}" target="_blank">{{contact.description}}<sup><sup><img src="/static/icon-external.png"/></sup></sup></a>
+                  <a href="{{contact.adressacces}}{{contact.adress}}" target="_blank">{{contact.description}}<sup><sup><img src="/static/icon-external.png"/></sup></sup></a>
                 </li>
                 {% endfor %}
               </ul>

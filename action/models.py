@@ -290,12 +290,12 @@ class OrganizationContact(models.Model):
 
   _contact_type_adress= [
     (OTHER, ""),
-    (EMAIL, "@"),
-    (PHONE, "#"),
+    (EMAIL, "mailto:"),
+    (PHONE, "tel:"),
     (WEBSITE, "https://"),
-    (TWITTER, "www.twitter.com"),
-    (FACEBOOK, "www.facebook.com"),
-    (INSTAGRAM, "www.instagram.com"),
+    (TWITTER, "https://www.twitter.com/"),
+    (FACEBOOK, "https://www.facebook.com/"),
+    (INSTAGRAM, "https://www.instagram.com/"),
   ]
 
   organization=models.ForeignKey(Organization, on_delete=models.CASCADE, blank=False, null=False)
