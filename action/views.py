@@ -368,13 +368,27 @@ def download_post(request):
   try:
     #comment = '''
     t = datetime.datetime.fromisoformat(start_datetime+"+00:00")
-    gupdates = Gathering_Witness.objects.filter(updated__gte=t)
+    # Order so that most recently updated data comes last, i.e. overwrites earlier data
+    gupdates = Gathering_Witness.objects.filter(updated__gte=t).order_by('updated')
+    print(f"GUD0 cnt {len(gupdates)}")
 
     with io.StringIO(newline='') as csvfile:
       content = csv.writer(csvfile, quoting=csv.QUOTE_MINIMAL)
       for gupdate in gupdates:
+        gupdate_belong = None
+        try:
+          bels = Gathering_Belong.objects.filter(regid=gupdate.gathering.regid)
+          bel = bels.first()
+          gupdate_belong = bel.gathering
+        except:
+          pass
+        if not gupdate_belong:
+          print(f"GUD8 missing belong for {gupdate.gathering.regid}")
+          gupdate_belong = gupdate.gathering
+        if gupdate.gathering.regid != gupdate_belong.regid:
+          print(f"GUD9 belong {gupdate.gathering.regid} => {gupdate_belong}")
         content.writerow(['Witness', 
-          gupdate.gathering,
+          gupdate_belong,
           gupdate.date, 
           gupdate.participants,
           gupdate.proof_url, 
