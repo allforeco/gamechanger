@@ -311,7 +311,10 @@ class OrganizationContact(models.Model):
   def adressacces(self):
     for aatype in self._contact_type_adress:
       if aatype[0] == self.contacttype:
-        return aatype[1]
+        if (aatype[1] in self.adress):
+          return ""
+        else:
+          return aatype[1]
 
 class UserHome(models.Model):
   def __str__(self):
