@@ -5,7 +5,7 @@ from django.urls import reverse_lazy
 #from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth.decorators import login_required, permission_required
 from django import forms
-from .models import Gathering, Gathering_Belong, Gathering_Witness, Location, UserHome, Organization
+from .models import Gathering, Gathering_Belong, Gathering_Witness, Location, UserHome, Organization, OrganizationContact
 import datetime
 
 static_location_file = "/var/www/gamechanger.eco/static/cached_locations.htmlbody"
@@ -62,6 +62,49 @@ def locations_view(request):
     'logginbypass': logginbypass,
     'htmlbody': htmlbody,
   }
+
+  return HttpResponse(template.render(context, request))
+
+def organizations_view(request):
+  organizations_list = Organization.objects.exclude(primary_location=None).order_by('primary_location')
+
+  organizations_region_dict = {}
+  for organization in organizations_list:
+    contacts = OrganizationContact.objects.filter(organization=organization)
+    if not organization.primary_location.country() in organizations_region_dict.keys():
+      organizations_region_dict[organization.primary_location.country()] = [[organization,contacts]]
+    else:
+      organizations_region_dict[organization.primary_location.country()] += [[organization,contacts]]
+
+  print("o_r_d", organizations_region_dict)
+  template = loader.get_template('action/organizations_overview.html')
+  context = {'organizations_region_dict':organizations_region_dict}
+
+  return HttpResponse(template.render(context, request))
+
+def organization_view(request, orgid):
+  template = loader.get_template('action/organization_overview.html')
+
+  organization = Organization.objects.filter(id=orgid).first()
+  #organization = Organization.objects.first()
+  if organization == None:
+    context={
+      'organization':None,
+      'contact_list': [],
+      'gathering_witness_list': [],
+    }
+    return HttpResponse(template.render(context, request))
+  contact_list = OrganizationContact.objects.filter(organization=organization)
+  gathering_witness_list = Gathering_Witness.objects.filter(organization=organization).order_by('-date')[:100]
+  print("org", organization)
+  print("cl", contact_list)
+  print("gwl", gathering_witness_list)
+  
+  context = {
+    'organization':organization,
+    'contact_list': contact_list,
+    'gathering_witness_list': gathering_witness_list,
+    }
 
   return HttpResponse(template.render(context, request))
 

@@ -262,8 +262,56 @@ class Organization(models.Model):
     return self.name
 
   name = models.CharField(max_length=50, unique=True)
-  email = models.EmailField(blank=True)
+  primary_location = models.ForeignKey(Location, on_delete=models.CASCADE, blank=True, null=True)
+  #contacts = models.ManyToManyField(Contact, blank=True)
   #verified = models.ForeignKey(Verification, on_delete=models.CASCADE, editable=False)
+
+class OrganizationContact(models.Model):
+  def __str__(self):
+    return f"{self.organization} [{self.contacttype}:{self.adress}]"
+
+  OTHER="OTHR"
+  EMAIL="MAIL"
+  PHONE="PHON"
+  WEBSITE="WEBS"
+  TWITTER="TWTR"
+  FACEBOOK="FCBK"
+  INSTAGRAM="INSG"
+
+  _contact_type_choices =[
+    (OTHER, "Other Contact Adress"),
+    (EMAIL, "Email Adress"),
+    (PHONE, "Phone Number"),
+    (WEBSITE, "Organization Website URL"),
+    (TWITTER, "X (formerly twitter) URL"),
+    (FACEBOOK, "Facebook URL"),
+    (INSTAGRAM, "Instagram URL"),
+  ]
+
+  _contact_type_adress= [
+    (OTHER, ""),
+    (EMAIL, "@"),
+    (PHONE, "#"),
+    (WEBSITE, "https://"),
+    (TWITTER, "www.twitter.com"),
+    (FACEBOOK, "www.facebook.com"),
+    (INSTAGRAM, "www.instagram.com"),
+  ]
+
+  organization=models.ForeignKey(Organization, on_delete=models.CASCADE, blank=False, null=False)
+  contacttype=models.CharField(max_length=4, choices=_contact_type_choices, default=OTHER)
+  adress=models.CharField(max_length=200, blank=False, null=False)
+  info=models.CharField(max_length=200, blank=True, null=True)
+
+  def description(self):
+    for ctype in self._contact_type_choices:
+      if ctype[0] == self.contacttype:
+        return ctype[1]
+  
+  def adressacces(self):
+    for aatype in self._contact_type_adress:
+      if aatype[0] == self.contacttype:
+        return aatype[1]
 
 class UserHome(models.Model):
   def __str__(self):

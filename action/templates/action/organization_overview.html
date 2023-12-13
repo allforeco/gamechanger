@@ -1,0 +1,88 @@
+{% extends "base_generic.html" %}
+
+{% block title %}
+    <title>Organizations Overview - Gamechanger Action Tracker</title>
+{% endblock %}
+
+{% block content %}
+{% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+{% if user.is_authenticated or logginbypass %}
+{% if organization %}
+<div>
+  <h2>Organization</h2>
+    <table>
+      <thead>
+        <th>Organization</th>
+        <th>Primary Location</th>
+        <th>Primary Contact</th>
+      </thead>
+        <tbody>
+          <tr>
+            <td style="text-align: center; margin-top: 0px; vertical-align: top;">
+              {{organization.name}}
+            </td>
+            <td>
+              {{organization.primary_location}}
+            </td>
+            <td>
+              {{organization.primary_email}}
+            </td>
+          </tr>
+        </tbody>
+    </table>
+    <h2>Contacts</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Contact Notes</th>
+          <th>Contact Type</th>
+          <th>Contact Adress</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for contact in contact_list %}
+        <tr>
+          <td>{{contact.info}}</td>
+          <td>{{contact.description}}</td>
+          <td target="_blank"><a href="{{contact.adressacces}}{{contact.adress}}" >{{contact.adress}}<sup><sup><img src="/static/icon-external.png"/></sup></sup></a></td>
+
+        </tr>
+        {% endfor %}
+      </tbody>
+      
+    </table>
+
+    <h2>Previous Gatherings (100 latest)</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Loction</th>
+          <th>Map</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for gathering in gathering_witness_list %}
+        <tr>
+          <td>{{gathering.date|date:"Y-m-d"}}</td> <!---->
+          <td>
+            <a href="{% url 'action:geo_view' gathering.gathering.location.country.id %}">{{gathering.gathering.location.country}}</a>;
+            <a href="{% url 'action:geo_view' gathering.gathering.location.id %}">{{gathering.gathering.location.name}}</a>
+          </td>
+          <td style="text-align: center;">
+            <a target="_blank" href="https://map.fridaysforfuture.org/?e={{gathering.gathering.regid}}"><img src="/static/icon_globe.png"/><sup><sup><img src="/static/icon-external.png"/></sup></sup></a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    {% endif %}
+</div>
+{% endif %}
+{% if organization == None %}
+<div>
+  <p>None</p>
+</div>
+{% endif %}
+{% endblock %}
