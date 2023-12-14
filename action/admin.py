@@ -13,12 +13,6 @@ admin.site.register(Action)
 admin.site.register(Gathering)
 admin.site.register(Gathering_Witness)
 
-class OrganizationContactAdmin(admin.ModelAdmin):
-  def get_form(self, request, obj=None, **kwargs):
-    form = super(OrganizationContactAdmin, self).get_form(request, obj, **kwargs)
-    form.base_fields['organization'].queryset = Organization.objects.exclude(primary_location=None).order_by('name')
-    return form
-
 class OrganizationAdmin(admin.ModelAdmin):
   list_display = ('name', 'primary_location')
   search_fields = ['name']
@@ -28,6 +22,16 @@ class OrganizationAdmin(admin.ModelAdmin):
     form.base_fields['primary_location'].queryset = Location.objects.all().order_by('name')
     return form
 
-
 admin.site.register(Organization, OrganizationAdmin)
+
+class OrganizationContactAdmin(admin.ModelAdmin):
+  list_display = ('organization', 'contacttype', 'adress')
+  search_fields =['organization__name']
+
+  def get_form(self, request, obj=None, **kwargs):
+    form = super(OrganizationContactAdmin, self).get_form(request, obj, **kwargs)
+    form.base_fields['organization'].queryset = Organization.objects.exclude(primary_location=None).order_by('name')
+    return form
+
 admin.site.register(OrganizationContact, OrganizationContactAdmin)
+

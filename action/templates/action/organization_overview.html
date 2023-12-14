@@ -10,28 +10,24 @@
 {% if organization %}
 <div>
   <h2>Organization</h2>
-    <table>
+    <table style="width: 50%;">
       <thead>
         <th>Organization</th>
         <th>Primary Location</th>
-        <th>Primary Contact</th>
       </thead>
         <tbody>
           <tr>
-            <td style="text-align: center; margin-top: 0px; vertical-align: top;">
+            <td style="text-align: center;">
               {{organization.name}}
             </td>
-            <td>
+            <td  style="text-align: center;">
               {{organization.primary_location}}
-            </td>
-            <td>
-              {{organization.primary_email}}
             </td>
           </tr>
         </tbody>
     </table>
     <h2>Contacts</h2>
-    <table>
+    <table style="width: 50%;">
       <thead>
         <tr>
           <th>Contact Notes</th>
@@ -42,9 +38,9 @@
       <tbody>
         {% for contact in contact_list %}
         <tr>
-          <td>{{contact.info}}</td>
-          <td>{{contact.description}}</td>
-          <td target="_blank"><a href="{{contact.adressacces}}{{contact.adress}}" >{{contact.adress}}<sup><sup><img src="/static/icon-external.png"/></sup></sup></a></td>
+          <td style="padding: 1em;">{{contact.info}}</td>
+          <td style="padding: 1em;">{{contact.description}}</td>
+          <td style="padding: 1em;" target="_blank"><a href="{{contact.adressacces}}{{contact.adress}}" >{{contact.adress}}<img style="height: 1em; position: relative; top:-10px;" src="/static/icon-external.png"/></a></td>
 
         </tr>
         {% endfor %}
@@ -53,12 +49,12 @@
     </table>
 
     <h2>Previous Gatherings (100 latest)</h2>
-    <table>
+    <table style="width: 50%;">
       <thead>
         <tr>
-          <th>Date</th>
+          <th style="width: 10%;">Date</th>
           <th>Loction</th>
-          <th>Map</th>
+          <th style="width: 10%;">Map</th>
         </tr>
       </thead>
       <tbody>
@@ -85,4 +81,8 @@
   <p>None</p>
 </div>
 {% endif %}
+
+<style>
+  
+</style>
 {% endblock %}

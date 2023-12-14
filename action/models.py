@@ -290,12 +290,22 @@ class OrganizationContact(models.Model):
 
   _contact_type_adress= [
     (OTHER, ""),
-    (EMAIL, "@"),
-    (PHONE, "#"),
+    (EMAIL, "mailto:"),
+    (PHONE, "tel:"),
     (WEBSITE, "https://"),
-    (TWITTER, "www.twitter.com"),
-    (FACEBOOK, "www.facebook.com"),
-    (INSTAGRAM, "www.instagram.com"),
+    (TWITTER, "https://www.twitter.com/"),
+    (FACEBOOK, "https://www.facebook.com/"),
+    (INSTAGRAM, "https://www.instagram.com/"),
+  ]
+
+  _contact_type_icon= [
+    (OTHER, ""),
+    (EMAIL, ""),
+    (PHONE, ""),
+    (WEBSITE, ""),
+    (TWITTER, ""),
+    (FACEBOOK, ""),
+    (INSTAGRAM, ""),
   ]
 
   organization=models.ForeignKey(Organization, on_delete=models.CASCADE, blank=False, null=False)
@@ -311,7 +321,16 @@ class OrganizationContact(models.Model):
   def adressacces(self):
     for aatype in self._contact_type_adress:
       if aatype[0] == self.contacttype:
-        return aatype[1]
+        if (aatype[1] in self.adress):
+          return ""
+        else:
+          return aatype[1]
+  
+  def icon(self):
+    for ctype in self._contact_type_icon:
+      if ctype[0] == self.contacttype:
+        return ctype[1]
+
 
 class UserHome(models.Model):
   def __str__(self):
