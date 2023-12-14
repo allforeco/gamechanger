@@ -298,6 +298,16 @@ class OrganizationContact(models.Model):
     (INSTAGRAM, "https://www.instagram.com/"),
   ]
 
+  _contact_type_icon= [
+    (OTHER, ""),
+    (EMAIL, ""),
+    (PHONE, ""),
+    (WEBSITE, ""),
+    (TWITTER, ""),
+    (FACEBOOK, ""),
+    (INSTAGRAM, ""),
+  ]
+
   organization=models.ForeignKey(Organization, on_delete=models.CASCADE, blank=False, null=False)
   contacttype=models.CharField(max_length=4, choices=_contact_type_choices, default=OTHER)
   adress=models.CharField(max_length=200, blank=False, null=False)
@@ -315,6 +325,12 @@ class OrganizationContact(models.Model):
           return ""
         else:
           return aatype[1]
+  
+  def icon(self):
+    for ctype in self._contact_type_icon:
+      if ctype[0] == self.contacttype:
+        return ctype[1]
+
 
 class UserHome(models.Model):
   def __str__(self):
