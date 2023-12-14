@@ -16,15 +16,18 @@
         <h2 style="float: left;"><a href="{% url 'action:geo_view' region.id %}">{{region}}</a> </h2>
         <input id="collapse_{{region}}" style="float: right; padding: 1em;" value="-" type="button" onclick="toggleTable('{{region}}')"/>
       </span>
-      <table id="table_{{region}}" style="display: block;">
-        <thead>
-          <th>Region</th>
-          <th>Organization</th>
-          <th>Contact</th>
+      <table id="table_{{region}}" style="width: 100%; display: block;">
+        <thead style="width: 100%;">
+          <tr style="width: 100%;">
+            <th>Region</th>
+            <th>Organization</th>
+            <th>Contact</th>
+            </tr>
+          
         </thead>
-        <tbody>
+        <tbody style="width: 100%;">
           {% for organizationcontact in organizations %}
-          <tr>
+          <tr style="width: 100%;">
             {% with organization=organizationcontact|first %}
             <td class="td_display_region">
               <a href="{% url 'action:geo_view' organization.primary_location.id %}">{{organization.primary_location}}</a> 
@@ -85,7 +88,7 @@
   .regionbrick table{
     width: 100%;
     overflow: hidden;
-    /*display: none;*/
+    display: block;
   }
 
   .regionbrick td{
@@ -94,16 +97,19 @@
   }
 
   .td_display_region{
-    width: 10%;
+    /*width: 10%;*/
+    width: 1%;
     text-align: center;
     height: 3em;
   }
 
   .td_display_org{
+    /*width: 30%;*/
     width: 30%;
   }
   .td_display_contact{
-    width: 60%;
+    /*width: 60%;*/
+    width: 100%;
   }
 
   .contact_link{
