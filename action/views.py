@@ -144,6 +144,13 @@ class OrganizationAutocomplete(autocomplete.Select2QuerySetView):
       qs = qs.filter(name__icontains=self.q)
     return qs
 
+
+def GatheringCreate(request):
+  template = loader.get_template('action/gathering_form.html')
+  context = {}
+  return HttpResponse(template.render(context, request))
+
+
 class GatheringSearch(FormView):
   class GatheringSearchForm(forms.ModelForm):
     class Meta:
