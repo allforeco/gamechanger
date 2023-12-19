@@ -1,0 +1,144 @@
+{% extends "base_generic.html" %}
+
+{% block title %}
+    <title>Contacts Overview - Gamechanger Action Tracker</title>
+{% endblock %}
+
+{% block content %}
+{% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+{% if user.is_authenticated or logginbypass %}
+<div>
+  <h2></h2>
+  <ul>
+    {% for country, regioncontacts in contacts_region_dict.items %}
+    <div id="{{country}}" class="regionbrick">
+      <span>
+        <h2 style="float: left;"><a href="{% url 'action:geo_view' country.id %}">{{country}}</a> </h2>
+        <input id="collapse_{{country}}" style="float: right; padding: 1em;" value="-" type="button" onclick="toggleTable('{{country}}')"/>
+      </span>
+      <table id="table_{{country}}" style="width: 100%; display: block;">
+        <thead style="width: 100%;">
+          <tr style="width: 100%;">
+            <th class="td_display_region">Region</th>
+            <th>Contact</th>
+            </tr>
+          
+        </thead>
+        <tbody style="width: 100%;">
+          {% for region, contacts in regioncontacts.items %}
+            
+            <tr style="width: 100%;">
+              <td>
+                {{region}}
+              </td>
+              <td class="td_display_contact">
+                <ul>
+                {% for contact in contacts %}
+                <li class="contact_link">
+                  <a href="{{contact.adressacces}}{{contact.adress}}" target="_blank">{{contact.icon}}</a>[<a href="{% url 'action:organization_view' contact.organization.id %}">{{contact.organization}}</a>]
+                </li>
+                {% endfor %}
+                </ul>
+              </td>
+            </tr>
+          {% endfor %}
+          <!--
+          <tr style="width: 100%;">
+            { with organization=organizationcontact|first }
+            <td class="td_display_region">
+              <a href="{ url 'action:geo_view' organization.primary_location.id }">{organization.primary_location}</a> 
+            </td>
+            <td class="td_display_org">
+              <a href="{ url 'action:organization_view' organization.id }">{organization.name}</a>
+            </td>
+            { endwith }
+            <td class="td_display_contact">
+              <ul>
+                { for contact in organizationcontact|last }
+                <li class="contact_link">
+                  <a href="{contact.adressacces}{contact.adress}" target="_blank">{{contact.description}}<img class="external_link_icon" src="/static/icon-external.png"/></a> #<sup><sup><img src="/static/icon-external.png"/></sup></sup>
+                </li>
+                { endfor }
+              </ul>
+            </td>
+          </tr>
+          { endfor }
+          -->
+        </tbody>
+      </table>
+    </div>
+    {% endfor %}
+  </ul>
+  {% endif %}
+</div>
+<script>
+  function toggleTable(region){
+    table = document.getElementById(region).getElementsByTagName('table')[0];
+    button = document.getElementById('collapse_'+region);
+    console.log(table);
+    if (table.style.display != 'none'){
+      table.style.display = 'none';
+      button.value='+';
+    }else{
+      table.style.display = 'block'
+      button.value='-';
+    }
+  }
+</script>
+
+<style>
+  .regionbrick{
+    margin-bottom: 2em; 
+    background-color: whitesmoke; 
+    border-radius: 12px;
+    display: block;
+    
+    height: fit-content;
+    min-height: 3em;
+    /*width: fit-content;*/
+    margin: 1em auto;
+    width: 66%;
+    padding: 1em; 
+    padding-top: 0.01em;
+  }
+
+  .regionbrick table{
+    width: 100%;
+    overflow: hidden;
+    display: block;
+  }
+
+  .regionbrick td{
+    height: 2em;
+    overflow: hidden;
+  }
+
+  .td_display_region{
+    /*width: 10%;*/
+    width: 1%;
+    text-align: center;
+    height: 3em;
+  }
+
+  .td_display_org{
+    /*width: 30%;*/
+    width: 30%;
+  }
+  .td_display_contact{
+    /*width: 60%;*/
+    width: 100%;
+  }
+
+  .contact_link{
+    float: left;
+    padding: 1em;
+  }
+
+  .external_link_icon{
+    height: 1em;
+    position: relative;
+    top:-10px;
+  }
+</style>
+
+{% endblock %}

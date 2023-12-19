@@ -262,7 +262,7 @@ class Organization(models.Model):
     return self.name
 
   name = models.CharField(max_length=50, unique=True)
-  primary_location = models.ForeignKey(Location, on_delete=models.CASCADE, blank=True, null=True)
+  #primary_location = models.ForeignKey(Location, on_delete=models.CASCADE, blank=True, null=True)
   #contacts = models.ManyToManyField(Contact, blank=True)
   #verified = models.ForeignKey(Verification, on_delete=models.CASCADE, editable=False)
 
@@ -299,19 +299,21 @@ class OrganizationContact(models.Model):
   ]
 
   _contact_type_icon= [
-    (OTHER, ""),
-    (EMAIL, ""),
-    (PHONE, ""),
-    (WEBSITE, ""),
-    (TWITTER, ""),
-    (FACEBOOK, ""),
-    (INSTAGRAM, ""),
+    (OTHER, "O"),
+    (EMAIL, "EM"),
+    (PHONE, "P#"),
+    (WEBSITE, "W"),
+    (TWITTER, "T"),
+    (FACEBOOK, "F"),
+    (INSTAGRAM, "I"),
   ]
 
+  
   organization=models.ForeignKey(Organization, on_delete=models.CASCADE, blank=False, null=False)
   contacttype=models.CharField(max_length=4, choices=_contact_type_choices, default=OTHER)
   adress=models.CharField(max_length=200, blank=False, null=False)
   info=models.CharField(max_length=200, blank=True, null=True)
+  location = models.ForeignKey(Location, on_delete=models.CASCADE, blank=True, null=True)
 
   def description(self):
     for ctype in self._contact_type_choices:

@@ -14,23 +14,24 @@ admin.site.register(Gathering)
 admin.site.register(Gathering_Witness)
 
 class OrganizationAdmin(admin.ModelAdmin):
-  list_display = ('name', 'primary_location')
+  #list_display = ('name')
   search_fields = ['name']
 
-  def get_form(self, request, obj=None, **kwargs):
-    form = super(OrganizationAdmin, self).get_form(request, obj, **kwargs)
-    form.base_fields['primary_location'].queryset = Location.objects.all().order_by('name')
-    return form
+  #def get_form(self, request, obj=None, **kwargs):
+  #  form = super(OrganizationAdmin, self).get_form(request, obj, **kwargs)
+  #  form.base_fields['primary_location'].queryset = Location.objects.all().order_by('name')
+  #  return form
 
-admin.site.register(Organization, OrganizationAdmin)
+admin.site.register(Organization) #OrganizationAdmin
 
 class OrganizationContactAdmin(admin.ModelAdmin):
-  list_display = ('organization', 'contacttype', 'adress')
-  search_fields =['organization__name']
+  list_display = ('organization', 'contacttype', 'adress', 'location')
+  search_fields =['organization__name', 'location']
 
   def get_form(self, request, obj=None, **kwargs):
     form = super(OrganizationContactAdmin, self).get_form(request, obj, **kwargs)
-    form.base_fields['organization'].queryset = Organization.objects.exclude(primary_location=None).order_by('name')
+    form.base_fields['organization'].queryset = Organization.objects.all().order_by('name')
+    form.base_fields['location'].queryset = Location.objects.all().order_by('name')
     return form
 
 admin.site.register(OrganizationContact, OrganizationContactAdmin)

@@ -65,6 +65,27 @@ def locations_view(request):
 
   return HttpResponse(template.render(context, request))
 
+def contacts_view(request):
+  contacts_list = OrganizationContact.objects.all().order_by('-location')
+
+  contacts_region_dict = {}
+  for contact in contacts_list:
+    if not contact.location.country() in contacts_region_dict.keys():
+      contacts_region_dict[contact.location.country()] = {}
+      contacts_region_dict[contact.location.country()][contact.location] = [contact]
+    else:
+      if not contact.location in contacts_region_dict[contact.location.country()].keys():
+        contacts_region_dict[contact.location.country()][contact.location] = [contact]
+      else:
+        contacts_region_dict[contact.location.country()][contact.location] += [contact]
+  
+  print("crd", contacts_region_dict)
+  template = loader.get_template('action/contacts_overview.html')
+  context = {'contacts_region_dict': contacts_region_dict}
+
+  return HttpResponse(template.render(context, request))
+
+
 def organizations_view(request):
   organizations_list = Organization.objects.exclude(primary_location=None).order_by('primary_location')
 
@@ -76,7 +97,6 @@ def organizations_view(request):
     else:
       organizations_region_dict[organization.primary_location.country()] += [[organization,contacts]]
 
-  print("o_r_d", organizations_region_dict)
   template = loader.get_template('action/organizations_overview.html')
   context = {'organizations_region_dict':organizations_region_dict}
 
