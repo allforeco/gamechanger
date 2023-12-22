@@ -4,9 +4,11 @@ from django.views.generic.edit import FormView, CreateView, UpdateView, DeleteVi
 from django.urls import reverse_lazy
 #from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth.decorators import login_required, permission_required
+from django.shortcuts import redirect
 from django import forms
 from .models import Gathering, Gathering_Belong, Gathering_Witness, Location, UserHome, Organization, OrganizationContact
 import datetime
+import csv
 
 static_location_file = "/var/www/gamechanger.eco/static/cached_locations.htmlbody"
 
@@ -65,21 +67,75 @@ def locations_view(request):
 
   return HttpResponse(template.render(context, request))
 
+
+def contacts_import(request):
+  logginbypass = False
+  if request.user.is_authenticated or logginbypass:
+    fieldnames = ['contacttype','address','info','location','category','organization','source']
+    csvfilepath = 'dev_tools/CSA.csv'
+    
+    datalenght = 201
+    datalenghtcounter = 0
+
+    with open(csvfilepath) as csvfile:
+      reader = csv.reader(csvfile)
+
+      skiptitle = True
+      for row in reader:
+        print(row)
+        if not skiptitle:
+          OrganizationContact.objects.create(
+            contacttype=row[0][:4],
+            address=row[1][:200],
+            info=row[2][:200],
+            location=row[3][:200],
+            category=row[4][:200],
+            organization=row[5][:200],
+            source=row[6][:200]
+          )
+        skiptitle=False
+        datalenghtcounter+=1
+        if datalenghtcounter > datalenght:
+          break
+
+  return redirect('action:contacts_list')
+
 def contacts_view(request):
   contacts_list = OrganizationContact.objects.all().order_by('-location')
 
   contacts_region_dict = {}
   for contact in contacts_list:
-    if not contact.location.country() in contacts_region_dict.keys():
-      contacts_region_dict[contact.location.country()] = {}
-      contacts_region_dict[contact.location.country()][contact.location] = [contact]
+    
+    if contact.category:
+      category = contact.category
     else:
-      if not contact.location in contacts_region_dict[contact.location.country()].keys():
-        contacts_region_dict[contact.location.country()][contact.location] = [contact]
+      category='Global'
+
+    if contact.location:
+      location = contact.location
+    else:
+      location='Region'
+    
+
+    if contact.location.isdigit():
+      if Location.objects.filter(id=contact.location).exists():
+        l = Location.objects.get(id=contact.location)
+        location = l.name
+        category = l.country().name
+    
+    if not category in contacts_region_dict.keys():
+      contacts_region_dict[category] = {}
+      contacts_region_dict[category][location] = [contact]
+    else:
+      if not location in contacts_region_dict[category].keys():
+        contacts_region_dict[category][location] = [contact]
       else:
-        contacts_region_dict[contact.location.country()][contact.location] += [contact]
+        contacts_region_dict[category][location] += [contact]
   
-  print("crd", contacts_region_dict)
+  keystosort = list(contacts_region_dict.keys()).sort()
+  contacts_region_dict = dict(sorted(contacts_region_dict.items()))
+  #contacts_region_dict = dicttosort
+  #print("crd", contacts_region_dict)
   template = loader.get_template('action/contacts_overview.html')
   context = {'contacts_region_dict': contacts_region_dict}
 

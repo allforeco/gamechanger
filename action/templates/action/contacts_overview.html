@@ -13,7 +13,13 @@
     {% for country, regioncontacts in contacts_region_dict.items %}
     <div id="{{country}}" class="regionbrick">
       <span>
-        <h2 style="float: left;"><a href="{% url 'action:geo_view' country.id %}">{{country}}</a> </h2>
+        <h2 style="float: left;">
+          <a 
+          {% if country.id %}
+          href="{% url 'action:geo_view' country.id %}"
+          {% endif %}
+          >{{country}}</a>
+        </h2>
         <input id="collapse_{{country}}" style="float: right; padding: 1em;" value="-" type="button" onclick="toggleTable('{{country}}')"/>
       </span>
       <table id="table_{{country}}" style="width: 100%; display: block;">
@@ -35,35 +41,16 @@
                 <ul>
                 {% for contact in contacts %}
                 <li class="contact_link">
-                  <a href="{{contact.adressacces}}{{contact.adress}}" target="_blank">{{contact.icon}}</a>[<a href="{% url 'action:organization_view' contact.organization.id %}">{{contact.organization}}</a>]
+                  {% if contact.organization %}
+                  <a href="{% url 'action:organization_view' contact.organization %}">{{contact.organization}}</a>:
+                  {% endif %}
+                  <a href="{{contact.addressacces}}{{contact.address}}" target="_blank">{{contact.contacttype}}<img src="{{contact.icon}}"/></a>
                 </li>
                 {% endfor %}
                 </ul>
               </td>
             </tr>
           {% endfor %}
-          <!--
-          <tr style="width: 100%;">
-            { with organization=organizationcontact|first }
-            <td class="td_display_region">
-              <a href="{ url 'action:geo_view' organization.primary_location.id }">{organization.primary_location}</a> 
-            </td>
-            <td class="td_display_org">
-              <a href="{ url 'action:organization_view' organization.id }">{organization.name}</a>
-            </td>
-            { endwith }
-            <td class="td_display_contact">
-              <ul>
-                { for contact in organizationcontact|last }
-                <li class="contact_link">
-                  <a href="{contact.adressacces}{contact.adress}" target="_blank">{{contact.description}}<img class="external_link_icon" src="/static/icon-external.png"/></a> #<sup><sup><img src="/static/icon-external.png"/></sup></sup>
-                </li>
-                { endfor }
-              </ul>
-            </td>
-          </tr>
-          { endfor }
-          -->
         </tbody>
       </table>
     </div>

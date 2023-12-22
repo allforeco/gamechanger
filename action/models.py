@@ -262,68 +262,100 @@ class Organization(models.Model):
     return self.name
 
   name = models.CharField(max_length=50, unique=True)
+  verified = models.IntegerField(default=0)
   #primary_location = models.ForeignKey(Location, on_delete=models.CASCADE, blank=True, null=True)
   #contacts = models.ManyToManyField(Contact, blank=True)
   #verified = models.ForeignKey(Verification, on_delete=models.CASCADE, editable=False)
 
 class OrganizationContact(models.Model):
   def __str__(self):
-    return f"{self.organization} [{self.contacttype}:{self.adress}]"
+    return f"{self.organization} [{self.contacttype}:{self.address}]"
 
   OTHER="OTHR"
   EMAIL="MAIL"
   PHONE="PHON"
   WEBSITE="WEBS"
+  YOUTUBE="YOUT"
   TWITTER="TWTR"
   FACEBOOK="FCBK"
   INSTAGRAM="INSG"
+  LINKEDIN="LNIN"
+  VIMEO="VIME"
+  WHATSAPP="WHAP"
+  TELEGRAM="TLGM"
+  DISCORD="DCRD"
+  SLACK="SLAK"
 
   _contact_type_choices =[
-    (OTHER, "Other Contact Adress"),
-    (EMAIL, "Email Adress"),
+    (OTHER, "Other Contact Address"),
+    (EMAIL, "Email Address"),
     (PHONE, "Phone Number"),
     (WEBSITE, "Organization Website URL"),
+    (YOUTUBE, "Youtube URL"),
     (TWITTER, "X (formerly twitter) URL"),
     (FACEBOOK, "Facebook URL"),
     (INSTAGRAM, "Instagram URL"),
+    (LINKEDIN, "LNIN"), #!!!
+    (VIMEO, "VIME"), #!!!
+    (WHATSAPP, "WHAP"), #!!!
+    (TELEGRAM, "TLGM"), #!!!
+    (DISCORD, "DCRD"), #!!!
+    (SLACK, "SLAK"), #!!!
   ]
 
-  _contact_type_adress= [
-    (OTHER, ""),
+  _contact_type_address= [
+    (OTHER, "https://"),
     (EMAIL, "mailto:"),
     (PHONE, "tel:"),
     (WEBSITE, "https://"),
+    (YOUTUBE, "https://www.youtube.com/"),
     (TWITTER, "https://www.twitter.com/"),
     (FACEBOOK, "https://www.facebook.com/"),
     (INSTAGRAM, "https://www.instagram.com/"),
+    (LINKEDIN, "LNIN"), #!!!
+    (VIMEO, "VIME"), #!!!
+    (WHATSAPP, "WHAP"), #!!!
+    (TELEGRAM, "TLGM"), #!!!
+    (DISCORD, "DCRD"), #!!!
+    (SLACK, "SLAK"), #!!!
   ]
 
   _contact_type_icon= [
-    (OTHER, "O"),
-    (EMAIL, "EM"),
-    (PHONE, "P#"),
-    (WEBSITE, "W"),
-    (TWITTER, "T"),
-    (FACEBOOK, "F"),
-    (INSTAGRAM, "I"),
+    (OTHER, '/static/icon_unknown.png'), #!!!
+    (EMAIL, '/static/icon_mail.png'), #!!!
+    (PHONE, '/static/icon_phone.png'), #!!!
+    (WEBSITE, '/static/icon_globe.png'),
+    (YOUTUBE, '/static/icon_yt30.png'), #!!!
+    (TWITTER, '/static/icon_twitter30.png'),
+    (FACEBOOK, '/static/icon_fb30.png'),
+    (INSTAGRAM, '/static/icon_insta30.png'),
+    (LINKEDIN, "LNIN"), #!!!
+    (VIMEO, "VIME"), #!!!
+    (WHATSAPP, "WHAP"), #!!!
+    (TELEGRAM, "TLGM"), #!!!
+    (DISCORD, "DCRD"), #!!!
+    (SLACK, "SLAK"), #!!!
   ]
 
-  
-  organization=models.ForeignKey(Organization, on_delete=models.CASCADE, blank=False, null=False)
   contacttype=models.CharField(max_length=4, choices=_contact_type_choices, default=OTHER)
-  adress=models.CharField(max_length=200, blank=False, null=False)
+  address=models.CharField(max_length=200, blank=False, null=False)
   info=models.CharField(max_length=200, blank=True, null=True)
-  location = models.ForeignKey(Location, on_delete=models.CASCADE, blank=True, null=True)
+  #location = models.ForeignKey(Location, on_delete=models.CASCADE, blank=True, null=True)
+  location=models.CharField(max_length=200, blank=True, null=True)
+  category=models.CharField(max_length=200, blank=True, null=True)
+  #organization=models.ForeignKey(Organization, on_delete=models.CASCADE, blank=True, null=True)
+  organization=models.CharField(max_length=200, blank=True, null=True)
+  source=models.CharField(max_length=200, blank=True, null=True)
 
   def description(self):
     for ctype in self._contact_type_choices:
       if ctype[0] == self.contacttype:
         return ctype[1]
   
-  def adressacces(self):
-    for aatype in self._contact_type_adress:
+  def addressacces(self):
+    for aatype in self._contact_type_address:
       if aatype[0] == self.contacttype:
-        if (aatype[1] in self.adress):
+        if (aatype[1] in self.address):
           return ""
         else:
           return aatype[1]
