@@ -295,12 +295,12 @@ class OrganizationContact(models.Model):
     (TWITTER, "X (formerly twitter) URL"),
     (FACEBOOK, "Facebook URL"),
     (INSTAGRAM, "Instagram URL"),
-    (LINKEDIN, "LNIN"), #!!!
-    (VIMEO, "VIME"), #!!!
-    (WHATSAPP, "WHAP"), #!!!
-    (TELEGRAM, "TLGM"), #!!!
-    (DISCORD, "DCRD"), #!!!
-    (SLACK, "SLAK"), #!!!
+    (LINKEDIN, "LinkedIn URL"), #!!!
+    (VIMEO, "Vimeo URL"), #!!!
+    (WHATSAPP, "WhatsApp group URL"), #!!!
+    (TELEGRAM, "Telegram group URL"), #!!!
+    (DISCORD, "Discord group URL"), #!!!
+    (SLACK, "Slack group URL"), #!!!
   ]
 
   _contact_type_address= [
@@ -308,16 +308,16 @@ class OrganizationContact(models.Model):
     (EMAIL, "mailto:"),
     (PHONE, "tel:"),
     (WEBSITE, "https://"),
-    (YOUTUBE, "https://www.youtube.com/"),
-    (TWITTER, "https://www.twitter.com/"),
-    (FACEBOOK, "https://www.facebook.com/"),
-    (INSTAGRAM, "https://www.instagram.com/"),
-    (LINKEDIN, "LNIN"), #!!!
+    (YOUTUBE, "https://www.youtube.com"),
+    (TWITTER, "https://twitter.com"),
+    (FACEBOOK, "https://www.facebook.com"),
+    (INSTAGRAM, "https://www.instagram.com"),
+    (LINKEDIN, "https://www.linkedin.com"), #!!!
     (VIMEO, "VIME"), #!!!
-    (WHATSAPP, "WHAP"), #!!!
-    (TELEGRAM, "TLGM"), #!!!
+    (WHATSAPP, "https://chat.whatsapp.com"), #!!!
+    (TELEGRAM, "https://t.me"), #!!!
     (DISCORD, "DCRD"), #!!!
-    (SLACK, "SLAK"), #!!!
+    (SLACK, ".slack.com"), #!!!
   ]
 
   _contact_type_icon= [
@@ -329,12 +329,12 @@ class OrganizationContact(models.Model):
     (TWITTER, '/static/icon_twitter30.png'),
     (FACEBOOK, '/static/icon_fb30.png'),
     (INSTAGRAM, '/static/icon_insta30.png'),
-    (LINKEDIN, "LNIN"), #!!!
-    (VIMEO, "VIME"), #!!!
-    (WHATSAPP, "WHAP"), #!!!
-    (TELEGRAM, "TLGM"), #!!!
-    (DISCORD, "DCRD"), #!!!
-    (SLACK, "SLAK"), #!!!
+    (LINKEDIN, '/static/icon_linkedin.png'), #!!!
+    (VIMEO, '/static/icon_vimeo.png'), #!!!
+    (WHATSAPP, '/static/icon_whatsapp.png'), #!!!
+    (TELEGRAM, '/static/icon_telegram.png'), #!!!
+    (DISCORD, '/static/icon_discord.png'), #!!!
+    (SLACK, '/static/icon_slack.png'), #!!!
   ]
 
   contacttype=models.CharField(max_length=4, choices=_contact_type_choices, default=OTHER)
