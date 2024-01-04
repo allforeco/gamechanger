@@ -16,7 +16,7 @@
 
 import datetime, io, csv, traceback
 
-from .models import Country, Location, Gathering, Gathering_Belong, Gathering_Witness, Organization
+from .models import Location, Gathering, Gathering_Belong, Gathering_Witness, Organization
 from .push_notifier import Push_Notifier
 from .map_sync import to_fff
 
@@ -239,7 +239,7 @@ def update_reg(regs, import_log = None):
 
       try:
         location = None
-        country = None
+        #country = None
         state = None
         region = None
         place = None
@@ -255,19 +255,19 @@ def update_reg(regs, import_log = None):
           print(f"URUL {lineno} {regid} {loc_name}")
         else:
           (country_name, state_name, region_name, place_name, zip_code) = Location.split_location_name(loc_name)
-          country = Location.objects.filter(name=country_name, in_location__isnull=True).first()
-          if not country:
+          #country = Location.objects.filter(name=country_name, in_location__isnull=True).first()
+          #if not country:
             # Allow for now, close country creation soon
-            country = Country(name=country_name)
-            country.save()
-            try:
-              country = Location(name=country_name)
-              country.save()
-              counter['Country'] += 1
-              print(f"{lineno} {regid} new country {country}", file=last_import_log)
-            except:
-              pass
-          parent_loc = country
+            #country = Country(name=country_name)
+            #country.save()
+            #try:
+              #country = Location(name=country_name)
+              #country.save()
+              #counter['Country'] += 1
+              #print(f"{lineno} {regid} new country {country}", file=last_import_log)
+            #except:
+              #pass
+          #parent_loc = country
           if state_name:
             state = Location.objects.filter(name=state_name, in_location=parent_loc).first()
             if not state:
