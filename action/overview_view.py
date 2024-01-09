@@ -6,7 +6,7 @@ from django.urls import reverse_lazy
 from django.contrib.auth.decorators import login_required, permission_required
 from django.shortcuts import redirect
 from django import forms
-from .models import Gathering, Gathering_Belong, Gathering_Witness, Location, UserHome, Organization, OrganizationContact
+from .models import Gathering, Gathering_Belong, Gathering_Witness, Location, Country, UserHome, Organization, OrganizationContact
 import datetime
 import csv
 
@@ -38,7 +38,7 @@ def latest_records_view(request):
 
 def locations_view(request):
   #print(f"LEND {len(list(Location.objects.all()))} | {len(Location.valid_ids())}")
-
+  #Country.generate()
   logginbypass = False
   location_list=list()
   #FIXME: Remove static template file
@@ -68,7 +68,7 @@ def locations_view(request):
   return HttpResponse(template.render(context, request))
 
 
-def contacts_import(request):
+def contacts_import(request, option=0):
   logginbypass = False
   if request.user.is_authenticated or logginbypass:
     fieldnames = ['contacttype','address','info','location','category','organization','source']
@@ -77,51 +77,64 @@ def contacts_import(request):
     datalenght = 201
     datalenghtcounter = 0
 
+    if option==1:
+      OrganizationContact.objects.all().delete()
+
     with open(csvfilepath) as csvfile:
       reader = csv.reader(csvfile)
 
       skiptitle = True
       for row in reader:
-        print(row)
+        #print(row)
         if not skiptitle:
-          OrganizationContact.objects.create(
-            contacttype=row[0][:4],
-            address=row[1][:200],
-            info=row[2][:200],
-            location=row[3][:200],
-            category=row[4][:200],
-            organization=row[5][:200],
-            source=row[6][:200]
-          )
+          oc = OrganizationContact()
+          oc.contacttype=row[0][:4]
+          oc.address=row[1][:200] 
+          oc.info=row[2][:200]
+          
+          oc.locationTitle=row[3][:200]
+          location=Location.objects.filter(name__iexact=row[3][:200]).first() or Location.objects.get(id=-1)
+          oc.location=location #row[3][:200]
+          
+          if location.id == -1:
+            category=row[4][:200]
+          else:
+            category=location.country() #row[4][:200]
+          
+          oc.category=category
+          
+          oc.organizationTitle=row[5][:200]
+          organization=Organization.objects.filter(name__iexact=row[5][:200]).first() or Organization.objects.get(id=-1)
+          oc.organization=organization #row[5][:200]
+          
+          oc.source=row[6][:200]
+          oc.save()
+          print(oc)
+
         skiptitle=False
         datalenghtcounter+=1
         if datalenghtcounter > datalenght:
-          break
+          0
+          #break
 
   return redirect('action:contacts_list')
 
 def contacts_view(request):
-  contacts_list = OrganizationContact.objects.all().order_by('-location')
+  contacts_list = OrganizationContact.objects.all().order_by('-locationTitle')
 
   contacts_region_dict = {}
   for contact in contacts_list:
     
-    if contact.category:
-      category = contact.category
-    else:
-      category='Global'
 
     if contact.location:
-      location = contact.location
+      location = (contact.locationTitle, contact.location.id)
     else:
-      location='Region'
-    
+      location=tuple(['Region',-1])
 
-    if contact.location.isdigit():
-      if Location.objects.filter(id=contact.location).exists():
-        l = Location.objects.get(id=contact.location)
-        location = l.name
-        category = l.country().name
+    if contact.category:
+      category = (contact.category, contact.location.country().id)
+    else:
+      category=tuple(['Global',-1])
     
     if not category in contacts_region_dict.keys():
       contacts_region_dict[category] = {}
@@ -132,10 +145,7 @@ def contacts_view(request):
       else:
         contacts_region_dict[category][location] += [contact]
   
-  keystosort = list(contacts_region_dict.keys()).sort()
   contacts_region_dict = dict(sorted(contacts_region_dict.items()))
-  #contacts_region_dict = dicttosort
-  #print("crd", contacts_region_dict)
   template = loader.get_template('action/contacts_overview.html')
   context = {'contacts_region_dict': contacts_region_dict}
 

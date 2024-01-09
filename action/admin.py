@@ -5,13 +5,33 @@ from django.http import *
 
 from .models import Country, Location, Organization, OrganizationContact, UserHome, Action, Gathering, Gathering_Witness
 
-admin.site.register(Country)
-admin.site.register(Location)
+
 
 admin.site.register(UserHome)
 admin.site.register(Action)
-admin.site.register(Gathering)
-admin.site.register(Gathering_Witness)
+
+class GatheringAdmin(admin.ModelAdmin):
+  list_display = ('regid', 'location', 'start_date')
+  ordering = ('location', 'regid')
+  search_fields = ['regid', 'location', 'start_date']
+
+
+admin.site.register(Gathering, GatheringAdmin)
+
+class GatheringWitnessAdmin(admin.ModelAdmin):
+  list_display = ('gathering', 'date', 'participants', 'organization')
+  ordering = ('-date',)
+  search_fields = ['date', 'organization']
+
+
+admin.site.register(Gathering_Witness, GatheringWitnessAdmin)
+
+class LocationAdmin(admin.ModelAdmin):
+  ordering = ('name',)
+  search_fields = ['name']
+
+admin.site.register(Country, LocationAdmin)
+admin.site.register(Location, LocationAdmin)
 
 class OrganizationAdmin(admin.ModelAdmin):
   list_display = ('name', 'verified')
