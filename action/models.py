@@ -24,18 +24,6 @@ class Verification(models.Model):
   claim = models.FloatField(default=1, editable=False)
   strength = models.FloatField(default=0, editable=False)
 
-class Country(models.Model):
-  def __str__(self):
-    return self.name
-
-  name = models.CharField(max_length=50)
-  phone_prefix = models.CharField(max_length=5, blank=True)
-
-  @staticmethod
-  def as_set(static):
-    return {country.name for country in Country.objects.all()}
-
-
 class Location(models.Model):
   def __str__(self):
     return self.name
@@ -257,71 +245,127 @@ class Location(models.Model):
     else:
       print(f"{total} looped locations found")
 
+class Country(models.Model):
+  def __str__(self):
+    return self.name
+
+  name = models.CharField(max_length=50)
+  phone_prefix = models.CharField(max_length=5, blank=True)
+  locadion = models.ForeignKey(Location, on_delete=models.CASCADE, blank=False, null=False)
+
+  def generate():
+    for location in Location.objects.all():
+      
+      l = location.country()
+      if not Country.objects.filter(name=l.name).exists():
+        c = Country()
+        c.name = l.name[:50]
+        c.locadion = l
+        c.save()
+
+  @staticmethod
+  def as_set(static):
+    return {country.name for country in Country.objects.all()}
+
 class Organization(models.Model):
   def __str__(self):
     return self.name
 
   name = models.CharField(max_length=50, unique=True)
-  primary_location = models.ForeignKey(Location, on_delete=models.CASCADE, blank=True, null=True)
+  verified = models.IntegerField(default=0)
+  #primary_location = models.ForeignKey(Location, on_delete=models.CASCADE, blank=True, null=True)
   #contacts = models.ManyToManyField(Contact, blank=True)
   #verified = models.ForeignKey(Verification, on_delete=models.CASCADE, editable=False)
 
 class OrganizationContact(models.Model):
   def __str__(self):
-    return f"{self.organization} [{self.contacttype}:{self.adress}]"
+    return f"{self.organization} [{self.contacttype}:{self.address}]"
 
   OTHER="OTHR"
   EMAIL="MAIL"
   PHONE="PHON"
   WEBSITE="WEBS"
+  YOUTUBE="YOUT"
   TWITTER="TWTR"
   FACEBOOK="FCBK"
   INSTAGRAM="INSG"
+  LINKEDIN="LNIN"
+  VIMEO="VIME"
+  WHATSAPP="WHAP"
+  TELEGRAM="TLGM"
+  DISCORD="DCRD"
+  SLACK="SLAK"
 
   _contact_type_choices =[
-    (OTHER, "Other Contact Adress"),
-    (EMAIL, "Email Adress"),
+    (OTHER, "Other Contact Address"),
+    (EMAIL, "Email Address"),
     (PHONE, "Phone Number"),
     (WEBSITE, "Organization Website URL"),
+    (YOUTUBE, "Youtube URL"),
     (TWITTER, "X (formerly twitter) URL"),
     (FACEBOOK, "Facebook URL"),
     (INSTAGRAM, "Instagram URL"),
+    (LINKEDIN, "LinkedIn URL"), #!!!
+    (VIMEO, "Vimeo URL"), #!!!
+    (WHATSAPP, "WhatsApp group URL"), #!!!
+    (TELEGRAM, "Telegram group URL"), #!!!
+    (DISCORD, "Discord group URL"), #!!!
+    (SLACK, "Slack group URL"), #!!!
   ]
 
-  _contact_type_adress= [
-    (OTHER, ""),
+  _contact_type_address= [
+    (OTHER, "https://"),
     (EMAIL, "mailto:"),
     (PHONE, "tel:"),
     (WEBSITE, "https://"),
-    (TWITTER, "https://www.twitter.com/"),
-    (FACEBOOK, "https://www.facebook.com/"),
-    (INSTAGRAM, "https://www.instagram.com/"),
+    (YOUTUBE, "https://www.youtube.com"),
+    (TWITTER, "https://twitter.com"),
+    (FACEBOOK, "https://www.facebook.com"),
+    (INSTAGRAM, "https://www.instagram.com"),
+    (LINKEDIN, "https://www.linkedin.com"), #!!!
+    (VIMEO, "VIME"), #!!!
+    (WHATSAPP, "https://chat.whatsapp.com"), #!!!
+    (TELEGRAM, "https://t.me"), #!!!
+    (DISCORD, "DCRD"), #!!!
+    (SLACK, ".slack.com"), #!!!
   ]
 
   _contact_type_icon= [
-    (OTHER, ""),
-    (EMAIL, ""),
-    (PHONE, ""),
-    (WEBSITE, ""),
-    (TWITTER, ""),
-    (FACEBOOK, ""),
-    (INSTAGRAM, ""),
+    (OTHER, '/static/icon_unknown.png'), #!!!
+    (EMAIL, '/static/icon_mail.png'), #!!!
+    (PHONE, '/static/icon_phone.png'), #!!!
+    (WEBSITE, '/static/icon_globe.png'),
+    (YOUTUBE, '/static/icon_yt30.png'), #!!!
+    (TWITTER, '/static/icon_twitter30.png'),
+    (FACEBOOK, '/static/icon_fb30.png'),
+    (INSTAGRAM, '/static/icon_insta30.png'),
+    (LINKEDIN, '/static/icon_linkedin.png'), #!!!
+    (VIMEO, '/static/icon_vimeo.png'), #!!!
+    (WHATSAPP, '/static/icon_whatsapp.png'), #!!!
+    (TELEGRAM, '/static/icon_telegram.png'), #!!!
+    (DISCORD, '/static/icon_discord.png'), #!!!
+    (SLACK, '/static/icon_slack.png'), #!!!
   ]
 
-  organization=models.ForeignKey(Organization, on_delete=models.CASCADE, blank=False, null=False)
   contacttype=models.CharField(max_length=4, choices=_contact_type_choices, default=OTHER)
-  adress=models.CharField(max_length=200, blank=False, null=False)
+  address=models.CharField(max_length=200, blank=False, null=False)
   info=models.CharField(max_length=200, blank=True, null=True)
+  location = models.ForeignKey(Location, on_delete=models.CASCADE, blank=True, null=True)
+  locationTitle=models.CharField(max_length=200, blank=True, null=True)
+  category=models.CharField(max_length=200, blank=True, null=True)
+  organization=models.ForeignKey(Organization, on_delete=models.CASCADE, blank=True, null=True)
+  organizationTitle=models.CharField(max_length=200, blank=True, null=True)
+  source=models.CharField(max_length=200, blank=True, null=True)
 
   def description(self):
     for ctype in self._contact_type_choices:
       if ctype[0] == self.contacttype:
         return ctype[1]
   
-  def adressacces(self):
-    for aatype in self._contact_type_adress:
+  def addressacces(self):
+    for aatype in self._contact_type_address:
       if aatype[0] == self.contacttype:
-        if (aatype[1] in self.adress):
+        if (aatype[1] in self.address):
           return ""
         else:
           return aatype[1]
@@ -330,6 +374,17 @@ class OrganizationContact(models.Model):
     for ctype in self._contact_type_icon:
       if ctype[0] == self.contacttype:
         return ctype[1]
+
+  def save(self, *args, **kwargs):
+    super(OrganizationContact, self).save(*args, **kwargs)
+    if self.location.id > -1:
+      self.locationTitle = self.location.name
+      self.category = self.location.country().name
+
+    if self.organization.id > -1:
+      self.organizationTitle = self.organization.name
+
+    super(OrganizationContact, self).save(*args, **kwargs)
 
 
 class UserHome(models.Model):
