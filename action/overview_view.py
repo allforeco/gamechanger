@@ -72,7 +72,11 @@ def contacts_import(request, option=0):
   logginbypass = False
   if request.user.is_authenticated or logginbypass:
     fieldnames = ['contacttype','address','info','location','category','organization','source']
-    csvfilepath = 'dev_tools/CSA.csv'
+    csvfilepath = request.GET['q'] #'/CSA.csv'
+
+    #print(csvfilepath)
+    if not csvfilepath:
+      return redirect('action:contacts_list')
     
     datalenght = 201
     datalenghtcounter = 0
