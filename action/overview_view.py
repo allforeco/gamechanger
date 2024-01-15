@@ -39,7 +39,7 @@ def latest_records_view(request):
 def locations_view(request):
   #print(f"LEND {len(list(Location.objects.all()))} | {len(Location.valid_ids())}")
   #Country.generate()
-  logginbypass = False
+  logginbypass = True
   location_list=list()
   #FIXME: Remove static template file
   #template = loader.get_template('static/locations_overview.html')
