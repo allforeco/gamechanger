@@ -497,20 +497,20 @@ class OrganizationContact(models.Model):
   ]
 
   _contact_type_icon= [
-    (OTHER, '/static/icon_unknown.png'), #!!!
-    (EMAIL, '/static/icon_mail.png'), #!!!
-    (PHONE, '/static/icon_phone.png'), #!!!
+    (OTHER, '/static/icon_globe.png'), #!
+    (EMAIL, '/static/icon_mail.png'), #!
+    (PHONE, '/static/icon_phone.png'), #!
     (WEBSITE, '/static/icon_globe.png'),
-    (YOUTUBE, '/static/icon_yt30.png'), #!!!
+    (YOUTUBE, '/static/icon_yt30.png'), #!
     (TWITTER, '/static/icon_twitter30.png'),
     (FACEBOOK, '/static/icon_fb30.png'),
     (INSTAGRAM, '/static/icon_insta30.png'),
-    (LINKEDIN, '/static/icon_linkedin.png'), #!!!
-    (VIMEO, '/static/icon_vimeo.png'), #!!!
-    (WHATSAPP, '/static/icon_whatsapp.png'), #!!!
-    (TELEGRAM, '/static/icon_telegram.png'), #!!!
-    (DISCORD, '/static/icon_discord.png'), #!!!
-    (SLACK, '/static/icon_slack.png'), #!!!
+    (LINKEDIN, '/static/icon_linkedin.png'), #!
+    (VIMEO, '/static/icon_vimeo.png'), #!
+    (WHATSAPP, '/static/icon_whatsapp.png'), #!
+    (TELEGRAM, '/static/icon_telegram.png'), #!
+    (DISCORD, '/static/icon_discord.png'), #!
+    (SLACK, '/static/icon_slack.png'), #!
   ]
 
   contacttype=models.CharField(max_length=4, choices=_contact_type_choices, default=OTHER)
@@ -553,11 +553,32 @@ class OrganizationContact(models.Model):
   '''
   ___altered save function
   '''
+  def url(self):
+    link = self.address
+    prefix = ''
+    if self.contacttype == self.EMAIL:
+      prefix = 'mailto:'
+    elif self.contacttype == self.PHONE:
+      prefix = 'tel:'
+    else:
+      prefix='https://'
+
+    if not self.address.startswith(prefix):
+      link = prefix+self.address
+
+    return link
+
   def save(self, *args, **kwargs):
     super(OrganizationContact, self).save(*args, **kwargs)
+    if not self.location:
+      self.location = Location.objects.filter(name__iexact=self.locationTitle).first() or Location.objects.get(id=-1)
+
     if self.location.id > -1:
       self.locationTitle = self.location.name
       self.category = self.location.country().name
+
+    if not self.organization:
+      self.organization=Organization.objects.filter(name__iexact=self.organizationTitle).first() or Organization.objects.get(id=-1)
 
     if self.organization.id > -1:
       self.organizationTitle = self.organization.name
