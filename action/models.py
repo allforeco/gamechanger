@@ -571,6 +571,21 @@ class OrganizationContact(models.Model):
   '''
   ___altered save function
   '''
+  def url(self):
+    link = self.address
+    prefix = ''
+    if self.contacttype == self.EMAIL:
+      prefix = 'mailto:'
+    elif self.contacttype == self.PHONE:
+      prefix = 'tel:'
+    else:
+      prefix='https://'
+
+    if not self.address.startswith(prefix):
+      link = prefix+self.address
+
+    return link
+
   def save(self, *args, **kwargs):
     super(OrganizationContact, self).save(*args, **kwargs)
     if not self.location:
