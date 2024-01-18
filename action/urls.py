@@ -38,6 +38,7 @@ urlpatterns = [
   path('locations_list', views.locations_view, name='locations_list'),
   path('start', views.start_view_handler, name='start'),
   path('contacts', views.contacts_view, name='contacts_list'),
+  path('start/contacts', views.contacts_view, name='contacts_list'), #TEMP TRANSISTION
   path('contacts/import/<int:option>', views.contacts_import, name='contacts_import'),
   path('organizations/<int:orgid>/', views.organization_view, name='organization_view'),
   path('eventmap_data/', views.eventmap_data_view, name='eventmap_data_view'),
