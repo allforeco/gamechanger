@@ -167,6 +167,9 @@ def contacts_view(request):
     if ct==OrganizationContact.LINKEDIN:
       return v
     return v+ord(ct[0])
+  
+  def sortalgR(contact):
+    return -sortalg(contact)
 
   contacts_list = OrganizationContact.objects.all().order_by('-locationTitle')
 
@@ -197,7 +200,7 @@ def contacts_view(request):
       else:
         contacts_region_dict[category][location] += [contact]
     
-    contacts_region_dict[category][location].sort(key=sortalg)
+    contacts_region_dict[category][location].sort(reverse=False, key=sortalg)
   
   contacts_region_dict = dict(sorted(contacts_region_dict.items()))
   template = loader.get_template('action/contacts_overview.html')
