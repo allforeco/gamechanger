@@ -567,6 +567,9 @@ class OrganizationContact(models.Model):
       link = prefix+self.address
 
     return link
+  
+  def representative(self):
+    return self.location==self.category
 
   def save(self, *args, **kwargs):
     super(OrganizationContact, self).save(*args, **kwargs)
