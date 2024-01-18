@@ -124,6 +124,34 @@ def contacts_import(request, option=0):
   return redirect('action:contacts_list')
 
 def contacts_view(request):
+  def sortalg(contact):
+    ct=contact.contacttype
+    v=0
+    if ct==OrganizationContact.EMAIL:
+      return v
+    v+=1
+    if ct==OrganizationContact.PHONE:
+      return v
+    v+=1
+    if ct==OrganizationContact.WEBSITE:
+      return v
+    v+=1
+    if ct==OrganizationContact.FACEBOOK:
+      return v
+    v+=1
+    if ct==OrganizationContact.INSTAGRAM:
+      return v
+    v+=1
+    if ct==OrganizationContact.TWITTER:
+      return v
+    v+=1
+    if ct==OrganizationContact.YOUTUBE:
+      return v
+    v+=1
+    if ct==OrganizationContact.LINKEDIN:
+      return v
+    return v+ord(ct[0])
+
   contacts_list = OrganizationContact.objects.all().order_by('-locationTitle')
 
   contacts_region_dict = {}
@@ -133,25 +161,34 @@ def contacts_view(request):
     if contact.location:
       location = (contact.locationTitle, contact.location.id)
     else:
-      location=tuple(['Region',-1])
+      location=tuple(['Unspecified',-1])
 
     if contact.category:
       category = (contact.category, contact.location.country().id)
     else:
-      category=tuple(['Global',-1])
+      category=tuple(['International',-1])
+    
+    if location[1] == -1:
+      continue
     
     if not category in contacts_region_dict.keys():
       contacts_region_dict[category] = {}
+      contacts_region_dict[category][category] = []
       contacts_region_dict[category][location] = [contact]
     else:
       if not location in contacts_region_dict[category].keys():
         contacts_region_dict[category][location] = [contact]
       else:
         contacts_region_dict[category][location] += [contact]
+    
+    contacts_region_dict[category][location].sort(key=sortalg)
   
   contacts_region_dict = dict(sorted(contacts_region_dict.items()))
   template = loader.get_template('action/contacts_overview.html')
-  context = {'contacts_region_dict': contacts_region_dict}
+  context = {
+    'contacts_region_dict': contacts_region_dict,
+    'autocollapse': True  
+  }
 
   return HttpResponse(template.render(context, request))
 
@@ -186,9 +223,9 @@ def organization_view(request, orgid):
     return HttpResponse(template.render(context, request))
   contact_list = OrganizationContact.objects.filter(organization=organization)
   gathering_witness_list = Gathering_Witness.objects.filter(organization=organization).order_by('-date')[:100]
-  print("org", organization)
-  print("cl", contact_list)
-  print("gwl", gathering_witness_list)
+  #print("org", organization)
+  #print("cl", contact_list)
+  #print("gwl", gathering_witness_list)
   
   context = {
     'organization':organization,
