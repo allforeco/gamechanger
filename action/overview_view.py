@@ -205,6 +205,9 @@ def contacts_view(request):
     if ct==OrganizationContact.LINKEDIN:
       return v
     return v+ord(ct[0])
+  
+  def sortalgR(contact):
+    return -sortalg(contact)
 
   contacts_list = OrganizationContact.objects.all().order_by('locationTitle')
   UNKNOWN = (Country.Unknown().name, Country.Unknown().id)
