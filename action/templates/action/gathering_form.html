@@ -9,12 +9,11 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/js/select2.full.js"></script>
   <h1>Register Event</h1>
 
-  <form action="" method="post">
+  <form action="{% url 'action:gathering_create' %}" method="post">
     {% csrf_token %}
     <table>
-      {{ form.as_table }}
-      {{ form.media }}
+      {{ form }}
     </table>
-    <input type="submit" value="Register">
+    <input type="submit" value="Report">
   </form>
 {% endblock %}

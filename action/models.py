@@ -451,7 +451,7 @@ class Action(models.Model):
 
 class Gathering(models.Model):
   def __str__(self):
-    return self.regid
+    return str(self.regid)+":"+str(self.location.name)+"-"+str(self.start_date)
 
   STRIKE = 'STRK'
   DEMO = 'DEMO'
@@ -463,8 +463,8 @@ class Gathering(models.Model):
 
   regid = models.CharField(primary_key=True, max_length=8, editable=False)
   gathering_type = models.CharField(max_length=4, choices=_gathering_type_choices, default=STRIKE)
-  location = models.ForeignKey(Location, on_delete=models.SET_NULL, blank=True, null=True)
-  start_date = models.DateField(blank=True,null=True)
+  location = models.ForeignKey(Location, on_delete=models.SET_NULL, blank=False, null=True)
+  start_date = models.DateField(blank=False,null=True)
   end_date = models.DateField(blank=True,null=True)
   duration = models.DurationField(blank=True, null=True)
   expected_participants = models.PositiveIntegerField(blank=True, null=True)
@@ -478,6 +478,9 @@ class Gathering(models.Model):
   contact_email = models.CharField(blank=True, max_length=64)
   contact_phone = models.CharField(blank=True, max_length=64)
   contact_notes = models.CharField(blank=True, max_length=64)
+
+  def data_all(self):
+    return "id:["+str(self.regid)+"]'"+str(self.gathering_type)+"', in "+str(self.location.name)+" date:["+str(self.start_date)+"->"+str(self.end_date)+"("+str(self.duration)+")]"+str(self.expected_participants)+" participants by "+str(self.organizations)+" place&time:["+str(self.address)+"&"+str(self.time)+"]"
 
   def get_gathering_type_str(self):
     return {key:val for (key, val) in Gathering._gathering_type_choices}[self.gathering_type]
