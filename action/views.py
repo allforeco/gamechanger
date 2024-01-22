@@ -188,7 +188,7 @@ def GatheringCreate(request):
   #gathering.organizations.add(Organization.objects.get(id=-1))#data['organizations'] or  #= models.ManyToManyField(Organization, blank=True)
   gathering.address = address #= models.CharField(blank=True, max_length=64)
   gathering.time = time #= models.CharField(blank=True, max_length=32)
-  #gathering.save()
+  gathering.save()
 
   print(gathering.data_all())
   return redirect('action:gathering_report')
