@@ -39,7 +39,7 @@ from .models import Gathering, Gathering_Belong, Gathering_Witness, Location, Us
 from django.contrib.auth.models import User
 from .geo_view import geo_view_handler, geo_date_view_handler, geo_update_view, geo_update_post, geo_search, geo_invalid, translate_maplink, geo_view_handler_new
 from .start_view import start_view_handler
-from .overview_view import latest_records_view, locations_view, organizations_view, contacts_view, contacts_import, organization_view, help_view
+from .overview_view import latest_records_view, locations_view, organizations_view, contacts_view, contacts_import, organization_view, OrganizationCreate, OrganizationCreateSubmit, OrganizationcontactCreateSubmit, OrganizationcontactCreate, help_view
 from .map_sync import eventmap_data_view, eventmap_data, coffer_data, to_fff
 from .tools_view import tools_view_handler, tools_view_post
 import datetime
@@ -146,36 +146,39 @@ class OrganizationAutocomplete(autocomplete.Select2QuerySetView):
     return qs
 
 class GatheringCreateForm(ModelForm):
-  #start_date = forms.DateField(input_formats="%Y-%m-%d")
-  #duration = forms.DurationField()
   class Meta():
     model = Gathering
     fields = ['gathering_type', 'location', 'start_date', 'duration', 'expected_participants', 'time', 'address']
     widgets = {
       'location': autocomplete.ModelSelect2(url='/action/location-autocomplete/'),
-      'start_date': forms.DateInput(attrs={'type': 'date', 'placeholder':'yyyy-mm-dd'}),
+      'start_date': forms.DateInput(attrs={'type': 'date', 'value':'yyyy-mm-dd'}),
       'duration': forms.NumberInput(attrs={'min': '0'}),
     }
 
 def GatheringReport(request):
-  template = loader.get_template('action/gathering_form.html')
-  context = {'form': GatheringCreateForm()}
+  logginbypass = False
+  if not (request.user.is_authenticated or logginbypass): return redirect('action:start')
+
+  template = loader.get_template('action/form_CreateSubmit.html')
+  context = {'form': GatheringCreateForm(), 'createsubmit_title': "Event", 'formaction_url': "create_gathering"}
   return HttpResponse(template.render(context, request))
 
 def GatheringCreate(request):
   data = request.POST
-  print(data)
 
-  regid = base64.urlsafe_b64encode(hashlib.md5(str(data['gathering_type']+":"+data['location']+":"+data['start_date']).encode()).digest()).decode()[:8]
-  gathering_type = data['gathering_type']
-  location = Location.objects.get(id=data['location']) or Location.objects.get(id=-1)
-  start_date = datetime.datetime.strptime(data['start_date'], "%Y-%m-%d")
-  duration = datetime.timedelta(weeks=int(data['duration']))
-  end_date =  start_date+duration
-  expected_participants = data['expected_participants']
-  #organizations.add(Organization.objects.get(id=-1))#data['organizations'] or 
-  address = data['address']
-  time = data['time']
+  try:
+    regid = base64.urlsafe_b64encode(hashlib.md5(str(data['gathering_type']+":"+data['location']+":"+data['start_date']).encode()).digest()).decode()[:8]
+    gathering_type = data['gathering_type']
+    location = Location.objects.get(id=data['location']) or Location.objects.get(id=-1)
+    start_date = datetime.datetime.strptime(data['start_date'], "%Y-%m-%d")
+    duration = datetime.timedelta(weeks=int(data['duration']))
+    end_date =  start_date+duration
+    expected_participants = data['expected_participants']
+    #organizations.add(Organization.objects.get(id=-1))#data['organizations'] or 
+    address = data['address']
+    time = data['time']
+  except:
+    return redirect('action:gathering_submit')
   
   gathering = Gathering()
   gathering.regid = regid #= models.CharField(primary_key=True, max_length=8, editable=False)
@@ -191,7 +194,7 @@ def GatheringCreate(request):
   gathering.save()
 
   print(gathering.data_all())
-  return redirect('action:gathering_report')
+  return redirect('action:gathering_submit')
 
 class GatheringSearch(FormView):
   class GatheringSearchForm(forms.ModelForm):

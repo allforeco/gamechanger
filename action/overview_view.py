@@ -195,6 +195,41 @@ def contacts_view(request):
 
   return HttpResponse(template.render(context, request))
 
+class OrganizationcontactCreateForm(forms.ModelForm):
+  class Meta():
+    model = OrganizationContact
+    fields = ['contacttype', 'address', 'info', 'organization', 'location']
+
+def OrganizationcontactCreateSubmit(request):
+  logginbypass = False
+  if not (request.user.is_authenticated or logginbypass): return redirect('action:start')
+  template = loader.get_template('action/form_CreateSubmit.html')
+  context = {'form': OrganizationcontactCreateForm(), 'createsubmit_title': "Organization Contact", 'formaction_url': "create_organizationcontact"}
+  return HttpResponse(template.render(context, request))
+
+def OrganizationcontactCreate(request):
+  data = request.POST
+  print(data)
+
+  try:
+    contacttype= data['contacttype']
+    address=data['address']
+    info=data['info']
+    organization=Organization.objects.get(id=data['organization'])
+    location=Location.objects.get(id=data['location'])
+  except:
+    return redirect('action:organizationcontact_submit')
+  
+  organizationcontact = OrganizationContact()
+  organizationcontact.contacttype = contacttype
+  organizationcontact.address = address
+  organizationcontact.info = info
+  organizationcontact.organization=organization
+  organizationcontact.location=location
+  organizationcontact.save()
+
+  return redirect('action:organizationcontact_submit')
+
 
 def organizations_view(request):
   organizations_list = Organization.objects.exclude(primary_location=None).order_by('primary_location')
@@ -237,6 +272,33 @@ def organization_view(request, orgid):
     }
 
   return HttpResponse(template.render(context, request))
+
+class OrganizationCreateForm(forms.ModelForm):
+  class Meta():
+    model = Organization
+    fields = ['name']
+
+def OrganizationCreateSubmit(request):
+  logginbypass = False
+  if not (request.user.is_authenticated or logginbypass): return redirect('action:start')
+  template = loader.get_template('action/form_CreateSubmit.html')
+  context = {'form': OrganizationCreateForm(), 'createsubmit_title': "Organization", 'formaction_url': "create_organization"}
+  return HttpResponse(template.render(context, request))
+
+def OrganizationCreate(request):
+  data = request.POST
+  print(data)
+
+  try:
+    name = data['name']
+  except:
+    redirect('action:organization_submit')
+
+  organization = Organization()
+  organization.name = name
+  organization.verified = False
+  organization.save()
+  return redirect('action:organizationcontact_submit')
 
 def help_view(request):
 
