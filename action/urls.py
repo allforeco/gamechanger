@@ -42,6 +42,10 @@ urlpatterns = [
   path('start/organizations/<int:orgid>/', views.organization_view, name='organization_view'),
   path('eventmap_data/', views.eventmap_data_view, name='eventmap_data_view'),
   path('eventmap_data/update_csv', views.eventmap_data, name='eventmap_data'),
-  path('report_gathering', views.GatheringReport, name='gathering_report'),
+  path('submit_gathering', views.GatheringReport, name='gathering_submit'),
   path('create_gathering', views.GatheringCreate, name='gathering_create'),
+  path('submit_organization', views.OrganizationCreateSubmit, name='organization_submit'),
+  path('create_organization', views.OrganizationCreate, name='organization_create'),
+  path('submit_organizationcontact', views.OrganizationcontactCreateSubmit, name='organizationcontact_submit'),
+  path('create_organizationcontact', views.OrganizationcontactCreate, name='organizationcontact_create'),
 ]
