@@ -27,10 +27,16 @@ class GatheringWitnessAdmin(admin.ModelAdmin):
 admin.site.register(Gathering_Witness, GatheringWitnessAdmin)
 
 class LocationAdmin(admin.ModelAdmin):
+  list_display = ('name', 'str_lat_lon', 'in_country')
   ordering = ('name',)
   search_fields = ['name']
 
-admin.site.register(Country, LocationAdmin)
+class CountryAdmin(admin.ModelAdmin):
+  list_display = ('name', 'code', 'flag')
+  ordering = ('name',)
+  search_fields = ['name']
+
+admin.site.register(Country, CountryAdmin)
 admin.site.register(Location, LocationAdmin)
 
 class OrganizationAdmin(admin.ModelAdmin):

@@ -17,6 +17,8 @@
 from django.db import models
 from django.contrib.auth.models import User
 from action.static_lists import valid_location_ids
+import pycountry
+
 class Verification(models.Model):
   created_by = models.ForeignKey('UserHome', on_delete=models.PROTECT, editable=False)
   created_on = models.TimeField(auto_now_add=True, editable=False)
@@ -29,13 +31,22 @@ class Location(models.Model):
     return self.name
 
   name = models.CharField(max_length=100)
-  #in_country = models.ForeignKey(Country, on_delete=models.PROTECT)
+  in_country = models.ForeignKey('Country', on_delete=models.CASCADE, blank=True, null=True)
   in_location = models.ForeignKey('Location', on_delete=models.PROTECT, blank=True, null=True)
   zip_code = models.CharField(max_length=12, blank=True, null=True)
   lat = models.FloatField(blank=True, null=True)
   lon = models.FloatField(blank=True, null=True)
   #google_name = models.CharField(max_length=100)
   #verified = models.ForeignKey(Verification, on_delete=models.CASCADE, editable=False)
+
+  def str_lat_lon(self):
+    return f"({self.lat},{self.lon})"
+
+  def tracable(self):
+    t=0
+    if self.in_country != Country.objects.get(id=-1): t+=1
+    if self.lat != None and self.lon != None: t+=1
+    return t
 
   def country(self):
     toplocation = self
@@ -251,17 +262,66 @@ class Country(models.Model):
 
   name = models.CharField(max_length=50)
   phone_prefix = models.CharField(max_length=5, blank=True)
-  locadion = models.ForeignKey(Location, on_delete=models.CASCADE, blank=False, null=False)
+  #location = models.ForeignKey(Location, on_delete=models.CASCADE, blank=False, null=False)
+  code = models.CharField(max_length=4, null=True, blank=True)
+  flag = models.CharField(max_length=16, null=True, blank=True)
 
-  def generate():
+  def pycy(self):
+    return pycountry.countries.get(alpha_2=self.code)[0]
+
+  def generate(option = 0):
+    if option == 1:
+      Country.objects.all().delete()
+
+    c = Country()
+    c.id = -1
+    c.name = "Unknown"
+    c.code = "XX"
+    c.flag = "🏳️"
+    c.save()
+
     for location in Location.objects.all():
       
       l = location.country()
-      if not Country.objects.filter(name=l.name).exists():
+      try:
+        if pycountry.countries.get(alpha_2=l.name):
+          pycy = pycountry.countries.get(alpha_2=l.name)
+        elif pycountry.countries.get(alpha_3=l.name):
+          pycy = pycountry.countries.get(alpha_3=l.name)
+        elif pycountry.countries.get(name=l.name):
+          pycy = pycountry.countries.get(name=l.name)
+        elif pycountry.countries.get(official_name=l.name):
+          pycy = pycountry.countries.get(official_name=l.name)
+        elif pycountry.countries.search_fuzzy(l.name):
+          pycy = pycountry.countries.search_fuzzy(l.name)[0]
+        else:
+          location.in_country=Country.objects.get(id=-1)
+          location.save()
+          continue
+      except:
+        location.in_country=Country.objects.get(id=-1)
+        location.save()
+        #print("failed", l.name)
+        continue
+      if not Country.objects.filter(name=pycy.name).exists():
+        #print(l.name)
+        #pycy = pycountry.countries.search_fuzzy(l.name)
+        name = pycy.name
+        loc = l
+        code = pycy.alpha_2
+        flag = pycy.flag
+        #print(name, location, code, flag, pycy, "\n")
         c = Country()
-        c.name = l.name[:50]
-        c.locadion = l
+        c.name = name
+        #c.location = location
+        c.code = code
+        c.flag = flag
         c.save()
+        location.in_country = Country.objects.get(name=pycy.name)
+        location.save()
+      else:
+        location.in_country = Country.objects.get(name=pycy.name)
+        location.save()
 
   @staticmethod
   def as_set(static):
