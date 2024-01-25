@@ -16,6 +16,9 @@
 
 import requests, os
 
+'''
+???send mobile push notification
+'''
 class Push_Notifier:
   @staticmethod
   def push(title, message):

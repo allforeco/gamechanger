@@ -44,6 +44,9 @@ from .map_sync import eventmap_data_view, eventmap_data, coffer_data, to_fff
 from .tools_view import tools_view_handler, tools_view_post
 import datetime
 
+'''
+???user home view
+'''
 class HomeView(FormView):
   class LocationSearchForm(forms.Form):
     #class InLocationChoiceFieldDecorator(forms.ModelChoiceField):
@@ -124,6 +127,9 @@ class HomeView(FormView):
     }
     return context
 
+'''
+___autocomplete widget, Location
+'''
 class LocationAutocomplete(autocomplete.Select2QuerySetView):
   def get_queryset(self):
     #print(f"AUTL Entered")
@@ -135,6 +141,9 @@ class LocationAutocomplete(autocomplete.Select2QuerySetView):
     #return qs
     return Location.search(self.q)
 
+'''
+___autocomplete widget, Organization
+'''
 class OrganizationAutocomplete(autocomplete.Select2QuerySetView):
   def get_queryset(self):
     #print(f"AUTO Entered")
@@ -147,6 +156,9 @@ class OrganizationAutocomplete(autocomplete.Select2QuerySetView):
     #return qs
     return Organization.search(self.q)
 
+'''
+___formclass for gathering
+'''
 class GatheringCreateForm(ModelForm):
   class Meta():
     model = Gathering
@@ -157,6 +169,9 @@ class GatheringCreateForm(ModelForm):
       'duration': forms.NumberInput(attrs={'min': '0'}),
     }
 
+'''
+___view for contact form
+'''
 def GatheringReport(request):
   logginbypass = False
   if not (request.user.is_authenticated or logginbypass): return redirect('action:start')
@@ -165,6 +180,10 @@ def GatheringReport(request):
   context = {'form': GatheringCreateForm(), 'createsubmit_title': "Event", 'formaction_url': "create_gathering"}
   return HttpResponse(template.render(context, request))
 
+'''
+___create gathering by form data
+___redirect loop
+'''
 def GatheringCreate(request):
   data = request.POST
 
@@ -198,6 +217,9 @@ def GatheringCreate(request):
   print(gathering.data_all())
   return redirect('action:gathering_submit')
 
+'''
+???gathering formclass
+'''
 class GatheringSearch(FormView):
   class GatheringSearchForm(forms.ModelForm):
     class Meta:
@@ -216,23 +238,35 @@ class GatheringSearch(FormView):
   def form_valid(self, form):
     return super().form_valid(form)
 
+'''
+___calculate gathering regid
+___by time & email (unsustainable)
+'''
 def rid_generator(rtime, cemail):
   if not(rtime) or not(cemail):
     return
   return base64.urlsafe_b64encode(hashlib.md5(str(rtime+':'+cemail).encode()).digest()).decode()[:8]
 
+'''
+???
+'''
 def spool_update_reg(response_file_bytes):
   print(f"INIT uwsgi req {len(response_file_bytes)}")
   action_spooler.spool(task=b'upload', body=response_file_bytes)
   print(f"INIT uwsgi spooled")
 
+'''
+???
+'''
 def nospool_update_reg(response_file_bytes):
   print(f"INIT nospool req {len(response_file_bytes)}")
   action_nospooler(response_file_bytes.decode('utf8'))
   #update_reg(str(response_file_bytes).split("\n"), "last_import.log")
   print(f"INIT nospool done")
 
-
+'''
+???
+'''
 def get_canonical_regid(regid):
   try:
     canonical_regid = Gathering_Belong.objects.filter(regid=regid).first().gathering.regid
@@ -242,7 +276,9 @@ def get_canonical_regid(regid):
     print(f"GCRN {count_regid} canonical regid for '{regid}': {ex}")
     return None
 
-#DEPRICATED?
+'''?DEPRICATED
+???
+'''
 def index(request):
   return redirect('action:start')
   latest_gathering_list = Gathering_Witness.objects.order_by('-creation_time')[:5]
@@ -252,12 +288,18 @@ def index(request):
   }
   return HttpResponse(template.render(context, request))
 
+'''
+???
+'''
 def overview_by_name(request):
   loc_name = request.GET.get('location','')
   loc_exact = request.GET.get('exact','')
   loc_id = request.GET.get('locid','')
   return _overview_by_name(request, loc_name, loc_exact, loc_id)
 
+'''
+???
+'''
 def bad_link(request, error_message):
   context = {
     'error_message': error_message,
@@ -265,6 +307,9 @@ def bad_link(request, error_message):
   template = loader.get_template('action/bad_link.html')
   return HttpResponse(template.render(context, request))
 
+'''
+???
+'''
 def _overview_by_name(request, loc_name='', loc_exact='', loc_id=''):
   if not loc_name and not loc_id:
     return bad_link(request, "Something went wrong with this link (#11)")
@@ -368,6 +413,9 @@ def _overview_by_name(request, loc_name='', loc_exact='', loc_id=''):
   template = loader.get_template('action/location_overview.html')
   return HttpResponse(template.render(context, request))
 
+'''
+???
+'''
 def upload_reg(request, error_message=None):
   context = {
     'error_message': error_message,
@@ -375,6 +423,9 @@ def upload_reg(request, error_message=None):
   template = loader.get_template('action/upload_reg.html')
   return HttpResponse(template.render(context, request))
 
+'''
+???
+'''
 @csrf_exempt
 def upload_post(request):
   try:
@@ -400,6 +451,9 @@ def upload_post(request):
   print(f"UPSD Spooled {len(response_file_bytes)} bytes")
   return upload_reg(request, error_message=f"{len(response_file_bytes)} bytes successfully uploaded")
 
+'''
+???
+'''
 def download_upd(request, error_message=None):
   context = {
     'error_message': error_message,
@@ -407,6 +461,9 @@ def download_upd(request, error_message=None):
   template = loader.get_template('action/download_upd.html')
   return HttpResponse(template.render(context, request))
 
+'''
+???
+'''
 @csrf_exempt
 def download_post(request):
   try:
@@ -473,6 +530,9 @@ def download_post(request):
     print(f"DPXX Download exception: {e}")
     return download_upd(request, error_message="Download failed")
 
+'''
+???
+'''
 def join_us(request):
   error_message=None
   context = { 'error_message': error_message }
@@ -529,18 +589,30 @@ def join_us(request):
   context = {'error_message': f"Callsign '{screenname}' successfully created."}
   return HttpResponse(template.render(context, request))
 
+'''
+???
+'''
 def bad_request(request, exception):
     print(f"H400 {request}")
     return render(request, 'action/400.html', status=400)
 
+'''
+???
+'''
 def permission_denied(request, exception):
     print(f"H403 {request}")
     return render(request, 'action/403.html', status=403)
 
+'''
+???
+'''
 def page_not_found(request, exception):
     print(f"H404 {request}")
     return render(request, 'action/404.html', status=404)
 
+'''
+???
+'''
 def server_error(request):
     print(f"H500 {request}")
     traceback.print_exc()

@@ -12,12 +12,22 @@ import io
 import csv
 import datetime as dateTime
 
+'''
+===read/write data coffer
+'''
+
+'''
+???
+'''
 def to_fff(self, dataset, title, params, debug=False):
   print(f"TOWM Web Map delivery of {len(dataset)} records")
   title += " generated on "+now_minute()
   payload = {"title":title, "csv": dataset.get_csv([title])}
   self._send_to_fff_web_server(payload)
 
+'''
+???
+'''
 def _send_to_fff_web_server(self,payload,files=None):
   url = "https://map.fridaysforfuture.org/admin/inactive_upload/"
   cred = open(Env.get_or_die(Env.FFF_WEB_TOKEN_FILENAME), encoding="utf-8").read()
@@ -29,6 +39,9 @@ def _send_to_fff_web_server(self,payload,files=None):
     print("NOFF Problem uploading to fff.org:\n%s"%result)
     raise (result.status_code, result.text)
 
+'''
+???read csv from ?coffer
+'''
 def coffer_data():
   with io.StringIO() as csvfile:
     datawriter = csv.writer(csvfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
@@ -61,6 +74,9 @@ def coffer_data():
     #print(f"CSVO {csvfile}")
     return csvfile.getvalue()
 
+'''
+???write ? to csv
+'''
 def eventmap_data():
   with io.StringIO(newline='') as csvfile:
     datawriter = csv.writer(csvfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
@@ -113,6 +129,9 @@ def eventmap_data():
       
   return csvfile
 
+'''
+???view for reading event_map_data csv data
+'''
 def eventmap_data_view(request):
   eventlist = []
   datareader = csv.reader(open(eventmap_data(), newline=''), delimiter=',', quotechar='"')
@@ -127,6 +146,9 @@ def eventmap_data_view(request):
   template = loader.get_template('action/eventmap_data.html')
   return HttpResponse(template.render(context, request))
 
+'''
+???class for parsing event_map_data csv
+'''
 class Eventmap_Data():
   object_location = None
   object_gathering = None

@@ -5,8 +5,6 @@ from django.http import *
 
 from .models import Country, Location, Organization, OrganizationContact, UserHome, Action, Gathering, Gathering_Witness
 
-
-
 admin.site.register(UserHome)
 admin.site.register(Action)
 

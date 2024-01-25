@@ -25,6 +25,9 @@ from .models import Gathering, Gathering_Belong, Gathering_Witness, Location, Us
 from django.shortcuts import redirect
 import datetime
 
+'''
+===Admin functionality
+'''
 
 def tools_view_handler(request, result='Start'):
     template = loader.get_template('action/tools_view.html')

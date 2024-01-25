@@ -8,6 +8,9 @@ from django import forms
 from .models import Gathering, Gathering_Belong, Gathering_Witness, Location, UserHome, Organization
 import datetime
 
+'''
+___startpage list
+'''
 def top_reporters_view_handler(request):
   countries_report_dict=dict()
 

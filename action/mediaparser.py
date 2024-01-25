@@ -1,3 +1,11 @@
+'''
+===Handle media, media decoration
+'''
+
+
+'''
+___use in mediaparser to handle media objects
+'''
 class MediaObject:
   def __init__(self, name, description, code, icon, urls, domains, prefix):
     self.name = name
@@ -16,7 +24,11 @@ class MediaObject:
   domains = []
   prefix = ""
 
-
+'''
+___interpret links 
+___assign link icons/decorations
+___link validity
+'''
 class MediaParser:
   OTHER=MediaObject(
     "Other", "Other Media", "OTHR",
@@ -103,6 +115,9 @@ class MediaParser:
     ['.com'],
     'https://')
 
+  '''
+  ***WIP
+  '''
   def get_Icon(self, MEDIA):
     if self._media_description[MEDIA]:
       return self._media_icon[MEDIA]
