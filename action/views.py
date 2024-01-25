@@ -126,24 +126,26 @@ class HomeView(FormView):
 
 class LocationAutocomplete(autocomplete.Select2QuerySetView):
   def get_queryset(self):
-    print(f"AUTL Entered")
-    qs = Location.objects.all().order_by('name')
-    print(f"AUTL {len(qs)} locations")
-    if self.q:
-      qs = qs.filter(name__icontains=self.q)
-      #qs = qs.filter(name__icontains=self.q).exclude(name__icontains=", ")
-    return qs
+    #print(f"AUTL Entered")
+    #qs = Location.objects.exclude(in_country=Country.objects.get(id=-1)).order_by('name') #qs = Location.objects.all().order_by('name')
+    #print(f"AUTL {len(qs)} locations")
+    #if self.q:
+    #  qs = qs.filter(name__icontains=self.q)
+    #  #qs = qs.filter(name__icontains=self.q).exclude(name__icontains=", ")
+    #return qs
+    return Location.search(self.q)
 
 class OrganizationAutocomplete(autocomplete.Select2QuerySetView):
   def get_queryset(self):
-    print(f"AUTO Entered")
-    #if not self.request.user.is_authenticated:
-    #  return Organization.objects.none()
-    qs = Organization.objects.all()
-    print(f"AUTO {len(qs)} organizations")
-    if self.q:
-      qs = qs.filter(name__icontains=self.q)
-    return qs
+    #print(f"AUTO Entered")
+    ##if not self.request.user.is_authenticated:
+    ##  return Organization.objects.none()
+    #qs = Organization.objects.all()
+    #print(f"AUTO {len(qs)} organizations")
+    #if self.q:
+    #  qs = qs.filter(name__icontains=self.q)
+    #return qs
+    return Organization.search(self.q)
 
 class GatheringCreateForm(ModelForm):
   class Meta():
