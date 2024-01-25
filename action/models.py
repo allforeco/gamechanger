@@ -28,7 +28,7 @@ class Verification(models.Model):
 
 class Location(models.Model):
   def __str__(self):
-    return self.name
+    return f"{self.name}, {self.in_country.code}"
 
   name = models.CharField(max_length=100)
   in_country = models.ForeignKey('Country', on_delete=models.CASCADE, blank=True, null=True)
@@ -47,6 +47,16 @@ class Location(models.Model):
     if self.in_country != Country.objects.get(id=-1): t+=1
     if self.lat != None and self.lon != None: t+=1
     return t
+
+  def search(q, option = 0):
+    if option == 1:
+      ls = Location.objects.all()
+    else:
+      ls = Location.objects.exclude(in_country=Country.objects.get(id=-1))
+    ls = ls.filter(name__icontains=q)
+    lout = ls.filter(name__istartswith=q)
+    lout |= ls.exclude(name__istartswith=q)
+    return lout
 
   def country(self):
     toplocation = self
@@ -268,6 +278,16 @@ class Country(models.Model):
 
   def pycy(self):
     return pycountry.countries.get(alpha_2=self.code)[0]
+  
+  def search(q, option = 0):
+    if option == 1:
+      cs = Country.objects.all()
+    else:
+      cs = Country.objects.exclude(in_country=Country.objects.get(id=-1))
+    cs = cs.filter(name__icontains=q)
+    cout = cs.filter(name__istartswith=q)
+    cout |= cs.exclude(name__istartswith=q)
+    return cout
 
   def generate(option = 0):
     if option == 1:
@@ -336,6 +356,16 @@ class Organization(models.Model):
   #primary_location = models.ForeignKey(Location, on_delete=models.CASCADE, blank=True, null=True)
   #contacts = models.ManyToManyField(Contact, blank=True)
   #verified = models.ForeignKey(Verification, on_delete=models.CASCADE, editable=False)
+
+  def search(q, option):
+    if option == 1:
+      os = Organization.objects.all()
+    else:
+      os = Organization.objects.exclude(in_country=Organization.objects.get(id=-1))
+    os = os.filter(name__icontains=q)
+    oout = os.filter(name__istartswith=q)
+    oout |= os.exclude(name__istartswith=q)
+    return oout
 
 class OrganizationContact(models.Model):
   def __str__(self):
