@@ -589,6 +589,9 @@ class OrganizationContact(models.Model):
   def representative(self):
     return self.location==self.category
 
+  '''
+  ___altered save function
+  '''
   def save(self, *args, **kwargs):
     super(OrganizationContact, self).save(*args, **kwargs)
     if not self.location:
