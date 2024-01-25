@@ -19,6 +19,9 @@ from django.contrib.auth.models import User
 from action.static_lists import valid_location_ids
 import pycountry
 
+'''
+___
+'''
 class Verification(models.Model):
   created_by = models.ForeignKey('UserHome', on_delete=models.PROTECT, editable=False)
   created_on = models.TimeField(auto_now_add=True, editable=False)
@@ -26,6 +29,9 @@ class Verification(models.Model):
   claim = models.FloatField(default=1, editable=False)
   strength = models.FloatField(default=0, editable=False)
 
+'''
+___Database registered Locations
+'''
 class Location(models.Model):
   def __str__(self):
     return f"{self.name}, {self.in_country.code}"
@@ -39,15 +45,27 @@ class Location(models.Model):
   #google_name = models.CharField(max_length=100)
   #verified = models.ForeignKey(Verification, on_delete=models.CASCADE, editable=False)
 
+  '''
+  ___stringify coordinates
+  '''
   def str_lat_lon(self):
     return f"({self.lat},{self.lon})"
 
+  '''
+  ___location integrity by
+  ___country and coordinate validity
+  '''
   def tracable(self):
     t=0
     if self.in_country != Country.objects.get(id=-1): t+=1
     if self.lat != None and self.lon != None: t+=1
     return t
-
+  
+  '''
+  ___location search
+  ___order by name start->contains, searchterm q
+  ___option include/exclude unknown country
+  '''
   def search(q, option = 0):
     if option == 1:
       ls = Location.objects.all()
@@ -57,7 +75,10 @@ class Location(models.Model):
     lout = ls.filter(name__istartswith=q)
     lout |= ls.exclude(name__istartswith=q)
     return lout
-
+  
+  '''
+  ___finds toplocation as country
+  '''
   def country(self):
     toplocation = self
     for i in range(5):
@@ -66,6 +87,9 @@ class Location(models.Model):
       else:
         return toplocation
 
+  '''
+  ___
+  '''
   @staticmethod
   def countries(generate = True):
     if generate:
@@ -99,6 +123,10 @@ class Location(models.Model):
     
     return location_list
 
+  '''DEPRICATED?
+  ___calculates locations with integrity by calculating country
+  ___option: generate or static list
+  '''
   @staticmethod
   def valid_ids(generate = False):
     #generate = True
@@ -115,6 +143,9 @@ class Location(models.Model):
     else:
       return valid_location_ids()
 
+  '''
+  ???testdata to test new location creation by google maps
+  '''
   @staticmethod
   def _split_location_name_test():
     # Examples of location names received from Google Maps:
@@ -147,6 +178,9 @@ class Location(models.Model):
     ]:
       print(f"Name '{loc_name}' => '{split_location_name(loc_name)}'")
 
+  '''
+  ???something google maps parser
+  '''
   @staticmethod
   def split_location_name(loc_name):
     countries_with_states = [
@@ -210,6 +244,9 @@ class Location(models.Model):
     place_name = ", ".join(clean_parts)
     return (country_name, state_name, region_name, place_name, zip_code)
 
+  '''
+  ???something google maps parser, location name
+  '''
   @staticmethod
   def make_location_name(country_name, state_name=None, region_name=None, place_name=None, zip_code=None, joiner=", "):
     loc_name = country_name.strip()
@@ -221,6 +258,9 @@ class Location(models.Model):
       loc_name = place_name + joiner + loc_name
     return loc_name
 
+  '''
+  ???
+  '''
   @staticmethod
   def delete_all_unused(show=True,doit=False):
     total = 0
@@ -242,6 +282,9 @@ class Location(models.Model):
     else:
       print(f"{total} looped locations found")
 
+  '''
+  ???
+  '''
   @staticmethod
   def delete_all_loops(show=True,doit=False):
     total = 0
@@ -266,6 +309,9 @@ class Location(models.Model):
     else:
       print(f"{total} looped locations found")
 
+'''
+___database countries
+'''
 class Country(models.Model):
   def __str__(self):
     return self.name
@@ -276,9 +322,17 @@ class Country(models.Model):
   code = models.CharField(max_length=4, null=True, blank=True)
   flag = models.CharField(max_length=16, null=True, blank=True)
 
+  '''
+  ___pycountry data on self
+  '''
   def pycy(self):
     return pycountry.countries.get(alpha_2=self.code)[0]
   
+  '''
+  ___organization search
+  ___order by name start->contains, searchterm q
+  ___option include/exclude unknown country
+  '''
   def search(q, option = 0):
     if option == 1:
       cs = Country.objects.all()
@@ -289,6 +343,10 @@ class Country(models.Model):
     cout |= cs.exclude(name__istartswith=q)
     return cout
 
+  '''
+  ___generate countries
+  ___by location country calculation matching pycountry
+  '''
   def generate(option = 0):
     if option == 1:
       Country.objects.all().delete()
@@ -343,10 +401,16 @@ class Country(models.Model):
         location.in_country = Country.objects.get(name=pycy.name)
         location.save()
 
+  '''
+  ___as set
+  '''
   @staticmethod
   def as_set(static):
     return {country.name for country in Country.objects.all()}
 
+'''
+___database organizations
+'''
 class Organization(models.Model):
   def __str__(self):
     return self.name
@@ -357,6 +421,11 @@ class Organization(models.Model):
   #contacts = models.ManyToManyField(Contact, blank=True)
   #verified = models.ForeignKey(Verification, on_delete=models.CASCADE, editable=False)
 
+  '''
+  ___organization search
+  ___order by name start->contains, searchterm q
+  ___option include/exclude unknown country
+  '''
   def search(q, option):
     if option == 1:
       os = Organization.objects.all()
@@ -367,10 +436,17 @@ class Organization(models.Model):
     oout |= os.exclude(name__istartswith=q)
     return oout
 
+'''
+___database contact information
+___to match with organizations, locations
+'''
 class OrganizationContact(models.Model):
   def __str__(self):
     return f"{self.organization} [{self.contacttype}:{self.address}]"
 
+  '''
+  ___recognized media
+  '''
   OTHER="OTHR"
   EMAIL="MAIL"
   PHONE="PHON"
@@ -447,11 +523,17 @@ class OrganizationContact(models.Model):
   organizationTitle=models.CharField(max_length=200, blank=True, null=True)
   source=models.CharField(max_length=200, blank=True, null=True)
 
+  '''
+  ___descrition of self contacttype
+  '''
   def description(self):
     for ctype in self._contact_type_choices:
       if ctype[0] == self.contacttype:
         return ctype[1]
   
+  '''
+  ___address of self contacttype
+  '''
   def addressacces(self):
     for aatype in self._contact_type_address:
       if aatype[0] == self.contacttype:
@@ -460,6 +542,9 @@ class OrganizationContact(models.Model):
         else:
           return aatype[1]
   
+  '''
+  ___icon of self contacttype
+  '''
   def icon(self):
     for ctype in self._contact_type_icon:
       if ctype[0] == self.contacttype:
@@ -483,6 +568,9 @@ class OrganizationContact(models.Model):
   def representative(self):
     return self.location==self.category
 
+  '''
+  ___altered save function
+  '''
   def save(self, *args, **kwargs):
     super(OrganizationContact, self).save(*args, **kwargs)
     if not self.location:
@@ -500,7 +588,9 @@ class OrganizationContact(models.Model):
 
     super(OrganizationContact, self).save(*args, **kwargs)
 
-
+'''
+???user data
+'''
 class UserHome(models.Model):
   def __str__(self):
     return self.callsign
@@ -539,6 +629,9 @@ class UserHome(models.Model):
   #interests
   #friends
 
+'''
+???
+'''
 class Initiative(models.Model):
   def __str__(self):
     return self.name
@@ -550,6 +643,9 @@ class Initiative(models.Model):
   crew_users = models.ManyToManyField(UserHome, related_name="initiatives_crew", blank=True)
   interested_users = models.ManyToManyField(UserHome, related_name="initiatives_interest", blank=True)
 
+'''
+???
+'''
 class Action(models.Model):
   def __str__(self):
     return self.name
@@ -563,6 +659,9 @@ class Action(models.Model):
   interested_users = models.ManyToManyField(UserHome, related_name="actions_interest", blank=True)
   action_link = models.URLField(max_length=500)
 
+'''
+___database cimate actions
+'''
 class Gathering(models.Model):
   def __str__(self):
     return str(self.regid)+":"+str(self.location.name)+"-"+str(self.start_date)
@@ -593,12 +692,21 @@ class Gathering(models.Model):
   contact_phone = models.CharField(blank=True, max_length=64)
   contact_notes = models.CharField(blank=True, max_length=64)
 
+  '''
+  ___stringify self attributes
+  '''
   def data_all(self):
     return "id:["+str(self.regid)+"]'"+str(self.gathering_type)+"', in "+str(self.location.name)+" date:["+str(self.start_date)+"->"+str(self.end_date)+"("+str(self.duration)+")]"+str(self.expected_participants)+" participants by "+str(self.organizations)+" place&time:["+str(self.address)+"&"+str(self.time)+"]"
 
+  '''
+  ___get type description from self gathering type
+  '''
   def get_gathering_type_str(self):
     return {key:val for (key, val) in Gathering._gathering_type_choices}[self.gathering_type]
 
+  '''
+  ???calculate gathering type
+  '''
   @staticmethod
   def get_gathering_type_code(s):
     for (key, val) in Gathering._gathering_type_choices:
@@ -606,22 +714,35 @@ class Gathering(models.Model):
         return key
     return Gathering.OTHER
 
+  '''
+  ???
+  '''
   def get_canonical_regid(self):
     try:
       return Gathering_Belong.objects.get(regid=self.regid).gathering.regid
     except:
       return None
   
+  '''
+  ___stringify self location name
+  '''
   def get_place_name(self):
     if not self.location:
       return "Unknown Place"
     return self.location.name
 
+
+  '''
+  ___stringigy self location parent name
+  '''
   def get_in_location(self):
     if not self.location:
       return None
     return self.location.in_location
 
+  '''
+  ???find topgathering by following gathering belong
+  '''
   def get_gathering_root(self):
     try:
       if hasattr(self, 'root_gathering'):
@@ -632,6 +753,9 @@ class Gathering(models.Model):
       print(f"GXGB Gathering_Belong object not found for Gathering '{self.regid}'")
       return self
 
+'''
+???database object to remove duplicate gatherings
+'''
 class Gathering_Belong(models.Model):
   def __str__(self):
     return str(self.regid) + "=>" + str(self.gathering.regid)
@@ -639,6 +763,9 @@ class Gathering_Belong(models.Model):
   regid = models.CharField(primary_key=True, max_length=8, editable=False)
   gathering = models.ForeignKey(Gathering, on_delete=models.CASCADE)
 
+  '''
+  ???
+  '''
   @classmethod
   def integrity_check():
     def detect_belongs_pointing_to_non_root_gatherings():
@@ -669,6 +796,9 @@ class Gathering_Belong(models.Model):
 
     return Gathering_Belong.detect_belongs_pointing_to_non_root_gatherings()
 
+  '''
+  ???
+  '''
   def group_singleton_gatherings_by_loc(regid_list):
     # May be invoked manually by admin, not used by system
     for regid in regid_list:
@@ -702,6 +832,9 @@ class Gathering_Belong(models.Model):
       bel.save()
       print(f"Bel {regid} moved to {colo.regid}")
 
+'''
+???database register of attending strike
+'''
 class Gathering_Witness(models.Model):
   def __str__(self):
     return str(self.gathering) + ":" + str(self.date)
@@ -715,6 +848,9 @@ class Gathering_Witness(models.Model):
   updated = models.DateTimeField(auto_now_add=True, null=True, editable=False)
   organization = models.ForeignKey(Organization, on_delete=models.SET_NULL, blank=True, null=True, editable=False)
 
+  '''
+  ___parse map pin color by map strike type
+  '''
   def get_pin_color(self):
     # FIXME: should be picked up from Coffer
     pin_color_map = {
@@ -739,17 +875,24 @@ class Gathering_Witness(models.Model):
             return col
     return "black"
 
+  '''
+  ???
+  '''
   def set_gathering_to_root(self):
     root_gathering = self.gathering.get_gathering_root()
     self.gathering.regid = root_gathering.regid
     return self.gathering.regid
 
-
+'''
+???google maps parsing
+'''
 class Gmaps_Locations(models.Model):
     place_id = models.CharField(max_length=30)
     location = models.ForeignKey(Location, on_delete=models.CASCADE)
 
-
+'''
+???google maps parsing 
+'''
 class Gmaps_LookupString(models.Model):
     lookup_string = models.CharField(max_length=100)
     Gmaps_Location = models.ForeignKey(Gmaps_Locations, on_delete=models.CASCADE)

@@ -25,6 +25,13 @@ from .models import Gathering, Gathering_Belong, Gathering_Witness, Location, Us
 from django.shortcuts import redirect
 import datetime
 
+'''
+===Handle location viewing
+'''
+
+'''
+???
+'''
 def geo_view_handler(request, locid):
   #print(f"TOWH {locid}")
   this_location = Location.objects.filter(id=locid).first()
@@ -79,6 +86,9 @@ def geo_view_handler(request, locid):
 
   return HttpResponse(template.render(context, request))
 
+'''
+???
+'''
 def geo_view_handler_new(request, locid):
     # print(f"TOWH {locid}")
     this_location = Location.objects.filter(id=locid).first()
@@ -155,6 +165,9 @@ def geo_view_handler_new(request, locid):
     template = loader.get_template('action/geo_view_new.html')
     return HttpResponse(template.render(context, request))
 
+'''
+???
+'''
 def geo_date_view_handler(request, locid, date):
   print(f"TODH {locid} {date}")
   this_location = Location.objects.filter(id=locid).first()
@@ -167,6 +180,9 @@ def geo_date_view_handler(request, locid, date):
   }
   return HttpResponse(template.render(context, request))
 
+'''
+???
+'''
 def geo_update_view(request):
   isnewevent = (request.POST.get('isnewevent') == 'True')
   regid = request.POST.get('regid')
@@ -195,6 +211,9 @@ def geo_update_view(request):
 
   return HttpResponse(template.render(context, request))
 
+'''
+???
+'''
 def geo_update_post(request):
   isnewevent = False #(request.POST.get('isnewevent') == 'True')
   if (isnewevent):
@@ -202,6 +221,9 @@ def geo_update_post(request):
   else:
     return geo_update_post_witness(request)
 
+'''
+???
+'''
 def geo_update_post_witness(request):
   locid = request.POST.get('locid')
   regid = request.POST.get('regid')
@@ -253,6 +275,9 @@ def geo_update_post_witness(request):
   print(f"GUPW {witness.__dict__}")
   return redirect('action:geo_view', locid)
 
+'''
+???
+'''
 def geo_update_post_gathering(request):
   return ## FIXME missing regid! gathering = Gathering()
   locid = request.POST.get('locid')
@@ -273,10 +298,16 @@ def geo_update_post_gathering(request):
   print(f"GUPG {gathering.__dict__}")
   return redirect('action:geo_view', locid)
 
+'''
+???
+'''
 def geo_search(request):
   locid = request.POST.get('location')
   return redirect('action:geo_view', locid)
 
+'''
+???
+'''
 def geo_invalid(request, error_message = None):
   template = loader.get_template('action/geo_invalid.html')
   context = {
@@ -284,6 +315,9 @@ def geo_invalid(request, error_message = None):
   }
   return HttpResponse(template.render(context, request))
 
+'''
+???
+'''
 def handle_favorite(request, locid):
   #print(f"FAVH {locid}")
   if request.user.is_authenticated:
@@ -300,6 +334,9 @@ def handle_favorite(request, locid):
     userhome.save()
     #print(f"FAVS Saved {UserHome.favorite_locations} {UserHome.objects.filter(favorite_locations__id=gathering.location.id)}")
 
+'''
+???
+'''
 def translate_maplink(request, regid, date):
   #print(f"RRRC {regid, date}")
   try:

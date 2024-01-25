@@ -20,6 +20,11 @@ from .models import Location, Gathering, Gathering_Belong, Gathering_Witness, Or
 from .push_notifier import Push_Notifier
 from .map_sync import to_fff
 
+'''
+===Automaticly read coffer data
+???
+'''
+
 static_location_file = "/var/www/gamechanger.eco/static/cached_locations.htmlbody"
 
 try:

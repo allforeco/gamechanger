@@ -8,6 +8,14 @@ from django import forms
 from .models import Gathering, Gathering_Belong, Gathering_Witness, Location, UserHome, Organization
 import datetime
 
+'''
+===Handle startpage
+'''
+
+'''
+___startpage view
+___lists
+'''
 def start_view_handler(request):
   filter_weeks = int(request.POST.get('filter_weeks','2'))
   list_length = 50
