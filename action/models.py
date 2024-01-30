@@ -61,6 +61,9 @@ class Location(models.Model):
     if self.lat != None and self.lon != None: t+=1
     return t
   
+  def Unknown():
+    return Location.objects.get(id=-1)
+  
   '''
   ___location search
   ___order by name start->contains, searchterm q
@@ -75,6 +78,13 @@ class Location(models.Model):
     lout = ls.filter(name__istartswith=q)
     lout |= ls.exclude(name__istartswith=q)
     return lout
+  
+  '''
+  ___Get location of country
+  '''
+  def country_location(self):
+    locations = Location.objects.filter(in_country=self.in_country, name=self.in_country.name)
+    return locations.first()
   
   '''
   ___finds toplocation as country
@@ -328,6 +338,16 @@ class Country(models.Model):
   def pycy(self):
     return pycountry.countries.get(alpha_2=self.code)[0]
   
+  def Unknown():
+    return Country.objects.get(id=-1)
+  
+  '''
+  ___Get location of country
+  '''
+  def country_location(self):
+    locations = Location.objects.filter(in_country=self, name=self.name)
+    return locations.first()
+
   '''
   ___organization search
   ___order by name start->contains, searchterm q
@@ -373,11 +393,11 @@ class Country(models.Model):
         elif pycountry.countries.search_fuzzy(l.name):
           pycy = pycountry.countries.search_fuzzy(l.name)[0]
         else:
-          location.in_country=Country.objects.get(id=-1)
+          location.in_country=Country.Unknown()
           location.save()
           continue
       except:
-        location.in_country=Country.objects.get(id=-1)
+        location.in_country=Country.Unknown()
         location.save()
         #print("failed", l.name)
         continue
@@ -442,7 +462,7 @@ ___to match with organizations, locations
 '''
 class OrganizationContact(models.Model):
   def __str__(self):
-    return f"{self.organization} [{self.contacttype}:{self.address}]"
+    return f"{self.organization} [{self.contacttype} \"{self.address}\"]"
 
   '''
   ___recognized media
