@@ -84,7 +84,10 @@ class Location(models.Model):
   '''
   def country_location(self):
     locations = Location.objects.filter(in_country=self.in_country, name=self.in_country.name)
-    return locations.first()
+    if locations.count() > 0:
+      return locations.first()
+    else:
+      return Location.Unknown()
   
   '''
   ___finds toplocation as country
@@ -346,7 +349,10 @@ class Country(models.Model):
   '''
   def country_location(self):
     locations = Location.objects.filter(in_country=self, name=self.name)
-    return locations.first()
+    if locations.count() > 0:
+      return locations.first()
+    else:
+      return Location.Unknown()
 
   '''
   ___organization search

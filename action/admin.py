@@ -50,7 +50,7 @@ class OrganizationAdmin(admin.ModelAdmin):
 admin.site.register(Organization,OrganizationAdmin)
 
 class OrganizationContactAdmin(admin.ModelAdmin):
-  list_display = ('address', 'contacttype', 'location', 'organization')
+  list_display = ('address', 'contacttype', 'category', 'location', 'organization')
   search_fields =['address']
 
   def get_form(self, request, obj=None, **kwargs):
