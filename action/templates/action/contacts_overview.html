@@ -8,7 +8,7 @@
 {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
 <div>
   {% for country, regioncontacts in contacts_region_dict.items %}
-    <div id="{{country.0}}" class="regionbrick">
+    <div id="{{country.0}}-{{country.1}}" class="regionbrick">
       <div style="height: 100%;">
         <h2 class="regionbricktitle">
           {% if country.1 > -1 %}
@@ -20,7 +20,7 @@
       </div>
       <div style="float: right; width: 4em; padding:0;margin: 1em 0;">
         {% if regioncontacts.items|length > 1 %}
-          <input id="collapse_{{country.0}}" class="collapsebutton" {% if autocollapse %}value="+"{% else %}value="-"{% endif %} type="button" onclick="toggleTable('{{country.0}}')"/>
+          <input id="collapse_{{country.0}}-{{country.1}}" class="collapsebutton" {% if autocollapse %}value="+"{% else %}value="-"{% endif %} type="button" onclick="toggleTable('{{country.0}}-{{country.1}}')"/>
         {% endif %}
       </div>
       <div style="margin-right: 4em;">
@@ -42,7 +42,7 @@
         {% endfor %}
       </div>        
       {% if regioncontacts.items|length > 1 %}
-        <table id="table_{{country.0}}" class="regionbricktable" {% if autocollapse %}style="display: none;"{% else %}style="display: block;"{% endif %}>
+        <table id="table_{{country.0}}-{{country.1}}" class="regionbricktable" {% if autocollapse %}style="display: none;"{% else %}style="display: block;"{% endif %}>
           <thead class="fillwidth">
             <tr class="fillwidth">
               <th class="td_display_region">Region</th>
