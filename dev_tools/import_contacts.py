@@ -33,7 +33,7 @@ def readcsv(csvfilename, importsource):
                             #print(row[column],'\t\t', column)
                             country=''.join([c for c in row['Country'] if ord(c)<0x1f000]).upper().strip()
                             location=''.join([c for c in row['Town (if adding country information please write Country here)'] if ord(c)<0x1f000]).upper().strip()
-                            writer.writerow({fieldnames[0]:typelist[typei], fieldnames[1]:row[column], fieldnames[2]:"submitted by: "+row['Your name'],fieldnames[3]:location, fieldnames[4]:country,fieldnames[5]:'',fieldnames[6]:importsource})
+                            writer.writerow({fieldnames[0]:typelist[typei], fieldnames[1]:row[column], fieldnames[2]:"submitted on: "+row['Timestamp'],fieldnames[3]:location, fieldnames[4]:country,fieldnames[5]:'',fieldnames[6]:importsource})
 
                     #print(row['Country'], row['Town (if adding country information please write Country here)'], row['Your name'],'\n')
             
