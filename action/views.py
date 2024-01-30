@@ -160,6 +160,7 @@ class OrganizationAutocomplete(autocomplete.Select2QuerySetView):
 ___formclass for gathering
 '''
 class GatheringCreateForm(ModelForm):
+  consent = forms.BooleanField()
   class Meta():
     model = Gathering
     fields = ['gathering_type', 'location', 'start_date', 'duration', 'expected_participants', 'time', 'address']
@@ -198,7 +199,11 @@ def GatheringCreate(request):
     #organizations.add(Organization.objects.get(id=-1))#data['organizations'] or 
     address = data['address']
     time = data['time']
+    consent = data['consent']
   except:
+    return redirect('action:gathering_submit')
+  
+  if consent == False:
     return redirect('action:gathering_submit')
   
   gathering = Gathering()
