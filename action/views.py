@@ -13,9 +13,6 @@
 # 
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-import datetime, io, csv, os, traceback, threading, html, base64, hashlib
-
 from django.shortcuts import render, redirect
 from django.template import loader, RequestContext
 from django.http import HttpResponse
@@ -28,6 +25,7 @@ from django.core.exceptions import ValidationError
 from django.contrib.auth.decorators import login_required, permission_required
 from django import forms
 from django.db.models import Sum
+from django.contrib.auth.models import User
 from dal import autocomplete
 try:
   from action.spooler import action_spooler
@@ -35,14 +33,246 @@ except:
   from action.spooler import action_nospooler, update_reg
   action_spooler = None
   print(f"SIMP No uwsgi spooler environment")
+
+import datetime, io, csv, os, traceback, threading, html, base64, hashlib
+import googlemaps
+
 from .models import Gathering, Gathering_Belong, Gathering_Witness, Location, UserHome, Organization, Country
-from django.contrib.auth.models import User
-from .geo_view import geo_view_handler, geo_date_view_handler, geo_update_view, geo_update_post, geo_search, geo_invalid, translate_maplink, geo_view_handler_new
-from .start_view import start_view_handler
-from .overview_view import latest_records_view, locations_view, organizations_view, contacts_view, contacts_import, organization_view, OrganizationCreate, OrganizationCreateSubmit, OrganizationcontactCreateSubmit, OrganizationcontactCreate, help_view
 from .map_sync import eventmap_data_view, eventmap_data, coffer_data, to_fff
 from .tools_view import tools_view_handler, tools_view_post
+from .geo_view import geo_view_handler, geo_date_view_handler, geo_update_view, geo_update_post, geo_search, geo_invalid, translate_maplink, geo_view_handler_new
+from .start_view import start_view_handler
+from .overview_view import latest_records_view, help_view
+from .locations_view import locations_view
+from. contacts_view import contacts_view, contacts_import
+from .organizations_view import organizations_view, organization_view
+from .user_createsubmitform_view import GatheringCreate, GatheringCreateSubmit, OrganizationcontactCreate, OrganizationcontactCreateSubmit, OrganizationCreate, OrganizationCreateSubmit
+
 import datetime
+
+'''
+___use in mediaparser to handle media objects
+'''
+class MediaObject:
+  def __init__(self, name, description, code, icon, urls, domains, prefix):
+    self.name = name
+    self.code = code
+    self.icon = '/static/icon_' +icon+'.png'
+    self.description = description
+    self.urls = urls
+    self.domains = domains
+    self.prefix = prefix
+
+  name = ""
+  code = ""
+  icon = ""
+  description = ""
+  urls = []
+  domains = []
+  prefix = ""
+
+'''
+___interpret links 
+___assign link icons/decorations
+___link validity
+'''
+class MediaParser:
+  OTHER=MediaObject(
+    "Other", "Other Media", "OTHR",
+    'unknown',
+    [],
+    [],
+    'https://')
+  EMAIL=MediaObject(
+    "Email", "Email Adress", "MAIL",
+    'mail',
+    [],
+    [],
+    'mailto:')
+  PHONE=MediaObject(
+    "Phone", "Phone Number", "PHON",
+    'phone',
+    [],
+    [],
+    'tel:')
+  WEBSITE=MediaObject(
+    "Website", "Webb Adress", "WEBS",
+    'globe',
+    [],
+    [],
+    'https://')
+  YOUTUBE=MediaObject(
+    "Youtube", "YouTube Adress", "YOUT",
+    'yt30',
+    ['youtube'],
+    ['.com'],
+    'https://')
+  TWITTER=MediaObject(
+    "X (formerly Twitter)", "X (formerly Twitter) Adress", "TWTR",
+    'twitter30',
+    ['twitter'],
+    ['.com'],
+    'https://')
+  FACEBOOK=MediaObject(
+    "Facebook", "Facebook Adress", "FCBK",
+    'fb30',
+    ['facebook'],
+    ['.com'],
+    'https://')
+  INSTAGRAM=MediaObject(
+    "Instagram", "Instagram Adress", "INSG",
+    'insta30',
+    ['instagram'],
+    ['.com'],
+    'https://')
+  LINKEDIN=MediaObject(
+    "LinkedIN", "LinkedIN Adress", "LNIN",
+    'linkedin',
+    ['linkedin'],
+    ['.com'],
+    'https://')
+  VIMEO=MediaObject(
+    "Vimeo", "Vimeo Adress", "VIMW",
+    'vimeo',
+    [],
+    ['.com'],
+    'https://')
+  WHATSAPP=MediaObject(
+    "Whatsapp", "Whatsapp Adress", "WHAP",
+    'whatsapp',
+    ['whatsapp'],
+    ['.com'],
+    'https://')
+  TELEGRAM=MediaObject(
+    "Telegram", "Telegram Adress", "TLMG",
+    'telegram',
+    ['t'],
+    ['.me'],
+    'https://')
+  DISCORD=MediaObject(
+    "Discord", "Discord Adress", "DCRD",
+    'discord',
+    [],
+    ['.com'],
+    'https://')
+  SLACK=MediaObject(
+    "Slack", "Slack Adress", "SLAK",
+    'slack',
+    [],
+    ['.com'],
+    'https://')
+
+  '''
+  ***WIP
+  '''
+  def get_Icon(self, MEDIA):
+    if self._media_description[MEDIA]:
+      return self._media_icon[MEDIA]
+    else:
+      return self._media_icon[self.OTHER]
+
+  def checkMEDIA(self, link):
+    splitlink = link.split('/')
+
+  def checkURL(self, MEDIA, link):
+    splitlink = link.split('/')
+    
+  def get_URL(self, MEDIA, link):
+    splitlink = link.split('/')
+    outlink=''
+
+    if not self._media_description[MEDIA]:
+      return self.checkURL(self, self.OTHER, link)
+
+    if self._media_url_prefix[MEDIA][0] and not link.startswith(self._media_url_prefix[MEDIA][0]):
+      outlink+=self._media_url_prefix[MEDIA]
+
+    if self._media_url_prefix[MEDIA][1] and not link.contains(self._media_url_prefix[MEDIA][1]):
+      outlink+=self._media_url_prefix[MEDIA][1]
+
+    outlink+=link
+
+    if self._media_url_prefix[MEDIA][2] and not link.endswith(self._media_url_prefix[MEDIA][2]):
+      outlink+=self._media_url_prefix[MEDIA][1]
+
+    return outlink
+
+'''
+???google maps parsing
+'''
+class geoParser:
+  gmaps = googlemaps.Client(key='AI**SyCEh41WFbT1Lt-fmbqlx5-HBprKsosbUrs')
+
+  # Geocoding an address
+  geocode_result = gmaps.geocode('1600 Amphitheatre Parkway, Mountain View, CA')
+
+  # Look up an address with reverse geocoding
+  reverse_geocode_result = gmaps.reverse_geocode((40.714224, -73.961452))
+
+
+  #Logger.log(reg.Town);
+  #//Logger.log(approvecell);
+  #var citycell = getRel(approvecell, reg.Town);
+  #//Logger.log(citycell);
+  #var countrycell = getRel(approvecell, reg.Country);
+  #var latcell = getRel(approvecell, reg.Lat);
+  #var loncell = getRel(approvecell, reg.Lon);
+  #var loccell = getRel(approvecell, reg.Loc);
+  #if(loncell.getDisplayValue() == '') {
+    #var position = geocode_city(citycell.getValue(), countrycell.getValue());
+    #if(position.isfound) {
+      #approvecell.setBackgroundColor('green');
+      #latcell.setValue(position.lat)
+      #loncell.setValue(position.lon)
+      #loccell.setValue(position.loc)
+    #} else {
+      #approvecell.setBackgroundColor('red');
+      #latcell.setValue("Can't find city '"+citycell.getValue()+"' in '"+countrycell.getValue()+"'")
+      #loncell.setValue("")
+    #}
+  #}
+  #
+  #function geocode_city(city, country) {
+    #var address = city + ", " + country;
+    #var pinlist = Maps.newGeocoder().geocode(address)
+    #var fcity = pinlist.results[0];
+    #var latlon = fcity.geometry.location;
+    #return {'isfound':true, 'lat':latlon.lat, 'lon':latlon.lng, 'loc':fcity.formatted_address};
+    #//for (var i = 0; i < pinlist.results.length; i++) {
+    #//  var fcity = pinlist.results[i];
+      #//for(var j = 0; j < fcity.address_components.length; j++) {
+      #//  var comp = fcity.address_components[j];
+      #//  if(comp.types.indexOf("country") >= 0) {
+      #//    if(strEqNoCase(comp.long_name, country)) {
+      #//      latlon = fcity.geometry.location;
+      #//      return {'isfound':true, 'lat':latlon.lat, 'lon':latlon.lng, 'loc':fcity.formatted_address};
+      #//    }
+      #//  }
+      #//}
+      #return {'isfound':false}
+    #//}
+  #}
+
+'''UNUSED
+???gathering formclass
+'''
+class GatheringSearch(FormView):
+  class GatheringSearchForm(forms.ModelForm):
+    class Meta:
+      model = Gathering
+      fields = ['gathering_type', 'location', 'start_date']
+      print(f"GSF1 ")
+      widgets = {
+        'location': autocomplete.ModelSelect2(url='/action/location-autocomplete/')
+      }
+    def get_success_url(self):
+      return reverse_lazy('action:overview', kwargs={'regid': '11111111'})
+  template_name = 'action/gathering_search.html'
+  form_class = GatheringSearchForm
+  success_url = '/thanks/'
+
+  def form_valid(self, form):
+    return super().form_valid(form)
 
 '''
 ???user home view
@@ -156,92 +386,6 @@ class OrganizationAutocomplete(autocomplete.Select2QuerySetView):
     #return qs
     return Organization.search(self.q)
 
-'''
-___formclass for gathering
-'''
-class GatheringCreateForm(ModelForm):
-  consent = forms.BooleanField()
-  class Meta():
-    model = Gathering
-    fields = ['gathering_type', 'location', 'start_date', 'duration', 'expected_participants', 'time', 'address']
-    widgets = {
-      'location': autocomplete.ModelSelect2(url='/action/location-autocomplete/'),
-      'start_date': forms.DateInput(attrs={'type': 'date', 'value':'yyyy-mm-dd'}),
-      'duration': forms.NumberInput(attrs={'min': '0'}),
-    }
-
-'''
-___view for contact form
-'''
-def GatheringReport(request):
-  logginbypass = False
-  if not (request.user.is_authenticated or logginbypass): return redirect('action:start')
-
-  template = loader.get_template('action/form_CreateSubmit.html')
-  context = {'form': GatheringCreateForm(), 'createsubmit_title': "Event", 'formaction_url': "create_gathering"}
-  return HttpResponse(template.render(context, request))
-
-'''
-___create gathering by form data
-___redirect loop
-'''
-def GatheringCreate(request):
-  data = request.POST
-
-  try:
-    regid = base64.urlsafe_b64encode(hashlib.md5(str(data['gathering_type']+":"+data['location']+":"+data['start_date']).encode()).digest()).decode()[:8]
-    gathering_type = data['gathering_type']
-    location = Location.objects.get(id=data['location']) or Location.objects.get(id=-1)
-    start_date = datetime.datetime.strptime(data['start_date'], "%Y-%m-%d")
-    duration = datetime.timedelta(weeks=int(data['duration']))
-    end_date =  start_date+duration
-    expected_participants = data['expected_participants']
-    #organizations.add(Organization.objects.get(id=-1))#data['organizations'] or 
-    address = data['address']
-    time = data['time']
-    consent = data['consent']
-  except:
-    return redirect('action:gathering_submit')
-  
-  if consent == False:
-    return redirect('action:gathering_submit')
-  
-  gathering = Gathering()
-  gathering.regid = regid #= models.CharField(primary_key=True, max_length=8, editable=False)
-  gathering.gathering_type = gathering_type #= models.CharField(max_length=4, choices=_gathering_type_choices, default=STRIKE)
-  gathering.location = location #= models.ForeignKey(Location, on_delete=models.SET_NULL, blank=True, null=True)
-  gathering.start_date = start_date #= models.DateField(blank=True,null=True)
-  gathering.duration = duration #= models.DurationField(blank=True, null=True)
-  gathering.end_date = end_date #= models.DateField(blank=True,null=True)
-  gathering.expected_participants = expected_participants #= models.PositiveIntegerField(blank=True, null=True)
-  #gathering.organizations.add(Organization.objects.get(id=-1))#data['organizations'] or  #= models.ManyToManyField(Organization, blank=True)
-  gathering.address = address #= models.CharField(blank=True, max_length=64)
-  gathering.time = time #= models.CharField(blank=True, max_length=32)
-  gathering.save()
-
-  print(gathering.data_all())
-  return redirect('action:gathering_submit')
-
-'''
-???gathering formclass
-'''
-class GatheringSearch(FormView):
-  class GatheringSearchForm(forms.ModelForm):
-    class Meta:
-      model = Gathering
-      fields = ['gathering_type', 'location', 'start_date']
-      print(f"GSF1 ")
-      widgets = {
-        'location': autocomplete.ModelSelect2(url='/action/location-autocomplete/')
-      }
-    def get_success_url(self):
-      return reverse_lazy('action:overview', kwargs={'regid': '11111111'})
-  template_name = 'action/gathering_search.html'
-  form_class = GatheringSearchForm
-  success_url = '/thanks/'
-
-  def form_valid(self, form):
-    return super().form_valid(form)
 
 '''
 ___calculate gathering regid

@@ -1,11 +1,8 @@
 from django.template import loader
 from django.http import HttpResponse
-from django.views.generic.edit import FormView, CreateView, UpdateView, DeleteView
-from django.urls import reverse_lazy
-#from django.utils.translation import ugettext_lazy as _
-from django.contrib.auth.decorators import login_required, permission_required
-from django import forms
-from .models import Gathering, Gathering_Belong, Gathering_Witness, Location, UserHome, Organization
+
+from .models import Gathering, Gathering_Witness, Location, UserHome
+
 import datetime
 
 '''

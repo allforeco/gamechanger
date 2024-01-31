@@ -370,6 +370,29 @@ class Country(models.Model):
     return cout
 
   '''
+  ___pycountry lookup
+  '''
+  def pycy_lookup(name):
+    try:
+      if pycountry.countries.get(alpha_2=name):
+        pycy = pycountry.countries.get(alpha_2=name)
+      elif pycountry.countries.get(alpha_3=name):
+        pycy = pycountry.countries.get(alpha_3=name)
+      elif pycountry.countries.get(name=name):
+        pycy = pycountry.countries.get(name=name)
+      elif pycountry.countries.get(official_name=name):
+        pycy = pycountry.countries.get(official_name=name)
+      elif pycountry.countries.search_fuzzy(name):
+        pycy = pycountry.countries.search_fuzzy(name)[0]
+      
+      if Country.objects.filter(name=pycy.name).exists():
+        return Country.objects.get(name=pycy.name)
+      else:
+        return Country.Unknown()
+    except:
+      return Country.Unknown()
+
+  '''
   ___generate countries
   ___by location country calculation matching pycountry
   '''
@@ -387,29 +410,35 @@ class Country(models.Model):
     for location in Location.objects.all():
       
       l = location.country()
-      try:
-        if pycountry.countries.get(alpha_2=l.name):
-          pycy = pycountry.countries.get(alpha_2=l.name)
-        elif pycountry.countries.get(alpha_3=l.name):
-          pycy = pycountry.countries.get(alpha_3=l.name)
-        elif pycountry.countries.get(name=l.name):
-          pycy = pycountry.countries.get(name=l.name)
-        elif pycountry.countries.get(official_name=l.name):
-          pycy = pycountry.countries.get(official_name=l.name)
-        elif pycountry.countries.search_fuzzy(l.name):
-          pycy = pycountry.countries.search_fuzzy(l.name)[0]
-        else:
-          location.in_country=Country.Unknown()
-          location.save()
-          continue
-      except:
+      pycy=Country.pycy_lookup(l.name)
+      if pycy == Country.Unknown():
         location.in_country=Country.Unknown()
         location.save()
-        #print("failed", l.name)
         continue
+
+      #try:
+      #  if pycountry.countries.get(alpha_2=l.name):
+      #    pycy = pycountry.countries.get(alpha_2=l.name)
+      #  elif pycountry.countries.get(alpha_3=l.name):
+      #    pycy = pycountry.countries.get(alpha_3=l.name)
+      #  elif pycountry.countries.get(name=l.name):
+      #    pycy = pycountry.countries.get(name=l.name)
+      #  elif pycountry.countries.get(official_name=l.name):
+      #    pycy = pycountry.countries.get(official_name=l.name)
+      #  elif pycountry.countries.search_fuzzy(l.name):
+      #    pycy = pycountry.countries.search_fuzzy(l.name)[0]
+      #  else:
+      #    location.in_country=Country.Unknown()
+      #    location.save()
+      #    continue
+      #except:
+      #  location.in_country=Country.Unknown()
+      #  location.save()
+      #  #print("failed", l.name)
+      #  continue
+
       if not Country.objects.filter(name=pycy.name).exists():
         #print(l.name)
-        #pycy = pycountry.countries.search_fuzzy(l.name)
         name = pycy.name
         loc = l
         code = pycy.alpha_2
