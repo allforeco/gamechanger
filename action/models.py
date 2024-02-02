@@ -73,7 +73,7 @@ class Location(models.Model):
     if option == 1:
       ls = Location.objects.all()
     else:
-      ls = Location.objects.exclude(in_country=Country.objects.get(id=-1))
+      ls = Location.objects.exclude(in_country=Country.Unknown())
     ls = ls.filter(name__icontains=q)
     lout = ls.filter(name__istartswith=q)
     lout |= ls.exclude(name__istartswith=q)
@@ -327,7 +327,7 @@ ___database countries
 '''
 class Country(models.Model):
   def __str__(self):
-    return self.name
+    return f"{self.name}, {self.code}"
 
   name = models.CharField(max_length=50)
   phone_prefix = models.CharField(max_length=5, blank=True)
@@ -361,11 +361,14 @@ class Country(models.Model):
   '''
   def search(q, option = 0):
     if option == 1:
-      cs = Country.objects.all()
+      csr = Country.objects.all()
     else:
-      cs = Country.objects.exclude(in_country=Country.objects.get(id=-1))
-    cs = cs.filter(name__icontains=q)
-    cout = cs.filter(name__istartswith=q)
+      csr = Country.objects.exclude(id=-1)
+    cs = csr.filter(code__iexact=q)
+    cs |= csr.filter(name__icontains=q)
+
+    cout = cs.filter(code__iexact=q)
+    cout |= cs.filter(name__istartswith=q)
     cout |= cs.exclude(name__istartswith=q)
     return cout
 
@@ -747,8 +750,9 @@ class Gathering(models.Model):
   NVDA = 'NVDA'
   MEETUP = 'MEET'
   OTHER = 'OTHR'
+  CIRCLE = 'CIRC'
   _gathering_type_choices = [(STRIKE, "Strike"), (DEMO, "Demonstration"), 
-    (NVDA, "Non-Violent Direct Action"), (MEETUP, "Meetup"), (OTHER, "Other")]
+    (NVDA, "Non-Violent Direct Action"), (MEETUP, "Meetup"), (CIRCLE, "Circle (MothersRebellion)"), (OTHER, "Other")]
 
   regid = models.CharField(primary_key=True, max_length=8, editable=False)
   gathering_type = models.CharField(max_length=4, choices=_gathering_type_choices, default=STRIKE)
