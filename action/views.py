@@ -46,7 +46,7 @@ from .overview_view import latest_records_view, help_view
 from .locations_view import locations_view
 from. contacts_view import contacts_view, contacts_import
 from .organizations_view import organizations_view, organization_view
-from .user_createsubmitform_view import GatheringCreate, GatheringCreateSubmit, OrganizationcontactCreate, OrganizationcontactCreateSubmit, OrganizationCreate, OrganizationCreateSubmit
+from .user_createsubmitform_view import USGCreate, USGCreateSubmit, GatheringCreate, GatheringCreateSubmit, OrganizationcontactCreate, OrganizationcontactCreateSubmit, OrganizationCreate, OrganizationCreateSubmit
 
 import datetime
 
@@ -201,13 +201,15 @@ class MediaParser:
 ???google maps parsing
 '''
 class geoParser:
-  gmaps = googlemaps.Client(key='AI**SyCEh41WFbT1Lt-fmbqlx5-HBprKsosbUrs')
+  def __str__(self):
+    return "geoparser"
+  #gmaps = googlemaps.Client(key='AI**SyCEh41WFbT1Lt-fmbqlx5-HBprKsosbUrs')
 
   # Geocoding an address
-  geocode_result = gmaps.geocode('1600 Amphitheatre Parkway, Mountain View, CA')
+  #geocode_result = gmaps.geocode('1600 Amphitheatre Parkway, Mountain View, CA')
 
   # Look up an address with reverse geocoding
-  reverse_geocode_result = gmaps.reverse_geocode((40.714224, -73.961452))
+  #reverse_geocode_result = gmaps.reverse_geocode((40.714224, -73.961452))
 
 
   #Logger.log(reg.Town);
@@ -370,6 +372,24 @@ class LocationAutocomplete(autocomplete.Select2QuerySetView):
     #  #qs = qs.filter(name__icontains=self.q).exclude(name__icontains=", ")
     #return qs
     return Location.search(self.q)
+  
+class CountryAutocomplete(autocomplete.Select2QuerySetView):
+  def get_queryset(self):
+    return Country.search(self.q)
+
+class LocationCountryFilter(autocomplete.Select2QuerySetView):
+  def get_queryset(self):
+
+    locations = Location.objects.exclude(in_country=Country.Unknown())
+    country = self.forwarded.get('gathering_country', None)
+
+    if country:
+      locations = locations.filter(in_country=country)
+
+    if self.q:
+      locations = locations.filter(name__istartswith=self.q)
+
+    return locations
 
 '''
 ___autocomplete widget, Organization
@@ -736,6 +756,13 @@ def join_us(request):
   )
   userhome.save()
   context = {'error_message': f"Callsign '{screenname}' successfully created."}
+  return HttpResponse(template.render(context, request))
+
+'''
+'''
+def premission_denied(request):
+  context = {}
+  template = loader.get_template('action/premission_denied.html')
   return HttpResponse(template.render(context, request))
 
 '''
