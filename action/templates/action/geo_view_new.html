@@ -48,7 +48,7 @@
   {% if gathering_list %}
     <p>{{ this_location.name }} has {{ gathering_list|length }} active registrations</p>
     <div class="gathering">
-      <table>
+      <table class="table-sort-mark">
         <tr>
           <th sort="dat-true">Start date</th>
           <th sort="dat-false">End date</th>
@@ -107,7 +107,7 @@
     <p>{{ witness_list|length }} events with a total of {{ total_participants }} 
     reported participants</p>
     <div class="witness">
-      <table>
+      <table class="table-sort-mark">
         <tr>
           <th sort="dat-true">Date</th>
           <th>Map</th>

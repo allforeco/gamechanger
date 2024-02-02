@@ -184,7 +184,7 @@
       //#endregion
       //#region setup
       function sort_setup(){
-        let tables = document.getElementsByTagName("table");
+        let tables = document.getElementsByClassName("table-sort-mark");
         if (tables[0] == null){
           requestAnimationFrame(sort_setup);
           return;

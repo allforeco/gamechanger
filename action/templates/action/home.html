@@ -9,7 +9,7 @@
   {% if user.is_authenticated %}
     <h1><span style="font-size:0.5em;">Home of</span><br/>{{ userhome.screenname }}</h1>
     <h2>Your Stats</h2>
-    <table>
+    <table class="table-sort-mark">
       <tr><th>Visibility:</th><td>{{ visibility }}</td></tr>
       <tr><th>Level:</th><td>1</td></tr>
       <tr><th>Records:</th><td>47</td></tr>
@@ -22,7 +22,7 @@
     <div style="margin-bottom: 2em;">
       <h2 style="margin-bottom: 0.2em;">Favorite Locations</h2>
       {% if favorites_list %}
-        <table>
+        <table class="table-sort-mark">
           <thead>
             <th>Events</th>
             <th sort="int-false">Participants</th>
@@ -53,7 +53,7 @@
       <div style="margin-bottom: 2em;">
         <h2 style="margin-bottom: -0.25em;">Recent Locations</h2>
         {% if recents_list %}
-          <table>
+          <table class="table-sort-mark">
             <thead>
               <th>Events</th>
               <th>Participants</th>

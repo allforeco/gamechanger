@@ -1,0 +1,87 @@
+{% extends "base_generic.html" %}
+
+{% load static %}
+
+{% block content %}
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+  <script src="https://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/css/select2.min.css" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/js/select2.full.js"></script>
+
+  <form action="{% url 'action:usg_create' %}" method="post">
+    {% csrf_token %}
+    <div>
+      <h1>Registration #FridaysForFuture #ClimateStrike</h1>
+      <br>This is the registration page for FridaysForFuture (FFF). If you are organizing an event (strike, demonstration, Mothers Rebellion circle, Scientist Rebellion Alternative COP ...) in support for the FridaysForFuture movement, and you would like the world to know about it, you have come to the right place.
+      <br>
+      <br>The registration has three sections: 
+      <br>1. This first section is about us (FFF) being able to reach you.
+      <br>2. The second section (optional) is about you as a spokesperson, and media being able to reach you. (Many journalists, often activists themselves, use the FFFMap pin's email address to make direct contact to activists. This enables them to interview several countries quickly and nudge their article through the editors.)
+      <br>3. The third section is about the event you are registering. 
+      <br>
+      <br>Thank you for your work!
+      <br>Please join the Fridays for Future Map Count team on the slack by signing Vision Proposal, <a href="https://actionnetwork.org/forms/vision/">https://actionnetwork.org/forms/vision/</a>
+      <br>
+      <br>The FFF registrationform is an alternative way to report your event
+      <br><a href="https://fridaysforfuture.org/action-map/register-report-strikes/">https://fridaysforfuture.org/action-map/register-report-strikes/</a>
+      <br>
+      <br>Use this Manual to answer most questions.
+      <br><a href="https://actionnetwork.org/groups/map-count-reporting-manual/">https://actionnetwork.org/groups/map-count-reporting-manual/</a>
+    </div>
+    <div>
+      <h1>Tell us (FFF) about yourself.</h1>
+      <table>
+        <tbody>
+          <tr>
+            <td>
+              Consent
+            </td>
+            <td>
+              <input type="radio" />
+            </td>
+          </tr>
+          {{ form_user }}
+        </tbody>
+      </table>
+    </div>
+    <div>
+      <h1>Are you a spokesperson?</h1>
+      How much interaction with the rest of the world would you like to have. 
+      If you do not wish to be a spokesperson, only FFF will contact you. 
+      If you volunteer to be a media spokesperson, we may give your contact details to media representatives. 
+      If you volunteer to be a public organizer, your contact details may be shared on the internet etc. Journalists are known to contact activists directly using details you supply to the FFFMap. This is often useful to fellow event participants, but may also give unwanted calls or correspondence.
+      <table>
+        {{ form_spokeperson }}
+      </table>
+    </div>
+    <div>
+      <h1>About the Event</h1>
+      Tell the world about the event. We will the publish the information in this section on the web, in maps, on social and reporters from traditional media.
+      <table>
+        {{ form_gathering }}
+      </table>
+    </div>
+    <div>
+      <h1>Thank you for joining the FridaysForFuture movement!</h1>
+      <br>Need to change something? 
+      <br>Please join the Fridays for Future Map Record Work Group on the slack by signing Vision Proposal, 
+      <br><a href="https://actionnetwork.org/forms/vision/">https://actionnetwork.org/forms/vision/</a>
+      <br>
+      <br>Please find and join us: 
+      <br>email: <a href="mailto:map@fridaysforfuture.org">map@fridaysforfuture.org</a>
+      <br>facebook: <a href="https://www.facebook.com/groups/FridaysForFuture.org">https://www.facebook.com/groups/FridaysForFuture.org</a>
+      <br>twitter: @FFFMapRecord
+      <br>instagram: FFFMapCount
+      <br>web: <a href="Fridaysforfuture.org/map">Fridaysforfuture.org/map</a>
+      <br>
+      <br>We will add your strike to the Map and Lists within 48 hours.
+      <br><a href="https://map.fridaysforfuture.org/">https://map.fridaysforfuture.org/</a>
+      <br><a href="https://map.fridaysforfuture.org/lists">https://map.fridaysforfuture.org/lists</a>
+      <br>
+      <br>Thank you for your work and patience,
+      <br>Fridays For Future team 
+      <br>Version with Demands
+    </div>
+    <input type="submit" value="Submit">
+  </form>
+{% endblock %}
