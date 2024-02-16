@@ -484,11 +484,11 @@ class Organization(models.Model):
   ___order by name start->contains, searchterm q
   ___option include/exclude unknown country
   '''
-  def search(q, option):
+  def search(q, option = 0):
     if option == 1:
       os = Organization.objects.all()
     else:
-      os = Organization.objects.exclude(in_country=Organization.objects.get(id=-1))
+      os = Organization.objects.exclude(id=-1)
     os = os.filter(name__icontains=q)
     oout = os.filter(name__istartswith=q)
     oout |= os.exclude(name__istartswith=q)
@@ -627,7 +627,7 @@ class OrganizationContact(models.Model):
     return self.location==self.category
 
   '''
-  ___altered save function
+  ___
   '''
   def url(self):
     link = self.address
