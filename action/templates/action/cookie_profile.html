@@ -1,0 +1,74 @@
+{% extends "base_generic.html" %}
+
+{% load static %}
+
+{% block content %}
+  {% if profile_active %}
+    <table>
+      {% for field, value in profile_dict.items %}
+        <tr>
+          <td>{{field}}</td><td id="profile_{{field}}_{{value}}">{{value}}</td>
+        </tr>
+      {% endfor %}
+    </table>
+    <export_variable hidden id="cpe_text">{{export_text}}</export_variable>
+    <export_variable hidden id="cpe_filename">{{export_filename}}</export_variable>
+    <a id="cookie_profile_export">Export</a>
+    
+  {% else %}
+    No Profile Active
+  {% endif %}
+  <br/>
+  <br/>
+  <form id="form_import" action="{% url 'action:login_cookie_profile_import' %}" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <label for="import">Import <i>Gamechanger Profile File</i> (.gcp)</label>
+    <input id="import_file" type="file" accept=".gcp" name="import" onchange="import_submit()" />
+  </form>
+  <br/>
+  <form id="form_cookie_profile_submit" action="{% url 'action:login_cookie_profile_create' %}" method="post">
+    {% csrf_token %}
+    <input type="hidden" value="True" name="cookie_profile"/>
+    <table>
+      <tbody>
+        {{ form }}
+      </tbody>
+    </table>
+    <input type="submit" value="Submit" />
+  </form>
+
+  <script>
+
+    const cpe = document.getElementById('cookie_profile_export')
+    const cpe_text = document.getElementById('cpe_text')
+    const cpe_filename = document.getElementById('cpe_filename')
+
+    const cps = document.getElementById('form_cookie_profile_submit')
+
+    function setup_export(){
+      if (cpe == null) return
+      cpe.setAttribute('href', 'data:text/plain;charset=utf-8,'+ encodeURIComponent(cpe_text.innerHTML))
+      cpe.setAttribute('download', cpe_filename.innerHTML)
+    }
+
+    const form_import = document.getElementById('form_import')
+    const import_file = document.getElementById('import_file')
+    function import_submit(){
+      form_import.submit()
+      //this.form.submit()
+    }
+
+    function import_read(){
+      const reader = new FileReader()
+      reader.addEventListener('load', (event)=>{
+        console.log(event)
+        r = event.targer.result
+        console.log(r)
+      });
+    }
+
+    window.onload = function(){
+      setup_export()
+    }
+  </script>
+{% endblock %}

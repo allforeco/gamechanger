@@ -47,8 +47,10 @@ from .locations_view import locations_view
 from. contacts_view import contacts_view, contacts_import
 from .organizations_view import organizations_view, organization_view
 from .user_createsubmitform_view import USGCreate, USGCreateSubmit, GatheringCreate, GatheringCreateSubmit, OrganizationcontactCreate, OrganizationcontactCreateSubmit, OrganizationCreate, OrganizationCreateSubmit
+from .cookie_profile import CookieProfile, loginCookieProfile
 
 import datetime
+
 
 '''
 ___use in mediaparser to handle media objects
