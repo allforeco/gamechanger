@@ -381,15 +381,14 @@ class CountryAutocomplete(autocomplete.Select2QuerySetView):
 
 class LocationCountryFilter(autocomplete.Select2QuerySetView):
   def get_queryset(self):
-
     locations = Location.objects.exclude(in_country=Country.Unknown())
-    country = self.forwarded.get('gathering_country', None)
-
-    if country:
-      locations = locations.filter(in_country=country)
+    country = self.forwarded.get('country', None)
 
     if self.q:
-      locations = locations.filter(name__istartswith=self.q)
+      locations = Location.search(self.q)
+
+    if country:
+      locations = locations.filter(in_country=country).order_by('name')
 
     return locations
 
