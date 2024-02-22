@@ -11,18 +11,37 @@ import csv
 from .models import Gathering, Organization, OrganizationContact, Location, Country
 
 def loginCookieProfile(request):
+  profile_dict = {}
+  export = []
+  profile_user_dict = {}
 
-  export = CookieProfile.exportprofile(request)
-
-  #form_import = UploadFileForm(request.POST, request.FILES)
+  profile_active = CookieProfile.get_value(request, CookieProfile.COOKIE_PROFILE)
+  if (profile_active):
+    profile_dict = CookieProfile.get_values(request)
+    export = CookieProfile.exportprofile(request)
+    profile_user_dict = {}
+    key = CookieProfile.ALIAS
+    if profile_dict[key]:
+      profile_user_dict[key] = profile_dict[key]
+    key = CookieProfile.EMAIL
+    if profile_dict[key]:
+      profile_user_dict[key] = profile_dict[key]
+    key = CookieProfile.ORGANIZATION
+    if profile_dict[key] != -1:
+      profile_user_dict[key] = Organization.objects.get(id=profile_dict[key])
+    key = CookieProfile.COUNTRY
+    if profile_dict[key] != -1:
+      profile_user_dict[key] = Country.objects.get(id=profile_dict[key])
+    key = CookieProfile.LOCATION
+    if profile_dict[key] != -1:
+      profile_user_dict[key] = Location.objects.get(id=profile_dict[key])
 
   template = loader.get_template('action/cookie_profile.html')
   context = {
-    'export_filename': export[0],
-    'export_text': export[1],
-    #'form_import': form_import,
+    'export': export,
     'profile_active': CookieProfile.get_value(request, CookieProfile.COOKIE_PROFILE),
-    'profile_dict': CookieProfile.get_values(request),
+    'profile_dict': profile_dict,
+    'profile_user_dict': profile_user_dict,
     'form': CookieProfile.profile_form(),
   }
 
@@ -41,7 +60,7 @@ class CookieProfile():
   SPOKEPERSON_CONSENT = 'spokeperson_consent'
   ORGANIZATION = 'organization'
   COUNTRY = 'country'
-  LOCATION = 'location'
+  LOCATION = 'town'
 
   keys = [
     COOKIE_PROFILE,
@@ -77,6 +96,7 @@ class CookieProfile():
   
   def logout(request):
     request.session[CookieProfile.COOKIE_PROFILE] = False
+    return redirect('action:login_cookie_profile')
 
   def importprofile(request):
     #data = request.POST
@@ -113,25 +133,6 @@ class CookieProfile():
       text += f"{request.session[key]},"
 
     return (filename, text)
-    
-    with open('gamechanger_cookie_profile.csv', 'w',newline='\n') as csvoutput:
-      fieldnames = CookieProfile.values
-      writer = csv.DictWriter(csvoutput, fieldnames=fieldnames)
-      writer.writeheader()
-      writer.writerow(
-        request.session[CookieProfile.COOKIE_PROFILE],
-        request.session[CookieProfile.USER_CONSENT],
-        request.session[CookieProfile.ALIAS],
-        request.session[CookieProfile.EMAIL],
-        request.session[CookieProfile.PHONE],
-        request.session[CookieProfile.CONATCT_NOTES],
-        request.session[CookieProfile.SPOKEPERSON_CONSENT],
-        request.session[CookieProfile.ORGANIZATION],
-        request.session[CookieProfile.COUNTRY],
-        request.session[CookieProfile.LOCATION],
-        )
-
-    return
 
   
   def createprofile(request):
@@ -143,8 +144,17 @@ class CookieProfile():
         print(item, data[item])
         request.session[item] = data[item]
 
+    if not request.session[CookieProfile.ORGANIZATION].isnumeric():
+      request.session[CookieProfile.ORGANIZATION] = -1
+
+    if not request.session[CookieProfile.COUNTRY].isnumeric():
+      request.session[CookieProfile.COUNTRY] = -1
+
+    if not request.session[CookieProfile.LOCATION].isnumeric():
+      request.session[CookieProfile.LOCATION] = -1
+
     if data[CookieProfile.USER_CONSENT] == 1:
-      print("send to FFF")
+      print("CPCP","send to FFF")
 
     return redirect('action:login_cookie_profile')
 
@@ -155,7 +165,8 @@ class CookieProfile():
       (CONSENT_NO, "NO: I do not agree that (FFF) store my personal information."),
       (CONSENT_YES, "YES: I agree that (FFF) store my personal information (until I tell FFF to remove it). We (FFF) will use the information to potentialy get in touch with you."),
     ]
-    user_consent = ChoiceField(choices = _consent_options, label="Registration Consent",help_text=f"{_consent_options[CONSENT_NO][1]} <br/> {_consent_options[CONSENT_YES][1]}" , required=True)
+    user_consent = ChoiceField(label="Share with FFF",choices=_consent_options,help_text=f"{_consent_options[CONSENT_NO][1]} <br/> {_consent_options[CONSENT_YES][1]}", required=True)
+    user_consent.widget.attrs.update({"onchange": "consent_requirement()"})
     
     SPOKEPERSON_PRIVATE=0
     SPOKEPERSON_MEDIA=1
@@ -165,14 +176,15 @@ class CookieProfile():
       (SPOKEPERSON_MEDIA, "Media: Yes, I volunteer to be a media spokesperson. I agree that my contact information (name, email, phone, country, city, notes) may be given to media representatives."),
       (SPOKEPERSON_PUBLIC, "Public: Yes, I volunteer to be a public organizer and spokesperson. Share my contact details (name, email, phone, country, city, notes) on the web, on maps, in social media, traditional media, etc.")
     ]
-    spokeperson_consent=ChoiceField(choices=_spokeperson_options,help_text=f"{_spokeperson_options[SPOKEPERSON_PRIVATE][1]}<br/>{_spokeperson_options[SPOKEPERSON_MEDIA][1]}<br/>{_spokeperson_options[SPOKEPERSON_PUBLIC][1]}")
-    
+    spokeperson_consent=ChoiceField(label="Organization Spokesperson",choices=_spokeperson_options,help_text=f"{_spokeperson_options[SPOKEPERSON_PRIVATE][1]}<br/>{_spokeperson_options[SPOKEPERSON_MEDIA][1]}<br/>{_spokeperson_options[SPOKEPERSON_PUBLIC][1]}")
+    spokeperson_consent.widget.attrs.update({"onchange": "consent_requirement()"})
+
     alias = CharField(label="Name/Alias")
     email = EmailField(label="Email")
-    phone=CharField()
-    contact_notes=CharField()
+    phone=CharField(label="Phone#")
+    contact_notes=CharField(label="Contact Notes")
 
-    organization = ModelChoiceField(widget=autocomplete.ModelSelect2(url='/action/organization-autocomplete/'), queryset=Organization.objects.all().order_by('name'))
+    organization = ModelChoiceField(label="Organization", widget=autocomplete.ModelSelect2(url='/action/organization-autocomplete/'), queryset=Organization.objects.all().order_by('name'))
     
-    country = ModelChoiceField(widget=autocomplete.ModelSelect2(url='/action/country-autocomplete/'), queryset=Country.objects.all().order_by('name'))
-    location = ModelChoiceField(widget=autocomplete.ModelSelect2(url='/action/location-incountry-filter/', forward=['gathering_country']), queryset=Location.objects.exclude(in_country=Country.Unknown()).order_by('name'))
+    country = ModelChoiceField(label="Country", widget=autocomplete.ModelSelect2(url='/action/country-autocomplete/'), queryset=Country.objects.all().order_by('name'))
+    town = ModelChoiceField(label="Location", widget=autocomplete.ModelSelect2(url='/action/location-incountry-filter/', forward=['country']), queryset=Location.objects.exclude(in_country=Country.Unknown()).order_by('name'))

@@ -3,17 +3,50 @@
 {% load static %}
 
 {% block content %}
+  <style>
+    .export_button{
+      padding: 0.5em 1em;
+      background-color: #2255ff;
+      border-radius: 12px;
+    }
+
+    .export_button:hover{
+      background-color: #2255bb;
+    }
+
+    .logout_button{
+      padding: 0.5em 1em;
+      background-color: #ff2222;
+      border-radius: 12px;
+    }
+
+    .logout_button:hover{
+      background-color: #bb2222;
+    }
+
+    .required{
+      border-color: red;
+    }
+  </style>
+
   {% if profile_active %}
     <table>
       {% for field, value in profile_dict.items %}
+        <tr hidden>
+          <td>{{field}}</td><td id="profile_raw_{{field}}_{{value}}">{{value}}</td>
+        </tr>
+      {% endfor %}
+      {% for field, value in profile_user_dict.items %}
         <tr>
           <td>{{field}}</td><td id="profile_{{field}}_{{value}}">{{value}}</td>
         </tr>
       {% endfor %}
     </table>
-    <export_variable hidden id="cpe_text">{{export_text}}</export_variable>
-    <export_variable hidden id="cpe_filename">{{export_filename}}</export_variable>
-    <a id="cookie_profile_export">Export</a>
+    <export_variable hidden id="cpe_text">{{export.1}}</export_variable>
+    <export_variable hidden id="cpe_filename">{{export.0}}</export_variable>
+    <a id="cookie_profile_export"><button class="export_button">Export</button></a>
+    <br/>
+    <a href="{% url 'action:logout_cookie_profile' %}"><button class="logout_button">Forget me</button></a>
     
   {% else %}
     No Profile Active
@@ -37,14 +70,25 @@
     <input type="submit" value="Submit" />
   </form>
 
-  <script>
+  <div style="background-color: white; padding:0.1em 1em; border:3px solid #eeeeee; margin-top: 5em;">
+    <p><b>What is a <i>cookie profile</i>?</b></p>
+    <p>
+      A cookie profile remembers personal data as browser cookies,<br>
+      instead of storing the personal data on the servers.<br>
+      This makes sharing personal data with FFF fully opt-in.<br>
+      <br>
+      To keep data between sessions and browsers the export and import feature will<br>
+      help export and import a profile file that can be shared localy between<br>
+      sessions and devices.<br>
+    </p>
+  </div>
 
+  <script>
     const cpe = document.getElementById('cookie_profile_export')
     const cpe_text = document.getElementById('cpe_text')
     const cpe_filename = document.getElementById('cpe_filename')
 
     const cps = document.getElementById('form_cookie_profile_submit')
-
     function setup_export(){
       if (cpe == null) return
       cpe.setAttribute('href', 'data:text/plain;charset=utf-8,'+ encodeURIComponent(cpe_text.innerHTML))
@@ -53,22 +97,65 @@
 
     const form_import = document.getElementById('form_import')
     const import_file = document.getElementById('import_file')
-    function import_submit(){
-      form_import.submit()
-      //this.form.submit()
-    }
+    function import_submit(){ form_import.submit() }
 
-    function import_read(){
-      const reader = new FileReader()
-      reader.addEventListener('load', (event)=>{
-        console.log(event)
-        r = event.targer.result
-        console.log(r)
-      });
+    const id_user_consent = document.getElementById('id_user_consent');
+    const id_spokeperson_consent = document.getElementById('id_spokeperson_consent')
+    const id_alias = document.getElementById('id_alias')
+    const id_email = document.getElementById('id_email')
+    const id_phone = document.getElementById('id_phone')
+    const id_contact_notes = document.getElementById('id_contact_notes')
+    const id_organization = document.getElementById('id_organization')
+    const id_country = document.getElementById('id_country')
+    const id_town = document.getElementById('id_town')
+    function consent_requirement(){
+      function intbool(i){
+        if (i == 0){return false}
+        else {return true}
+      }
+      function setRequired(element){
+        if (element.required==true){
+          //id_user_consent.children[0]
+          //console.log(element.parentElement.parentElement.children[0])
+          element.parentElement.parentElement.children[0].classList.add("required")
+        } else{
+          element.parentElement.parentElement.children[0].classList.remove("required")
+        }
+      }
+      req = intbool(id_user_consent.value)
+      id_user_consent.required=true
+      setRequired(id_user_consent)
+      id_alias.required=true
+      setRequired(id_alias)
+      id_country.required=true
+      setRequired(id_country)
+      id_town.required=true
+      setRequired(id_town)
+      id_contact_notes.required=false
+      setRequired(id_contact_notes)
+      
+      id_spokeperson_consent.required = req
+      setRequired(id_spokeperson_consent)
+
+      //console.log(1, req, intbool(id_spokeperson_consent.value))
+      if (intbool(id_spokeperson_consent.value) == false){
+        req = false
+      } else{
+        req = intbool(id_user_consent.value)
+      }
+      //console.log(2, req, intbool(id_spokeperson_consent.value))
+      id_email.required = req
+      setRequired(id_email)
+      id_phone.required = req
+      setRequired(id_phone)
+      id_organization.required = req
+      setRequired(id_organization)
+      
     }
 
     window.onload = function(){
       setup_export()
+      consent_requirement()
     }
   </script>
 {% endblock %}

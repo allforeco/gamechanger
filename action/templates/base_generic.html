@@ -248,12 +248,13 @@
             <input id="formsearch_submit" type="submit" value="Search" />
           </form>
         </div>
-
 				{% if user.is_authenticated %}
           <p style="float: left; margin: initial; margin-right: 1em;">Welcome, {{ user.get_username }}</p>
 					<a href="{% url 'action:logout' %}?next={{request.path}}">Logout</a>
+        {% elif request.session.cookie_profile %}
+          <a href="{% url 'action:login_cookie_profile' %}" style="float: left; margin: initial; margin-right: 1em;">Hello, {{ request.session.alias }}</a>
 				{% else %}
-          <p style="float: left; margin: initial; margin-right: 1em;">Hello, Stranger!</p>
+          <a href="{% url 'action:login_cookie_profile' %}" style="float: left; margin: initial; margin-right: 1em;">Remember me</a>
           <!--
 					<a href="{% url 'action:login' %}?next={{request.path}}" style="margin-right: initial;">Login</a> or
           <a href="{% url 'action:join_us' %}?next={{request.path}}">Join Us</a>
