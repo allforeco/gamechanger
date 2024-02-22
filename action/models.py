@@ -493,6 +493,9 @@ class Organization(models.Model):
     oout = os.filter(name__istartswith=q)
     oout |= os.exclude(name__istartswith=q)
     return oout
+  
+  def Unknown():
+    return Organization.objects.get(id=-1)
 
 '''
 ___database contact information
