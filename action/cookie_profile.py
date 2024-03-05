@@ -165,8 +165,8 @@ class CookieProfile():
       (CONSENT_NO, "NO: I do not agree that (FFF) store my personal information."),
       (CONSENT_YES, "YES: I agree that (FFF) store my personal information (until I tell FFF to remove it). We (FFF) will use the information to potentialy get in touch with you."),
     ]
-    user_consent = ChoiceField(label="Share with FFF",choices=_consent_options,help_text=f"{_consent_options[CONSENT_NO][1]} <br/> {_consent_options[CONSENT_YES][1]}", required=True)
-    user_consent.widget.attrs.update({"onchange": "consent_requirement()"})
+    user_consent = ChoiceField(label="Share with FFF",choices=_consent_options, required=True)
+    user_consent.widget.attrs.update({"onchange": "consent_requirement()", "class":"dropdown select2-selection select2-selection--single"})
     
     SPOKEPERSON_PRIVATE=0
     SPOKEPERSON_MEDIA=1
@@ -176,8 +176,8 @@ class CookieProfile():
       (SPOKEPERSON_MEDIA, "Media: Yes, I volunteer to be a media spokesperson. I agree that my contact information (name, email, phone, country, city, notes) may be given to media representatives."),
       (SPOKEPERSON_PUBLIC, "Public: Yes, I volunteer to be a public organizer and spokesperson. Share my contact details (name, email, phone, country, city, notes) on the web, on maps, in social media, traditional media, etc.")
     ]
-    spokeperson_consent=ChoiceField(label="Organization Spokesperson",choices=_spokeperson_options,help_text=f"{_spokeperson_options[SPOKEPERSON_PRIVATE][1]}<br/>{_spokeperson_options[SPOKEPERSON_MEDIA][1]}<br/>{_spokeperson_options[SPOKEPERSON_PUBLIC][1]}")
-    spokeperson_consent.widget.attrs.update({"onchange": "consent_requirement()"})
+    spokeperson_consent=ChoiceField(label="Organization Spokesperson",choices=_spokeperson_options)
+    spokeperson_consent.widget.attrs.update({"onchange": "consent_requirement()", "class":"dropdown select2-selection select2-selection--single"})
 
     alias = CharField(label="Name/Alias")
     email = EmailField(label="Email")

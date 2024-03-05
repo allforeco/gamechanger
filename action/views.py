@@ -34,7 +34,7 @@ except:
   action_spooler = None
   print(f"SIMP No uwsgi spooler environment")
 
-import datetime, io, csv, os, traceback, threading, html, base64, hashlib
+import datetime, io, csv, os, traceback, threading, html, base64, hashlib, json
 import googlemaps
 
 from .models import Gathering, Gathering_Belong, Gathering_Witness, Location, UserHome, Organization, Country
@@ -46,11 +46,73 @@ from .overview_view import latest_records_view, help_view
 from .locations_view import locations_view
 from. contacts_view import contacts_view, contacts_import
 from .organizations_view import organizations_view, organization_view
-from .user_createsubmitform_view import USGCreate, USGCreateSubmit, GatheringCreate, GatheringCreateSubmit, OrganizationcontactCreate, OrganizationcontactCreateSubmit, OrganizationCreate, OrganizationCreateSubmit
+from .user_createsubmitform_view import USGCreate, USGCreateSubmit, GatheringCreate, GatheringCreateSubmit, OrganizationcontactCreate, OrganizationcontactCreateSubmit, OrganizationCreate, OrganizationCreateSubmit, LocationCreate, LocationCreateSubmit
 from .cookie_profile import CookieProfile, loginCookieProfile
 
 import datetime
 
+def cwd(request):
+  print("CWD: ", os.getcwd())
+  return redirect("action:start")
+
+def geogentest(request):
+  location_id = Location.objects.filter(name="Springfield").first().id
+  address = geoParser.locationTOaddress(geoParser,location_id)
+  latlon = geoParser.locationTOlatlon(geoParser,location_id)
+  print("ADDRESS", address, latlon)
+  geoaddress = geoParser.latlonTOaddress(geoParser, latlon[0], latlon[1])
+  geolatlon = geoParser.addressTOlatlon(geoParser, address)
+  print("GEO", geoaddress, geolatlon)
+
+  f1 = open('geoaddress.json', 'w')
+  f1.write(json.dumps(geoaddress))
+  f1.close()
+
+  f2 = open('geolatlon.json', 'w')
+  f2.write(json.dumps(geolatlon))
+  f2.close()
+
+  return redirect("action:start")
+
+'''
+___Google maps parser
+'''
+class geoParser:
+  gmaps = googlemaps.Client(key=os.environ['GOOGLE_MAPS_API_KEY'])
+
+  def latlonTOaddress(self, lat, lon):
+    return self.gmaps.reverse_geocode((lat, lon))
+
+  def addressTOlatlon(self, address):
+    return self.gmaps.geocode(address)
+
+  def locationTOaddress(self, id):
+    if Location.objects.filter(id=id).exists():
+      location = Location.objects.get(id=id)
+    else:
+      location = Location.Unknown()
+    address = location.name
+    if location.in_location.name != location.in_country.name:
+      address += ", " + location.in_location.name
+      inl = location
+      brk = 0
+      while (inl.in_location != None and inl.in_country != None):
+        if inl.in_location.name == inl.in_country.name:
+          address += inl.name
+          break
+        inl=inl.in_location
+        brk+=1
+
+    address += ", " + location.in_country.name
+
+    return address
+  
+  def locationTOlatlon(self, id):
+    if Location.objects.filter(id=id).exists():
+      location = Location.objects.get(id=id)
+    else:
+      location = Location.Unknown()
+    return [location.lat, location.lon]
 
 '''
 ___use in mediaparser to handle media objects
@@ -86,7 +148,7 @@ class MediaParser:
     [],
     'https://')
   EMAIL=MediaObject(
-    "Email", "Email Adress", "MAIL",
+    "Email", "Email Address", "MAIL",
     'mail',
     [],
     [],
@@ -98,67 +160,67 @@ class MediaParser:
     [],
     'tel:')
   WEBSITE=MediaObject(
-    "Website", "Webb Adress", "WEBS",
+    "Website", "Webb Address", "WEBS",
     'globe',
     [],
     [],
     'https://')
   YOUTUBE=MediaObject(
-    "Youtube", "YouTube Adress", "YOUT",
+    "Youtube", "YouTube Address", "YOUT",
     'yt30',
     ['youtube'],
     ['.com'],
     'https://')
   TWITTER=MediaObject(
-    "X (formerly Twitter)", "X (formerly Twitter) Adress", "TWTR",
+    "X (formerly Twitter)", "X (formerly Twitter) Address", "TWTR",
     'twitter30',
     ['twitter'],
     ['.com'],
     'https://')
   FACEBOOK=MediaObject(
-    "Facebook", "Facebook Adress", "FCBK",
+    "Facebook", "Facebook Address", "FCBK",
     'fb30',
     ['facebook'],
     ['.com'],
     'https://')
   INSTAGRAM=MediaObject(
-    "Instagram", "Instagram Adress", "INSG",
+    "Instagram", "Instagram Address", "INSG",
     'insta30',
     ['instagram'],
     ['.com'],
     'https://')
   LINKEDIN=MediaObject(
-    "LinkedIN", "LinkedIN Adress", "LNIN",
+    "LinkedIN", "LinkedIN Address", "LNIN",
     'linkedin',
     ['linkedin'],
     ['.com'],
     'https://')
   VIMEO=MediaObject(
-    "Vimeo", "Vimeo Adress", "VIMW",
+    "Vimeo", "Vimeo Address", "VIMW",
     'vimeo',
     [],
     ['.com'],
     'https://')
   WHATSAPP=MediaObject(
-    "Whatsapp", "Whatsapp Adress", "WHAP",
+    "Whatsapp", "Whatsapp Address", "WHAP",
     'whatsapp',
     ['whatsapp'],
     ['.com'],
     'https://')
   TELEGRAM=MediaObject(
-    "Telegram", "Telegram Adress", "TLMG",
+    "Telegram", "Telegram Address", "TLMG",
     'telegram',
     ['t'],
     ['.me'],
     'https://')
   DISCORD=MediaObject(
-    "Discord", "Discord Adress", "DCRD",
+    "Discord", "Discord Address", "DCRD",
     'discord',
     [],
     ['.com'],
     'https://')
   SLACK=MediaObject(
-    "Slack", "Slack Adress", "SLAK",
+    "Slack", "Slack Address", "SLAK",
     'slack',
     [],
     ['.com'],
@@ -202,9 +264,9 @@ class MediaParser:
 '''
 ???google maps parsing
 '''
-class geoParser:
-  def __str__(self):
-    return "geoparser"
+#class geoParser:
+#  def __str__(self):
+#    return "geoparser"
   #gmaps = googlemaps.Client(key='AI**SyCEh41WFbT1Lt-fmbqlx5-HBprKsosbUrs')
 
   # Geocoding an address
