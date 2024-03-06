@@ -54,8 +54,12 @@ urlpatterns = [
   path('create_organization', views.OrganizationCreate, name='organization_create'),
   path('submit_organizationcontact', views.OrganizationcontactCreateSubmit, name='organizationcontact_submit'),
   path('create_organizationcontact', views.OrganizationcontactCreate, name='organizationcontact_create'),
+  path('submit_location', views.LocationCreateSubmit, name='location_submit'),
+  path('create_location', views.LocationCreate, name='location_create'),
   path('login', views.loginCookieProfile, name='login_cookie_profile'),
   path('logout', views.CookieProfile.logout, name='logout_cookie_profile'),
   path('login-import', views.CookieProfile.importprofile, name='login_cookie_profile_import'),
   path('login-create', views.CookieProfile.createprofile, name='login_cookie_profile_create'),
+  path('stop', views.emergency_activate, name='emergency'),
+  path('unstop', views.emergency_deactivate, name='unemergency'),
 ]

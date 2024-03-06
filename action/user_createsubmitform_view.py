@@ -3,6 +3,7 @@ from django.http import HttpResponse
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.forms import *
+from .bigredbutton import BigRedButton
 
 from dal import autocomplete
 import base64, hashlib, datetime
@@ -30,7 +31,7 @@ ___view for contact form
 '''
 def GatheringCreateSubmit(request):
   logginbypass = publicuse
-  if not (request.user.is_authenticated or logginbypass): return redirect('action:premission_denied')
+  if not (request.user.is_authenticated or (logginbypass and not BigRedButton.is_emergency())): return redirect('action:premission_denied')
 
   template = loader.get_template('action/form_CreateSubmit.html')
   context = {'form': GatheringCreateForm(), 'createsubmit_title': "Event", 'formaction_url': "create_gathering"}
@@ -42,7 +43,7 @@ ___redirect loop
 '''
 def GatheringCreate(request):
   logginbypass = publicuse
-  if not (request.user.is_authenticated or logginbypass): return redirect('action:premission_denied')
+  if not (request.user.is_authenticated or (logginbypass and not BigRedButton.is_emergency())): return redirect('action:premission_denied')
   data = request.POST
 
   try:
@@ -94,7 +95,7 @@ ___organization form view
 '''
 def OrganizationCreateSubmit(request):
   logginbypass = publicuse
-  if not (request.user.is_authenticated or logginbypass): return redirect('action:premission_denied')
+  if not (request.user.is_authenticated or (logginbypass and not BigRedButton.is_emergency())): return redirect('action:premission_denied')
   template = loader.get_template('action/form_CreateSubmit.html')
   context = {'form': OrganizationCreateForm(), 'createsubmit_title': "Organization", 'formaction_url': "create_organization"}
   return HttpResponse(template.render(context, request))
@@ -105,7 +106,7 @@ ___contact redirect
 '''
 def OrganizationCreate(request):
   logginbypass = publicuse
-  if not (request.user.is_authenticated or logginbypass): return redirect('action:premission_denied')
+  if not (request.user.is_authenticated or (logginbypass and not BigRedButton.is_emergency())): return redirect('action:premission_denied')
   data = request.POST
   print(data)
 
@@ -133,7 +134,7 @@ ___form view for contact
 '''
 def OrganizationcontactCreateSubmit(request):
   logginbypass = publicuse
-  if not (request.user.is_authenticated or logginbypass): return redirect('action:premission_denied')
+  if not (request.user.is_authenticated or (logginbypass and not BigRedButton.is_emergency())): return redirect('action:premission_denied')
   template = loader.get_template('action/form_CreateSubmit.html')
   context = {'form': OrganizationcontactCreateForm(), 'createsubmit_title': "Organization Contact", 'formaction_url': "create_organizationcontact"}
   return HttpResponse(template.render(context, request))
@@ -144,7 +145,7 @@ ___redirect loop
 '''
 def OrganizationcontactCreate(request):
   logginbypass = publicuse
-  if not (request.user.is_authenticated or logginbypass): return redirect('action:premission_denied')
+  if not (request.user.is_authenticated or (logginbypass and not BigRedButton.is_emergency())): return redirect('action:premission_denied')
   data = request.POST
   print(data)
 
@@ -173,16 +174,17 @@ ___formclass location
 '''
 class LocationParseForm(Form):
   country = CharField(required=True)
+  state = CharField()
   county = CharField()
   town = CharField()
   address = CharField()
-  lat = FloatField()
-  lon = FloatField()
+  #lat = FloatField()
+  #lon = FloatField()
 
 def LocationCreateSubmit(request):
   publicuse = False
   logginbypass = publicuse
-  if not (request.user.is_authenticated or logginbypass): return redirect('action:premission_denied')
+  if not (request.user.is_authenticated or (logginbypass and not BigRedButton.is_emergency())): return redirect('action:premission_denied')
   template = loader.get_template('action/form_CreateSubmit.html')
   context = {'form': LocationParseForm(), 'createsubmit_title': "Location", 'formaction_url': "create_location"}
   return HttpResponse(template.render(context, request))
@@ -190,11 +192,11 @@ def LocationCreateSubmit(request):
 def LocationCreate(request):
   publicuse = False
   logginbypass = publicuse
-  if not (request.user.is_authenticated or logginbypass): return redirect('action:premission_denied')
+  if not (request.user.is_authenticated or (logginbypass and not BigRedButton.is_emergency())): return redirect('action:premission_denied')
   data = request.POST
   print(data)
 
-  input_address = data['address'] + "," + data['town'] + "," + data['county']+ "," + data['country']
+  input_address = ",".join([data['address'], data['town'], data['county'], data['state'], data['country']])
   input_latlon = data['lat'] + "," + data['lon']
   return redirect('action:location_submit')
 
@@ -271,7 +273,7 @@ class USGformgathering(Form):
 
 def USGCreateSubmit(request):
   logginbypass = publicuse
-  if not (request.user.is_authenticated or logginbypass): return redirect('action:premission_denied')
+  if not (request.user.is_authenticated or (logginbypass and not BigRedButton.is_emergency())): return redirect('action:premission_denied')
 
   template = loader.get_template('action/form_USG_CreateSubmit.html')
   context = {
@@ -283,7 +285,7 @@ def USGCreateSubmit(request):
 
 def USGCreate(request):
   logginbypass = publicuse
-  if not (request.user.is_authenticated or logginbypass): return redirect('action:premission_denied')
+  if not (request.user.is_authenticated or (logginbypass and not BigRedButton.is_emergency())): return redirect('action:premission_denied')
   data = request.POST
   try:
     user_consent = data['user_consent']

@@ -37,6 +37,7 @@ except:
 import datetime, io, csv, os, traceback, threading, html, base64, hashlib, json
 import googlemaps
 
+from .bigredbutton import BigRedButton
 from .models import Gathering, Gathering_Belong, Gathering_Witness, Location, UserHome, Organization, Country
 from .map_sync import eventmap_data_view, eventmap_data, coffer_data, to_fff
 from .tools_view import tools_view_handler, tools_view_post
@@ -820,6 +821,32 @@ def join_us(request):
   userhome.save()
   context = {'error_message': f"Callsign '{screenname}' successfully created."}
   return HttpResponse(template.render(context, request))
+
+def emergency_activate(request):
+  if request.user.is_authenticated:
+    print("brb:", BigRedButton.is_emergency())
+    BigRedButton.emergency_activate()
+    print("brb:", BigRedButton.is_emergency())
+  return redirect('action:start')
+
+def emergency_deactivate(request):
+  if request.user.is_authenticated:
+    print("brb:", BigRedButton.is_emergency())
+    BigRedButton.emergency_deactivate()
+    print("brb:", BigRedButton.is_emergency())
+  return redirect('action:start')
+
+#class BigRedButton():
+  #emergencyfilename = 'emergency.stop'
+  #def emergency_activate(self):
+    #ef = open(self.emergencyfilename, "w")
+    #ef.write("this file prevents functions in case of emergencies")
+    #ef.close()
+#
+  #def is_emergency(self):
+    #em = os.path.isfile(self.emergencyfilename)
+    #print(em)
+    #return os.path.isfile(self.emergencyfilename)
 
 '''
 '''
