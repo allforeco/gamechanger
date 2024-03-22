@@ -42,8 +42,9 @@ class Location(models.Model):
   zip_code = models.CharField(max_length=12, blank=True, null=True)
   lat = models.FloatField(blank=True, null=True)
   lon = models.FloatField(blank=True, null=True)
-  #google_name = models.CharField(max_length=100)
-  #verified = models.ForeignKey(Verification, on_delete=models.CASCADE, editable=False)
+  #google_name = models.CharField(max_length=255, null=True, blank=True)
+  verified = models.ForeignKey(Verification, on_delete=models.CASCADE, blank=True, null=True)
+  google_metadata = models.CharField(max_length=1023,blank=True, null=True)
 
   '''
   ___stringify coordinates
