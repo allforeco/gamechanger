@@ -3,12 +3,14 @@ from django.http import HttpResponse
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.forms import *
+
 from .bigredbutton import BigRedButton
+from .parsers import geoParser
 
 from dal import autocomplete
-import base64, hashlib, datetime
+import base64, hashlib, datetime, googlemaps, json, os
 
-from .models import Gathering, Organization, OrganizationContact, Location, Country
+from .models import Gathering, Organization, OrganizationContact, Location, Country, Verification
 
 publicuse = True
 
@@ -173,31 +175,102 @@ def OrganizationcontactCreate(request):
 ___formclass location
 '''
 class LocationParseForm(Form):
-  country = CharField(required=True)
-  state = CharField()
-  county = CharField()
-  town = CharField()
-  address = CharField()
+  #country = CharField(required=True)
+  #state = CharField(required=False)
+  #county = CharField(required=False)
+  #town = CharField(required=False)
+  address = CharField(required=False, help_text="ex. \"street, town, county, state, country\"")
   #lat = FloatField()
   #lon = FloatField()
 
 def LocationCreateSubmit(request):
-  publicuse = False
+  #publicuse = False
   logginbypass = publicuse
   if not (request.user.is_authenticated or (logginbypass and not BigRedButton.is_emergency())): return redirect('action:premission_denied')
   template = loader.get_template('action/form_CreateSubmit.html')
   context = {'form': LocationParseForm(), 'createsubmit_title': "Location", 'formaction_url': "create_location"}
   return HttpResponse(template.render(context, request))
 
+def LocationMapCreateSubmit(request):
+  logginbypass = publicuse
+  if not (request.user.is_authenticated or (logginbypass and not BigRedButton.is_emergency())): return redirect('action:premission_denied')
+  template = loader.get_template('action/form_CreateSubmit_location.html')
+  context = {"google_maps_key": geoParser.gkey}
+  return HttpResponse(template.render(context, request))
+
 def LocationCreate(request):
-  publicuse = False
+  #publicuse = False
   logginbypass = publicuse
   if not (request.user.is_authenticated or (logginbypass and not BigRedButton.is_emergency())): return redirect('action:premission_denied')
   data = request.POST
-  print(data)
+  #print(data)
+  address = data['address']
+  if not data['address'] or len(data['address']) < 3: return redirect('action:location_submit')
+  google_metadata = geoParser.gmaps.geocode(address)
+  
+  in_location_name_list = []
+  for ln in google_metadata[0]['address_components']:
+    in_location_name_list.append(ln['long_name'])
 
-  input_address = ",".join([data['address'], data['town'], data['county'], data['state'], data['country']])
-  input_latlon = data['lat'] + "," + data['lon']
+  #google_metadata_dict = json.loads(google_metadata)
+  def in_dict(d, lvl):
+    lvl+=1
+    t = type(d)
+    if t is str:
+      for i in range(lvl):
+        print(">", end='')
+      print(d)
+    elif t is dict:
+      keys = d.keys()
+      for key in keys:
+        for i in range(lvl):
+          print("#", end='')
+        print(key)
+        in_dict(d[key], lvl)
+    elif t is list:
+      for i in d:
+        in_dict(i, lvl)
+    else:
+      for i in range(lvl):
+        print(">", end='')
+      print(d)
+
+  def metadataToLocation(metadata, name):
+    location = Location()
+    location.name=name
+    location.in_country=Country.objects.filter(name__iexact=metadata[0]["address_components"][-1]["long_name"]).first()
+    location.in_location=Location.Unknown()
+    for ln in metadata[0]["address_components"]:
+      if ln["long_name"] == name:
+        i = metadata[0]["address_components"].index(ln)
+        if not i >= len(metadata[0]["address_components"]):
+          location.in_location=Location.objects.filter(name__iexact=metadata[0]["address_components"][min(len(metadata[0]["address_components"])-1,i+1)]["long_name"]).first()
+          break
+    location.zip_code=-1
+    location.lat=metadata[0]["geometry"]["location"]["lat"]
+    location.lon=metadata[0]["geometry"]["location"]["lng"]
+    location.verified=None
+    location.google_metadata = str(google_metadata)
+    #location.verified=Verification()
+    location.save()
+    print(f"Location:\n\t{location.name}\n\t{location.in_country}\n\t{location.in_location}\n\t[{location.lat},{location.lon}]\n\t,location.google_metadata")
+  
+  f = open("google_metadata.txt", "w")
+  f.write(str(google_metadata))
+  f.close()
+  #print(google_metadata)
+  #lvl = 0
+  #in_dict(google_metadata, lvl)
+
+  #print('ilnl',in_location_name_list)
+
+  in_location_name_list.reverse()
+
+  for ln in in_location_name_list:
+    i = in_location_name_list.index(ln)
+    if not Location.objects.filter(in_location=Location.objects.filter(name__iexact=in_location_name_list[max(0,i-1)]).first(), name__iexact=ln):
+      metadataToLocation(google_metadata, ln)
+  
   return redirect('action:location_submit')
 
 '''REPLACED BY COOKIE_PROFILE
