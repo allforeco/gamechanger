@@ -79,6 +79,8 @@ class CookieProfile():
     values = {}
     if CookieProfile.COOKIE_PROFILE not in request.session:
       request.session[CookieProfile.COOKIE_PROFILE] = False
+      values = None
+      return None
 
     if request.session[CookieProfile.COOKIE_PROFILE]:
       for key in CookieProfile.keys:

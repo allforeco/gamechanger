@@ -10,11 +10,16 @@ from .parsers import geoParser
 from dal import autocomplete
 import base64, hashlib, datetime, googlemaps, json, os
 
-from .models import Gathering, Organization, OrganizationContact, Location, Country, Verification
+from .models import Gathering, Organization, OrganizationContact, Location, Country, VerificationStamp, UserHome
+from .cookie_profile import CookieProfile
 
 publicuse = True
 
 
+def default_CreateSubmit_Response(request, form, title, url, feedback = None):
+  template = loader.get_template('action/form_CreateSubmit.html')
+  context = {'form': form, 'createsubmit_title': title, 'formaction_url': url, 'feedback': feedback}
+  return HttpResponse(template.render(context, request))
 
 '''
 ___formclass gathering
@@ -35,8 +40,9 @@ def GatheringCreateSubmit(request):
   logginbypass = publicuse
   if not (request.user.is_authenticated or (logginbypass and not BigRedButton.is_emergency())): return redirect('action:premission_denied')
 
+  return default_CreateSubmit_Response(request, GatheringCreateForm(), "Event", "formaction_url", "gathering_create")
   template = loader.get_template('action/form_CreateSubmit.html')
-  context = {'form': GatheringCreateForm(), 'createsubmit_title': "Event", 'formaction_url': "create_gathering"}
+  context = {'form': GatheringCreateForm(), 'createsubmit_title': "Event", 'formaction_url': "gathering_create"}
   return HttpResponse(template.render(context, request))
 
 '''
@@ -61,9 +67,11 @@ def GatheringCreate(request):
     time = data['time']
     consent = data['consent']
   except:
+    return default_CreateSubmit_Response(request, GatheringCreateForm(), "Event", "formaction_url", "gathering_create", "something went wrong")
     return redirect('action:gathering_submit')
   
   if consent == False:
+    return default_CreateSubmit_Response(request, GatheringCreateForm(), "Event", "formaction_url", "gathering_create", "user did not consent to upload")
     return redirect('action:gathering_submit')
   
   gathering = Gathering()
@@ -80,6 +88,7 @@ def GatheringCreate(request):
   gathering.save()
 
   print(gathering.data_all())
+  return default_CreateSubmit_Response(request, GatheringCreateForm(), "Event", "formaction_url", "gathering_create", f"Gathering ({gathering}) was succssessfully created")
   return redirect('action:gathering_submit')
 
 
@@ -98,8 +107,9 @@ ___organization form view
 def OrganizationCreateSubmit(request):
   logginbypass = publicuse
   if not (request.user.is_authenticated or (logginbypass and not BigRedButton.is_emergency())): return redirect('action:premission_denied')
+  return default_CreateSubmit_Response(request, OrganizationCreateForm(), "Organization", "organization_create")
   template = loader.get_template('action/form_CreateSubmit.html')
-  context = {'form': OrganizationCreateForm(), 'createsubmit_title': "Organization", 'formaction_url': "create_organization"}
+  context = {'form': OrganizationCreateForm(), 'createsubmit_title': "Organization", 'formaction_url': "organization_create"}
   return HttpResponse(template.render(context, request))
 
 '''
@@ -115,12 +125,14 @@ def OrganizationCreate(request):
   try:
     name = data['name']
   except:
-    redirect('action:organization_submit')
+    return default_CreateSubmit_Response(request, OrganizationCreateForm(), "Organization", "organization_create", "Something went wrong")
+    return redirect('action:organization_submit')
 
   organization = Organization()
   organization.name = name
   organization.verified = False
   organization.save()
+  return default_CreateSubmit_Response(request, OrganizationCreateForm(), "Organization", "organization_create", f"Organization ({organization}) was succssessfully created")
   return redirect('action:organizationcontact_submit')
 
 '''
@@ -137,8 +149,9 @@ ___form view for contact
 def OrganizationcontactCreateSubmit(request):
   logginbypass = publicuse
   if not (request.user.is_authenticated or (logginbypass and not BigRedButton.is_emergency())): return redirect('action:premission_denied')
+  return default_CreateSubmit_Response(request, OrganizationcontactCreateForm(), "Organization Contact", "organizationcontact_create")
   template = loader.get_template('action/form_CreateSubmit.html')
-  context = {'form': OrganizationcontactCreateForm(), 'createsubmit_title': "Organization Contact", 'formaction_url': "create_organizationcontact"}
+  context = {'form': OrganizationcontactCreateForm(), 'createsubmit_title': "Organization Contact", 'formaction_url': "organizationcontact_create"}
   return HttpResponse(template.render(context, request))
 
 '''
@@ -158,6 +171,7 @@ def OrganizationcontactCreate(request):
     organization=Organization.objects.get(id=data['organization'])
     location=Location.objects.get(id=data['location'])
   except:
+    return default_CreateSubmit_Response(request, OrganizationcontactCreateForm(), "Organization Contact", "organizationcontact_create", "Something went wrong")
     return redirect('action:organizationcontact_submit')
   
   organizationcontact = OrganizationContact()
@@ -168,6 +182,7 @@ def OrganizationcontactCreate(request):
   organizationcontact.location=location
   organizationcontact.save()
 
+  return default_CreateSubmit_Response(request, OrganizationcontactCreateForm(), "Organization Contact", "organizationcontact_create", f"Organization Contact ({organizationcontact} was successfully created)")
   return redirect('action:organizationcontact_submit')
 
 
@@ -175,18 +190,15 @@ def OrganizationcontactCreate(request):
 ___formclass location
 '''
 class LocationParseForm(Form):
-  #country = CharField(required=True)
-  #state = CharField(required=False)
-  #county = CharField(required=False)
-  #town = CharField(required=False)
   address = CharField(required=False, help_text="ex. \"street, town, county, state, country\"")
-  #lat = FloatField()
-  #lon = FloatField()
+  #_metadata_options=[]
+  #metadata = CharField()
 
 def LocationCreateSubmit(request):
   #publicuse = False
   logginbypass = publicuse
   if not (request.user.is_authenticated or (logginbypass and not BigRedButton.is_emergency())): return redirect('action:premission_denied')
+  return default_CreateSubmit_Response(request, LocationParseForm(), "Location", "create_location")
   template = loader.get_template('action/form_CreateSubmit.html')
   context = {'form': LocationParseForm(), 'createsubmit_title': "Location", 'formaction_url': "create_location"}
   return HttpResponse(template.render(context, request))
@@ -199,21 +211,7 @@ def LocationMapCreateSubmit(request):
   return HttpResponse(template.render(context, request))
 
 def LocationCreate(request):
-  #publicuse = False
-  logginbypass = publicuse
-  if not (request.user.is_authenticated or (logginbypass and not BigRedButton.is_emergency())): return redirect('action:premission_denied')
-  data = request.POST
-  #print(data)
-  address = data['address']
-  if not data['address'] or len(data['address']) < 3: return redirect('action:location_submit')
-  google_metadata = geoParser.gmaps.geocode(address)
-  
-  in_location_name_list = []
-  for ln in google_metadata[0]['address_components']:
-    in_location_name_list.append(ln['long_name'])
-
-  #google_metadata_dict = json.loads(google_metadata)
-  def in_dict(d, lvl):
+  def in_metadata(d, lvl):
     lvl+=1
     t = type(d)
     if t is str:
@@ -226,51 +224,123 @@ def LocationCreate(request):
         for i in range(lvl):
           print("#", end='')
         print(key)
-        in_dict(d[key], lvl)
+        in_metadata(d[key], lvl)
     elif t is list:
       for i in d:
-        in_dict(i, lvl)
+        in_metadata(i, lvl)
     else:
       for i in range(lvl):
         print(">", end='')
       print(d)
 
-  def metadataToLocation(metadata, name):
+  #publicuse = False
+  logginbypass = publicuse
+  if not (request.user.is_authenticated or (logginbypass and not BigRedButton.is_emergency())): return redirect('action:premission_denied')
+  data = request.POST
+  #print(data)
+  address = data['address']
+  if not data['address'] or len(data['address']) < 3:
+    return default_CreateSubmit_Response(request, LocationParseForm(), "Location", "create_location", "Enter a full address")
+    return redirect('action:location_submit')
+  google_metadata = geoParser.gmaps.geocode(address)
+  #print(len(google_metadata), google_metadata)
+
+  if len(google_metadata) < 1:
+    return default_CreateSubmit_Response(request, LocationParseForm(), "Location", "create_location", "Invalid address")
+    return redirect('action:location_submit')
+  
+  if len(google_metadata) > 1:
+    addresses = list()
+    for l in google_metadata:
+      ln = ""
+      for li in google_metadata[0]['address_components']:
+        ln += li['long_name'] + ", "
+      ln = ln.rstrip(" ,")
+      address.append(ln)
+    template = loader.get_template('action/form_CreateSubmit.html')
+    class select_form(Form):
+      _address_options = addresses
+      address = ChoiceField(choices=_address_options, label="Select the specific address")
+    context = {'form':select_form, 'createsubmit_title': "Select Specific Address", 'formaction_url': "location_create"}
+    return HttpResponse(template.render(context, request))
+  
+  location_typefilter = ['establishment', 'park', 'point_of_interest', 'political']
+
+  in_country_data = ""
+  for ln in google_metadata[0]['address_components']:
+    if "country" in ln['types']:
+      in_country_data = ln['long_name']
+
+  in_location_data_list = []
+  for ln in google_metadata[0]['address_components']:
+    if any(t in ln['types'] for t in location_typefilter):
+      #name, in_country, in_location, zip, [lat, lon], verified, metadata
+      in_location_dataa = in_country_data
+      try:
+        in_location_dataa = in_location_data_list[0][0]
+      except:
+        in_location_dataa = in_country_data
+
+      verified = VerificationStamp()
+      verified.created_by = UserHome.Unknown()
+      verified.notes = CookieProfile.get_values(request)
+      verified.created_on = datetime.datetime.now()
+      verified.updated_on = datetime.datetime.now()
+      verified.save()
+      in_location_data = [
+          ln['long_name'], 
+          in_country_data, 
+          in_location_dataa, 
+          None, 
+          [google_metadata[0]["geometry"]["location"]["lat"], google_metadata[0]["geometry"]["location"]["lng"]], 
+          verified, 
+          str(google_metadata[0])[:2047]
+        ]
+      
+      in_location_data_list.insert(0, in_location_data)
+  
+  print("nl", in_location_data_list)
+
+  def metadataToLocation(metadata):
     location = Location()
-    location.name=name
-    location.in_country=Country.objects.filter(name__iexact=metadata[0]["address_components"][-1]["long_name"]).first()
-    location.in_location=Location.Unknown()
-    for ln in metadata[0]["address_components"]:
-      if ln["long_name"] == name:
-        i = metadata[0]["address_components"].index(ln)
-        if not i >= len(metadata[0]["address_components"]):
-          location.in_location=Location.objects.filter(name__iexact=metadata[0]["address_components"][min(len(metadata[0]["address_components"])-1,i+1)]["long_name"]).first()
-          break
-    location.zip_code=-1
-    location.lat=metadata[0]["geometry"]["location"]["lat"]
-    location.lon=metadata[0]["geometry"]["location"]["lng"]
-    location.verified=None
-    location.google_metadata = str(google_metadata)
-    #location.verified=Verification()
+    location.name=metadata[0]
+    print("lmn:", location.name)
+
+    country_name = metadata[1]
+    location.in_country=Country.objects.filter(name__iexact=country_name).first() or Country.Unknown()
+    print("lic:",location.in_country.name)
+
+    in_location_name = metadata[2]
+    location.in_location = Location.objects.filter(name__iexact=in_location_name).first() or Location.Unknown()
+    print("lil:",location.in_location.name)
+
+    location.zip_code=metadata[3]
+
+    location.lat=metadata[4][0]
+    location.lon=metadata[4][1]
+    print("lll",location.lat, location.lon)
+
+    location.verified=metadata[5]
+    print("lvr",location.verified)
+
+    location.google_metadata = metadata[6]
+
+    if location.name == None or location.in_location == None or location.in_country == None:
+      print("ler: Fail")
+      return default_CreateSubmit_Response(request, LocationParseForm(), "Location", "create_location", "Creation Fail")
     location.save()
     print(f"Location:\n\t{location.name}\n\t{location.in_country}\n\t{location.in_location}\n\t[{location.lat},{location.lon}]\n\t,location.google_metadata")
+
+  in_location_data_list.reverse()
+
+  for ln in in_location_data_list:
+    i = in_location_data_list.index(ln)
+    print("ln", i, ln, ":", in_location_data_list[i])
+    metadataToLocation(ln)
+    #if not Location.objects.filter(in_location=Location.objects.filter(name__iexact=in_location_data_list[i]).first(), name__iexact=ln):
+      
   
-  f = open("google_metadata.txt", "w")
-  f.write(str(google_metadata))
-  f.close()
-  #print(google_metadata)
-  #lvl = 0
-  #in_dict(google_metadata, lvl)
-
-  #print('ilnl',in_location_name_list)
-
-  in_location_name_list.reverse()
-
-  for ln in in_location_name_list:
-    i = in_location_name_list.index(ln)
-    if not Location.objects.filter(in_location=Location.objects.filter(name__iexact=in_location_name_list[max(0,i-1)]).first(), name__iexact=ln):
-      metadataToLocation(google_metadata, ln)
-  
+  return default_CreateSubmit_Response(request, LocationParseForm(), "Location", "create_location", f"Location ({Location}), succssessfully created")
   return redirect('action:location_submit')
 
 '''REPLACED BY COOKIE_PROFILE
