@@ -25,7 +25,7 @@ class GatheringWitnessAdmin(admin.ModelAdmin):
 admin.site.register(Gathering_Witness, GatheringWitnessAdmin)
 
 class LocationAdmin(admin.ModelAdmin):
-  list_display = ('name', 'str_lat_lon', 'in_country', 'verified')
+  list_display = ('name', 'str_lat_lon', 'in_country')
   ordering = ('name',)
   search_fields = ['name']
 
