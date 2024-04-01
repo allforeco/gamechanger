@@ -712,6 +712,9 @@ class UserHome(models.Model):
   #interests
   #friends
 
+  def Unknown():
+    return UserHome.objects.filter(callsign="User").first()
+
 '''
 ???
 '''
