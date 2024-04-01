@@ -28,6 +28,8 @@ class Verification(models.Model):
   updated_on = models.TimeField(auto_now=True, editable=False)
   claim = models.FloatField(default=1, editable=False)
   strength = models.FloatField(default=0, editable=False)
+  #notes = models.CharField(max_length=500)
+  details = models.CharField(max_length=500)
 
 '''
 ___Database registered Locations

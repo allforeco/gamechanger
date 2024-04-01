@@ -40,7 +40,7 @@ def GatheringCreateSubmit(request):
   logginbypass = publicuse
   if not (request.user.is_authenticated or (logginbypass and not BigRedButton.is_emergency())): return redirect('action:premission_denied')
 
-  return default_CreateSubmit_Response(request, GatheringCreateForm(), "Gathering", "gathering_create")
+  return default_CreateSubmit_Response(request, GatheringCreateForm(), "Gathering", "create_gathering")
   #template = loader.get_template('action/form_CreateSubmit.html')
   #context = {'form': GatheringCreateForm(), 'createsubmit_title': "Event", 'formaction_url': "create_gathering"}
   #return HttpResponse(template.render(context, request))
@@ -67,11 +67,11 @@ def GatheringCreate(request):
     time = data['time']
     consent = data['consent']
   except:
-    return default_CreateSubmit_Response(request, GatheringCreateForm(), "Gathering", "gathering_create", "Gathering Creation Error")
+    return default_CreateSubmit_Response(request, GatheringCreateForm(), "Gathering", "create_gathering", "Gathering Creation Error")
     #return redirect('action:gathering_submit')
   
   if consent == False:
-    return default_CreateSubmit_Response(request, GatheringCreateForm(), "Gathering", "gathering_create", "Innsuficient consent to create Gathering")
+    return default_CreateSubmit_Response(request, GatheringCreateForm(), "Gathering", "create_gathering", "Innsuficient consent to create Gathering")
     #return redirect('action:gathering_submit')
   
   gathering = Gathering()
@@ -88,7 +88,7 @@ def GatheringCreate(request):
   gathering.save()
 
   print(gathering.data_all())
-  return default_CreateSubmit_Response(request, GatheringCreateForm(), "Gathering", "gathering_create", "Gathering successfully created")
+  return default_CreateSubmit_Response(request, GatheringCreateForm(), "Gathering", "create_gathering", "Gathering successfully created")
   #return redirect('action:gathering_submit')
 
 
@@ -107,7 +107,7 @@ def OrganizationCreateSubmit(request):
   logginbypass = publicuse
   if not (request.user.is_authenticated or (logginbypass and not BigRedButton.is_emergency())): return redirect('action:premission_denied')
   
-  return default_CreateSubmit_Response(request, OrganizationCreateForm(), "Organization", "organization_create")
+  return default_CreateSubmit_Response(request, OrganizationCreateForm(), "Organization", "create_organization")
   #template = loader.get_template('action/form_CreateSubmit.html')
   #context = {'form': OrganizationCreateForm(), 'createsubmit_title': "Organization", 'formaction_url': "create_organization"}
   #return HttpResponse(template.render(context, request))
@@ -125,14 +125,14 @@ def OrganizationCreate(request):
   try:
     name = data['name']
   except:
-    return default_CreateSubmit_Response(request, OrganizationCreateForm(), "Organization", "organization_create", "Organization creation Error")
+    return default_CreateSubmit_Response(request, OrganizationCreateForm(), "Organization", "create_organization", "Organization creation Error")
     #redirect('action:organization_submit')
 
   organization = Organization()
   organization.name = name
   organization.verified = False
   organization.save()
-  return default_CreateSubmit_Response(request, OrganizationCreateForm(), "Organization", "organization_create", "Organization successfully created")
+  return default_CreateSubmit_Response(request, OrganizationCreateForm(), "Organization", "create_organization", "Organization successfully created")
   #return redirect('action:organizationcontact_submit')
 
 '''
@@ -150,7 +150,7 @@ def OrganizationcontactCreateSubmit(request):
   logginbypass = publicuse
   if not (request.user.is_authenticated or (logginbypass and not BigRedButton.is_emergency())): return redirect('action:premission_denied')
   
-  return default_CreateSubmit_Response(request, OrganizationcontactCreateForm(), "Organization Contact", "organizationcontact_create")
+  return default_CreateSubmit_Response(request, OrganizationcontactCreateForm(), "Organization Contact", "create_organizationcontact")
   #template = loader.get_template('action/form_CreateSubmit.html')
   #context = {'form': OrganizationcontactCreateForm(), 'createsubmit_title': "Organization Contact", 'formaction_url': "create_organizationcontact"}
   #return HttpResponse(template.render(context, request))
@@ -172,7 +172,7 @@ def OrganizationcontactCreate(request):
     organization=Organization.objects.get(id=data['organization'])
     location=Location.objects.get(id=data['location'])
   except:
-    return default_CreateSubmit_Response(request, OrganizationcontactCreateForm(), "Organization Contact", "organizationcontact_create", "Organization Vcongtgact creatiion Error")
+    return default_CreateSubmit_Response(request, OrganizationcontactCreateForm(), "Organization Contact", "create_organizationcontact", "Organization Vcongtgact creatiion Error")
     #return redirect('action:organizationcontact_submit')
   
   organizationcontact = OrganizationContact()
@@ -183,7 +183,7 @@ def OrganizationcontactCreate(request):
   organizationcontact.location=location
   organizationcontact.save()
 
-  return default_CreateSubmit_Response(request, OrganizationcontactCreateForm(), "Organization Contact", "organizationcontact_create", "Organization Contact successfully created")
+  return default_CreateSubmit_Response(request, OrganizationcontactCreateForm(), "Organization Contact", "create_organizationcontact", "Organization Contact successfully created")
   #return redirect('action:organizationcontact_submit')
 
 
@@ -204,7 +204,7 @@ def LocationCreateSubmit(request):
   logginbypass = publicuse
   if not (request.user.is_authenticated or (logginbypass and not BigRedButton.is_emergency())): return redirect('action:premission_denied')
   
-  return default_CreateSubmit_Response(request, LocationParseForm(), "Location", "location_create")
+  return default_CreateSubmit_Response(request, LocationParseForm(), "Location", "create_location")
   #template = loader.get_template('action/form_CreateSubmit.html')
   #context = {'form': LocationParseForm(), 'createsubmit_title': "Location", 'formaction_url': "create_location"}
   #return HttpResponse(template.render(context, request))
@@ -213,7 +213,7 @@ def LocationMapCreateSubmit(request):
   logginbypass = publicuse
   if not (request.user.is_authenticated or (logginbypass and not BigRedButton.is_emergency())): return redirect('action:premission_denied')
   
-  return default_CreateSubmit_Response(request, LocationParseForm(), "Location", "location_create", "Location successfully created")
+  return default_CreateSubmit_Response(request, LocationParseForm(), "Location", "create_location", "Location successfully created")
   #template = loader.get_template('action/form_CreateSubmit_location.html')
   #context = {"google_maps_key": geoParser.gkey}
   #return HttpResponse(template.render(context, request))
@@ -223,7 +223,7 @@ def LocationCreate(request):
   logginbypass = publicuse
   if not (request.user.is_authenticated or (logginbypass and not BigRedButton.is_emergency())): return redirect('action:premission_denied')
   
-  return default_CreateSubmit_Response(request, LocationParseForm(), "Location", "location_create")
+  return default_CreateSubmit_Response(request, LocationParseForm(), "Location", "create_location")
   #template = loader.get_template('action/form_CreateSubmit.html')
   #context = {'form': LocationParseForm(), 'createsubmit_title': "Location", 'formaction_url': "create_location"}
   #return HttpResponse(template.render(context, request))
@@ -258,103 +258,103 @@ def LocationCreate(request):
         print(">", end='')
       print(d)
 
-    #publicuse = False
-    logginbypass = publicuse
-    if not (request.user.is_authenticated or (logginbypass and not BigRedButton.is_emergency())): return redirect('action:premission_denied')
-    data = request.POST
-    #print(data)
-    address = data['address']
-    if not data['address'] or len(data['address']) < 3:
-      return default_CreateSubmit_Response(request, LocationParseForm(), "Location", "location_create", "Enter a full address")
-      return redirect('action:location_submit')
-    google_metadata = geoParser.gmaps.geocode(address)
-    #print(len(google_metadata), google_metadata)
+  #publicuse = False
+  logginbypass = publicuse
+  if not (request.user.is_authenticated or (logginbypass and not BigRedButton.is_emergency())): return redirect('action:premission_denied')
+  data = request.POST
+  #print(data)
+  address = data['address']
+  if not data['address'] or len(data['address']) < 3:
+    return default_CreateSubmit_Response(request, LocationParseForm(), "Location", "create_location", "Enter a full address")
+    return redirect('action:location_submit')
+  google_metadata = geoParser.gmaps.geocode(address)
+  #print(len(google_metadata), google_metadata)
 
-    if len(google_metadata) < 1:
-      return default_CreateSubmit_Response(request, LocationParseForm(), "Location", "location_create", "Invalid address")
-      return redirect('action:location_submit')
+  if len(google_metadata) < 1:
+    return default_CreateSubmit_Response(request, LocationParseForm(), "Location", "create_location", "Invalid address")
+    return redirect('action:location_submit')
     
-    if len(google_metadata) > 1:
-      addresses = list()
-      for l in google_metadata:
-        ln = ""
-        for li in google_metadata[0]['address_components']:
-          ln += li['long_name'] + ", "
+  if len(google_metadata) > 1:
+    addresses = list()
+    for l in google_metadata:
+      ln = ""
+      for li in google_metadata[0]['address_components']:
+        ln += li['long_name'] + ", "
         ln = ln.rstrip(" ,")
         address.append(ln)
-      template = loader.get_template('action/form_CreateSubmit.html')
-      class select_form(Form):
-        _address_options = addresses
-        address = ChoiceField(choices=_address_options, label="Select the specific address")
-      context = {'form':select_form, 'createsubmit_title': "Select Specific Address", 'formaction_url': "location_create"}
-      return HttpResponse(template.render(context, request))
+    template = loader.get_template('action/form_CreateSubmit.html')
+    class select_form(Form):
+      _address_options = addresses
+      address = ChoiceField(choices=_address_options, label="Select the specific address")
+    context = {'form':select_form, 'createsubmit_title': "Select Specific Address", 'formaction_url': "create_location"}
+    return HttpResponse(template.render(context, request))
     
-    location_typefilter = ['establishment', 'park', 'point_of_interest', 'political']
+  location_typefilter = ['establishment', 'park', 'point_of_interest', 'political']
 
-    in_country_data = ""
-    for ln in google_metadata[0]['address_components']:
-      if "country" in ln['types']:
-        in_country_data = ln['long_name']
+  in_country_data = ""
+  for ln in google_metadata[0]['address_components']:
+    if "country" in ln['types']:
+      in_country_data = ln['long_name']
 
-    in_location_data_list = []
-    for ln in google_metadata[0]['address_components']:
-      if any(t in ln['types'] for t in location_typefilter):
-        #name, in_country, in_location, zip, [lat, lon], verified, metadata
+  in_location_data_list = []
+  for ln in google_metadata[0]['address_components']:
+    if any(t in ln['types'] for t in location_typefilter):
+      #name, in_country, in_location, zip, [lat, lon], verified, metadata
+      in_location_dataa = in_country_data
+      try:
+        in_location_dataa = in_location_data_list[0][0]
+      except:
         in_location_dataa = in_country_data
-        try:
-          in_location_dataa = in_location_data_list[0][0]
-        except:
-          in_location_dataa = in_country_data
 
-        verified = Verification()
-        verified.created_by = UserHome.Unknown()
-        verified.notes = CookieProfile.get_values(request)
-        verified.created_on = datetime.datetime.now()
-        verified.updated_on = datetime.datetime.now()
-        verified.save()
-        in_location_data = [
-            ln['long_name'], 
-            in_country_data, 
-            in_location_dataa, 
-            None, 
-            [google_metadata[0]["geometry"]["location"]["lat"], google_metadata[0]["geometry"]["location"]["lng"]], 
-            verified, 
-            str(google_metadata[0])[:2047]
-          ]
+      verified = Verification()
+      verified.created_by = UserHome.Unknown()
+      verified.details = CookieProfile.get_values(request)
+      verified.created_on = datetime.datetime.now()
+      verified.updated_on = datetime.datetime.now()
+      verified.save()
+      in_location_data = [
+        ln['long_name'], 
+        in_country_data, 
+        in_location_dataa, 
+        None, 
+        [google_metadata[0]["geometry"]["location"]["lat"], google_metadata[0]["geometry"]["location"]["lng"]], 
+        verified, 
+        str(google_metadata[0])[:2047]
+      ]
         
-        in_location_data_list.insert(0, in_location_data)
+      in_location_data_list.insert(0, in_location_data)
     
-    print("nl", in_location_data_list)
+  print("nl", in_location_data_list)
 
-    def metadataToLocation(metadata):
-      location = Location()
-      location.name=metadata[0]
-      print("lmn:", location.name)
+  def metadataToLocation(metadata):
+    location = Location()
+    location.name=metadata[0]
+    print("lmn:", location.name)
 
-      country_name = metadata[1]
-      location.in_country=Country.objects.filter(name__iexact=country_name).first() or Country.Unknown()
-      print("lic:",location.in_country.name)
+    country_name = metadata[1]
+    location.in_country=Country.objects.filter(name__iexact=country_name).first() or Country.Unknown()
+    print("lic:",location.in_country.name)
 
-      in_location_name = metadata[2]
-      location.in_location = Location.objects.filter(name__iexact=in_location_name).first() or Location.Unknown()
-      print("lil:",location.in_location.name)
+    in_location_name = metadata[2]
+    location.in_location = Location.objects.filter(name__iexact=in_location_name).first() or Location.Unknown()
+    print("lil:",location.in_location.name)
 
-      location.zip_code=metadata[3]
+    location.zip_code=metadata[3]
 
-      location.lat=metadata[4][0]
-      location.lon=metadata[4][1]
-      print("lll",location.lat, location.lon)
+    location.lat=metadata[4][0]
+    location.lon=metadata[4][1]
+    print("lll",location.lat, location.lon)
 
-      location.verified=metadata[5]
-      print("lvr",location.verified)
+    location.verified=metadata[5]
+    print("lvr",location.verified)
 
-      location.google_metadata = metadata[6]
+    location.google_metadata = metadata[6]
 
-      if location.name == None or location.in_location == None or location.in_country == None:
-        print("ler: Fail")
-        return default_CreateSubmit_Response(request, LocationParseForm(), "Location", "location_create", "Creation Fail")
-      location.save()
-      print(f"Location:\n\t{location.name}\n\t{location.in_country}\n\t{location.in_location}\n\t[{location.lat},{location.lon}]\n\t,location.google_metadata")
+    if location.name == None or location.in_location == None or location.in_country == None:
+      print("ler: Fail")
+      return default_CreateSubmit_Response(request, LocationParseForm(), "Location", "create_location", "Creation Fail")
+    location.save()
+    print(f"Location:\n\t{location.name}\n\t{location.in_country}\n\t{location.in_location}\n\t[{location.lat},{location.lon}]\n\t,location.google_metadata")
 
     in_location_data_list.reverse()
 
@@ -364,7 +364,7 @@ def LocationCreate(request):
       metadataToLocation(ln)
       #if not Location.objects.filter(in_location=Location.objects.filter(name__iexact=in_location_data_list[i]).first(), name__iexact=ln):
     
-    return default_CreateSubmit_Response(request, LocationParseForm(), "Location", "location_create", f"Location ({Location}), succssessfully created")#return redirect('action:location_submit')
+  return default_CreateSubmit_Response(request, LocationParseForm(), "Location", "create_location", f"Location ({Location}), succssessfully created")#return redirect('action:location_submit')
 
 '''REPLACED BY COOKIE_PROFILE
 ___formclass for userspokegathering
