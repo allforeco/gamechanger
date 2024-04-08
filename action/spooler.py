@@ -16,7 +16,7 @@
 
 import datetime, io, csv, traceback
 
-from .models import Location, Gathering, Gathering_Belong, Gathering_Witness, Organization
+from .models import Country, Location, Gathering, Gathering_Belong, Gathering_Witness, Organization
 from .push_notifier import Push_Notifier
 from .map_sync import to_fff
 
@@ -261,23 +261,27 @@ def update_reg(regs, import_log = None):
         else:
           (country_name, state_name, region_name, place_name, zip_code) = Location.split_location_name(loc_name)
           #country = Location.objects.filter(name=country_name, in_location__isnull=True).first()
-          #if not country:
+          countryLocation = Location.objects.filter(name=country_name, in_location=Location.Unknown()).first()
+          if not countryLocation:
             # Allow for now, close country creation soon
             #country = Country(name=country_name)
             #country.save()
-            #try:
-              #country = Location(name=country_name)
-              #country.save()
-              #counter['Country'] += 1
-              #print(f"{lineno} {regid} new country {country}", file=last_import_log)
-            #except:
-              #pass
-          #parent_loc = country
+            country = Country.generateNew(country_name)
+            #countryLocation = Location(name=country_name, in_location=Location.Unknown())
+            try:
+              countryLocation = Location(name=country_name, in_location=Location.Unknown(), in_country=country)
+              countryLocation.save()
+              counter['Country'] += 1
+              print(f"{lineno} {regid} new country {country}", file=last_import_log)
+            except:
+              countryLocation = Location.Unknown()
+              pass
+          parent_loc = countryLocation
           if state_name:
             state = Location.objects.filter(name=state_name, in_location=parent_loc).first()
             if not state:
               # Allow for now, close state creation soon
-              state = Location(name=state_name, in_location=parent_loc)
+              state = Location(name=state_name, in_location=parent_loc, in_country=country)
               state.save()
               counter['State'] += 1
               print(f"{lineno} {regid} new state {state}", file=last_import_log)
@@ -285,7 +289,7 @@ def update_reg(regs, import_log = None):
           if region_name:
             region = Location.objects.filter(name=region_name, in_location=parent_loc).first()
             if not region:
-              region = Location(name=region_name, in_location=parent_loc)
+              region = Location(name=region_name, in_location=parent_loc, in_country=country)
               region.save()
               counter['Region'] += 1
               print(f"{lineno} {regid} new region {region}", file=last_import_log)
@@ -293,7 +297,7 @@ def update_reg(regs, import_log = None):
           if place_name:
             place = Location.objects.filter(name=place_name, in_location=parent_loc).first()
             if not place:
-              place = Location(name=place_name, in_location=parent_loc)
+              place = Location(name=place_name, in_location=parent_loc, in_country=country)
               place.save()
               counter['Place'] += 1
               print(f"{lineno} {regid} new place {place}", file=last_import_log)
