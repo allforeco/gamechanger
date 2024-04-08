@@ -306,36 +306,38 @@ def LocationCreate(request):
   for ln in google_metadata[0]['address_components']:
     if any(t in ln['types'] for t in location_typefilter):
       print("ln", ln['long_name'])
-      if not Location.objects.filter(name=ln['long_name'], in_country=in_country).exists():
-        l = Location()
-        l.name = ln['long_name']
-        l.in_country = in_country
-        l.in_location = Location.Unknown()
-        l.zip_code = None
-        l.lat = google_metadata[0]["geometry"]["location"]["lat"]
-        l.lon = google_metadata[0]["geometry"]["location"]["lng"]
-        verificationusertag = "?"
-        if request.user.is_authenticated:
-          verificationusertag = "@"
-          verificationusertag += request.user.get_username()
-        elif CookieProfile.get_value(request, CookieProfile.COOKIE_PROFILE):
-          verificationusertag = "#"
-          verificationusertag += CookieProfile.get_value(request, CookieProfile.ALIAS)
-        l.creation_details = verificationusertag
-        l.google_metadata = str(google_metadata[0])[:2047]
-        l.save()
-        
-      else:
-        l = Location.objects.filter(name=ln['long_name'], in_country=in_country).first()
+      l = Location()
+      l.name = ln['long_name']
+      l.in_country = in_country
+      l.in_location = Location.Unknown()
+      l.zip_code = None
+      l.lat = google_metadata[0]["geometry"]["location"]["lat"]
+      l.lon = google_metadata[0]["geometry"]["location"]["lng"]
+      verificationusertag = "?"
+      if request.user.is_authenticated:
+        verificationusertag = "@"
+        verificationusertag += request.user.get_username()
+      elif CookieProfile.get_value(request, CookieProfile.COOKIE_PROFILE):
+        verificationusertag = "#"
+        verificationusertag += CookieProfile.get_value(request, CookieProfile.ALIAS)
+      l.creation_details = verificationusertag
+      l.google_metadata = str(google_metadata[0])[:2047]
 
       location_list.insert(0, l)
 
+  if Location.objects.filter(in_country=in_country, name=location_list[0].name).exists():
+    location_list[0] = Location.objects.filter(in_country=in_country, name=location_list[0].name).first()
+  else:
+    location_list[0].save()
   for ln in location_list:
     #print(ln, location_list.index(ln))
     i = location_list.index(ln)
-    if ln.in_location.id == -1:
+    if Location.objects.filter(in_country=in_country, in_location=location_list[max(0, i-1)], name=ln.name).exists():
+      location_list[i] = Location.objects.filter(in_country=in_country, in_location=location_list[max(0, i-1)], name=ln.name).first()
+    else:
       ln.in_location = location_list[max(0, i-1)]
       ln.save()
+      
   #print("nl", in_location_data_list)
 
   def metadataToLocation(metadata):
