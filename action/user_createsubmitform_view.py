@@ -335,7 +335,10 @@ def LocationCreate(request):
     if Location.objects.filter(in_country=in_country, in_location=location_list[max(0, i-1)], name=ln.name).exists():
       location_list[i] = Location.objects.filter(in_country=in_country, in_location=location_list[max(0, i-1)], name=ln.name).first()
     else:
-      ln.in_location = location_list[max(0, i-1)]
+      if (i-1 == -1):
+        ln.in_location = Location.Unknown()
+      else:
+        ln.in_location = location_list[max(0, i-1)]
       ln.save()
       
   #print("nl", in_location_data_list)

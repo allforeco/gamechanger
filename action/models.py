@@ -399,6 +399,21 @@ class Country(models.Model):
   '''
   ___pycountry lookup
   '''
+  def pycy_get(name):
+    pycy = None
+    if pycountry.countries.get(alpha_2=name):
+      pycy = pycountry.countries.get(alpha_2=name)
+    elif pycountry.countries.get(alpha_3=name):
+      pycy = pycountry.countries.get(alpha_3=name)
+    elif pycountry.countries.get(name=name):
+      pycy = pycountry.countries.get(name=name)
+    elif pycountry.countries.get(official_name=name):
+      pycy = pycountry.countries.get(official_name=name)
+    elif pycountry.countries.search_fuzzy(name):
+      pycy = pycountry.countries.search_fuzzy(name)[0]
+
+    return pycy
+
   def pycy_lookup(name):
     try:
       if pycountry.countries.get(alpha_2=name):
@@ -424,6 +439,7 @@ class Country(models.Model):
   ___by location country calculation matching pycountry
   '''
   def generate(option = 0):
+    print("generate")
     if option == 1:
       Country.objects.all().delete()
 
@@ -435,55 +451,59 @@ class Country(models.Model):
     c.save()
 
     for location in Location.objects.all():
-      
       l = location.country()
-      pycy=Country.pycy_lookup(l.name)
-      if pycy == Country.Unknown():
-        location.in_country=Country.Unknown()
-        location.save()
-        continue
+      pycy=Country.pycy_get(l.name)
+      print(pycy)
+      if pycy != None:
+        if Country.objects.filter(name=pycy.name).exists():
+          c = Country.objects.filter(name=pycy.name).first()
+          c.code = pycy.code
+          c.flag = pycy.flag
+          c.save()
+          if c.code == None:
+            c.code = pycy.code
+            c.save()
+          if c.flag == None:
+            c.flag = pycy.flag
+            c.save()
+          location.in_country = Country.objects.filter(name=pycy.name).first()
+        else:
+          c = Country()
+          c.name = pycy.name
+          c.code = pycy.alpha_2
+          c.flag = pycy.flag
+          c.save()
+          location.in_country = c
+      else:
+        location.in_country = Country.Unknown()
 
-      #try:
-      #  if pycountry.countries.get(alpha_2=l.name):
-      #    pycy = pycountry.countries.get(alpha_2=l.name)
-      #  elif pycountry.countries.get(alpha_3=l.name):
-      #    pycy = pycountry.countries.get(alpha_3=l.name)
-      #  elif pycountry.countries.get(name=l.name):
-      #    pycy = pycountry.countries.get(name=l.name)
-      #  elif pycountry.countries.get(official_name=l.name):
-      #    pycy = pycountry.countries.get(official_name=l.name)
-      #  elif pycountry.countries.search_fuzzy(l.name):
-      #    pycy = pycountry.countries.search_fuzzy(l.name)[0]
-      #  else:
-      #    location.in_country=Country.Unknown()
-      #    location.save()
-      #    continue
-      #except:
+      #pycy=Country.pycy_lookup(l.name)
+      #if pycy == Country.Unknown():
       #  location.in_country=Country.Unknown()
       #  location.save()
-      #  #print("failed", l.name)
       #  continue
 
-      if not Country.objects.filter(name=pycy.name).exists():
-        #print(l.name)
-        name = pycy.name
-        loc = l
-        code = pycy.alpha_2
-        flag = pycy.flag
-        #print(name, location, code, flag, pycy, "\n")
-        c = Country()
-        c.name = name
-        #c.location = location
-        c.code = code
-        c.flag = flag
-        c.save()
-        location.in_country = Country.objects.get(name=pycy.name)
-        location.save()
-      else:
-        location.in_country = Country.objects.get(name=pycy.name)
-        location.save()
+      #if not Country.objects.filter(name=pycy.name).exists():
+      #  #print(l.name)
+      #  name = pycy.name
+      #  loc = l
+      #  code = pycy.alpha_2
+      #  flag = pycy.flag
+      #  #print(name, location, code, flag, pycy, "\n")
+      #  c = Country()
+      #  c.name = name
+      #  #c.location = location
+      #  c.code = code
+      #  c.flag = flag
+      #  c.save()
+      #  location.in_country = Country.objects.get(name=pycy.name)
+      #  location.save()
+      #else:
+      #  location.in_country = Country.objects.get(name=pycy.name)
+      #  location.save()
 
   def generateNew(name):
+    c=None
     if Country.pycy_lookup(name).id == -1:
       c = Country()
       if pycountry.countries.get(alpha_2=name):
@@ -501,6 +521,8 @@ class Country(models.Model):
       c.code = pycy.alpha_2
       c.flag = pycy.flag
       c.save()
+
+    return c
 
   '''
   ___as set
