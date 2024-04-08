@@ -10,7 +10,7 @@ from .parsers import geoParser
 from dal import autocomplete
 import base64, hashlib, datetime, googlemaps, json, os
 
-from .models import Gathering, Organization, OrganizationContact, Location, Country, Verification, UserHome
+from .models import Gathering, Organization, OrganizationContact, Location, Country, UserHome
 from .cookie_profile import CookieProfile
 
 publicuse = True
@@ -236,6 +236,7 @@ def LocationMapCreateSubmit(request):
   return HttpResponse(template.render(context, request))
 
 def LocationCreate(request):
+  
   def in_metadata(d, lvl):
     lvl+=1
     t = type(d)
@@ -291,78 +292,91 @@ def LocationCreate(request):
     
   location_typefilter = ['establishment', 'park', 'point_of_interest', 'political']
 
-  in_country_data = ""
+  in_country = Country()
   for ln in google_metadata[0]['address_components']:
     if "country" in ln['types']:
-      in_country_data = ln['long_name']
+      if Country.objects.filter(name=ln['long_name']).exists():
+        in_country = Country.objects.filter(name=ln['long_name']).first()
+      else:
+        in_country = Country.generateNew(ln['long_name'])
 
-  in_location_data_list = []
+  #print("gmac")
+  #Create locations, unlinked
+  location_list = []
   for ln in google_metadata[0]['address_components']:
     if any(t in ln['types'] for t in location_typefilter):
-      #name, in_country, in_location, zip, [lat, lon], verified, metadata
-      in_location_dataa = in_country_data
-      try:
-        in_location_dataa = in_location_data_list[0][0]
-      except:
-        in_location_dataa = in_country_data
-
-      verified = Verification()
-      verified.created_by = UserHome.Unknown()
-      verified.details = CookieProfile.get_values(request)
-      verified.created_on = datetime.datetime.now()
-      verified.updated_on = datetime.datetime.now()
-      verified.save()
-      in_location_data = [
-        ln['long_name'], 
-        in_country_data, 
-        in_location_dataa, 
-        None, 
-        [google_metadata[0]["geometry"]["location"]["lat"], google_metadata[0]["geometry"]["location"]["lng"]], 
-        verified, 
-        str(google_metadata[0])[:2047]
-      ]
+      print("ln", ln['long_name'])
+      if not Location.objects.filter(name=ln['long_name'], in_country=in_country).exists():
+        l = Location()
+        l.name = ln['long_name']
+        l.in_country = in_country
+        l.in_location = Location.Unknown()
+        l.zip_code = None
+        l.lat = google_metadata[0]["geometry"]["location"]["lat"]
+        l.lon = google_metadata[0]["geometry"]["location"]["lng"]
+        verificationusertag = "?"
+        if request.user.is_authenticated:
+          verificationusertag = "@"
+          verificationusertag += request.user.get_username()
+        elif CookieProfile.get_value(request, CookieProfile.COOKIE_PROFILE):
+          verificationusertag = "#"
+          verificationusertag += CookieProfile.get_value(request, CookieProfile.ALIAS)
+        l.creation_details = verificationusertag
+        l.google_metadata = str(google_metadata[0])[:2047]
+        l.save()
         
-      in_location_data_list.insert(0, in_location_data)
-    
-  print("nl", in_location_data_list)
+      else:
+        l = Location.objects.filter(name=ln['long_name'], in_country=in_country).first()
+
+      location_list.insert(0, l)
+
+  for ln in location_list:
+    #print(ln, location_list.index(ln))
+    i = location_list.index(ln)
+    if ln.in_location.id == -1:
+      ln.in_location = location_list[max(0, i-1)]
+      ln.save()
+  #print("nl", in_location_data_list)
 
   def metadataToLocation(metadata):
     location = Location()
     location.name=metadata[0]
-    print("lmn:", location.name)
+    #print("lmn:", location.name)
 
     country_name = metadata[1]
     location.in_country=Country.objects.filter(name__iexact=country_name).first() or Country.Unknown()
-    print("lic:",location.in_country.name)
+    #print("lic:",location.in_country.name)
 
     in_location_name = metadata[2]
     location.in_location = Location.objects.filter(name__iexact=in_location_name).first() or Location.Unknown()
-    print("lil:",location.in_location.name)
+    #print("lil:",location.in_location.name)
 
     location.zip_code=metadata[3]
 
     location.lat=metadata[4][0]
     location.lon=metadata[4][1]
-    print("lll",location.lat, location.lon)
+    #print("lll",location.lat, location.lon)
 
-    location.verified=metadata[5]
-    print("lvr",location.verified)
+    location.creation_details=metadata[5]
+    #print("lvr",location.verified)
 
     location.google_metadata = metadata[6]
 
     if location.name == None or location.in_location == None or location.in_country == None:
-      print("ler: Fail")
+      #print("ler: Fail")
       return default_CreateSubmit_Response(request, LocationParseForm(), "Location", "create_location", "Creation Fail")
     location.save()
-    print(f"Location:\n\t{location.name}\n\t{location.in_country}\n\t{location.in_location}\n\t[{location.lat},{location.lon}]\n\t,location.google_metadata")
+    #print(f"Location:\n\t{location.name}\n\t{location.in_country}\n\t{location.in_location}\n\t[{location.lat},{location.lon}]\n\t,location.google_metadata")
 
-    in_location_data_list.reverse()
+    #in_location_data_list.reverse()
 
-    for ln in in_location_data_list:
-      i = in_location_data_list.index(ln)
-      print("ln", i, ln, ":", in_location_data_list[i])
-      metadataToLocation(ln)
-      #if not Location.objects.filter(in_location=Location.objects.filter(name__iexact=in_location_data_list[i]).first(), name__iexact=ln):
+  #print("ildl")
+  #for ln in in_location_data_list:
+    #print("ln", ln)
+    #i = in_location_data_list.index(ln)
+    #print("ln", i, ln[0], ":", in_location_data_list[i][0])
+    #metadataToLocation(ln)
+    #if not Location.objects.filter(in_location=Location.objects.filter(name__iexact=in_location_data_list[i]).first(), name__iexact=ln):
     
   return default_CreateSubmit_Response(request, LocationParseForm(), "Location", "create_location", f"Location ({Location}), succssessfully created")#return redirect('action:location_submit')
 

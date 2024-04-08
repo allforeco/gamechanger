@@ -17,26 +17,19 @@
 from django.db import models
 from django.contrib.auth.models import User
 from action.static_lists import valid_location_ids
-import pycountry
+import pycountry, datetime
+#from .cookie_profile import CookieProfile
 
-'''
-___
-'''
-class Verification(models.Model):
-  created_by = models.ForeignKey('UserHome', on_delete=models.PROTECT, editable=False)
-  created_on = models.TimeField(auto_now_add=True, editable=False)
-  updated_on = models.TimeField(auto_now=True, editable=False)
-  claim = models.FloatField(default=1, editable=False)
-  strength = models.FloatField(default=0, editable=False)
-  #notes = models.CharField(max_length=500)
-  details = models.CharField(max_length=500)
 
 '''
 ___Database registered Locations
 '''
 class Location(models.Model):
   def __str__(self):
-    return f"{self.name}, {self.in_country.code}"
+    try:
+      return f"{self.name}, {self.in_country.code}"
+    except:
+      return f"{self.name}"
 
   name = models.CharField(max_length=100)
   in_country = models.ForeignKey('Country', on_delete=models.CASCADE, blank=True, null=True)
@@ -45,8 +38,9 @@ class Location(models.Model):
   lat = models.FloatField(blank=True, null=True)
   lon = models.FloatField(blank=True, null=True)
   #google_name = models.CharField(max_length=255, null=True, blank=True)
-  verified = models.ForeignKey(Verification, on_delete=models.CASCADE, blank=True, null=True)
-  google_metadata = models.CharField(max_length=1023,blank=True, null=True)
+  #verified = models.ForeignKey("Verification", on_delete=models.CASCADE, blank=True, null=True)
+  creation_details = models.CharField(max_length=500, blank=True, null=True)
+  google_metadata = models.CharField(max_length=2048,blank=True, null=True)
 
   '''
   ___stringify coordinates
@@ -64,7 +58,22 @@ class Location(models.Model):
     if self.lat != None and self.lon != None: t+=1
     return t
   
+  def UnknownGenerate():
+    if not Location.objects.filter(id=-1).exists():
+      l = Location()
+      l.id = -1
+      l.name = "Unknown"
+      l.in_country = Country.Unknown()
+      l.lat = 0
+      l.lon = 0
+      l.save()
+      #l.verified = Verification.defaultSystem("System")
+      l.in_location = Location.objects.get(id=-1)
+      l.save()
+
   def Unknown():
+    if not Location.objects.filter(id=-1).exists():
+      Location.UnknownGenerate()
     return Location.objects.get(id=-1)
   
   '''
@@ -344,7 +353,19 @@ class Country(models.Model):
   def pycy(self):
     return pycountry.countries.get(alpha_2=self.code)[0]
   
+  def UnknownGenerate():
+    if not Country.objects.filter(id=-1).exists():
+      c = Country()
+      c.id = -1
+      c.name = "Unknown"
+      c.phone_prefix = -1
+      c.code = "XX"
+      c.flag = "🏳️"
+      c.save()
+
   def Unknown():
+    if not Country.objects.filter(id=-1).exists():
+      Country.UnknownGenerate()
     return Country.objects.get(id=-1)
   
   '''
@@ -358,7 +379,7 @@ class Country(models.Model):
       return Location.Unknown()
 
   '''
-  ___organization search
+  ___Country search
   ___order by name start->contains, searchterm q
   ___option include/exclude unknown country
   '''
@@ -462,6 +483,25 @@ class Country(models.Model):
         location.in_country = Country.objects.get(name=pycy.name)
         location.save()
 
+  def generateNew(name):
+    if Country.pycy_lookup(name).id == -1:
+      c = Country()
+      if pycountry.countries.get(alpha_2=name):
+        pycy = pycountry.countries.get(alpha_2=name)
+      elif pycountry.countries.get(alpha_3=name):
+        pycy = pycountry.countries.get(alpha_3=name)
+      elif pycountry.countries.get(name=name):
+        pycy = pycountry.countries.get(name=name)
+      elif pycountry.countries.get(official_name=name):
+        pycy = pycountry.countries.get(official_name=name)
+      elif pycountry.countries.search_fuzzy(name):
+        pycy = pycountry.countries.search_fuzzy(name)[0]
+      
+      c.name = pycy.name
+      c.code = pycy.alpha_2
+      c.flag = pycy.flag
+      c.save()
+
   '''
   ___as set
   '''
@@ -497,7 +537,16 @@ class Organization(models.Model):
     oout |= os.exclude(name__istartswith=q)
     return oout
   
+  def UnknownGenerate():
+    if not Organization.objects.filter(id=-1).exists():
+      o = Organization()
+      o.name = "Unknown"
+      o.verified = 10
+      o.save()
+
   def Unknown():
+    if not Organization.objects.filter(id=-1).exists():
+      Organization.UnknownGenerate()
     return Organization.objects.get(id=-1)
 
 '''
@@ -696,7 +745,7 @@ class UserHome(models.Model):
   def get_visibility_str(self):
     return {key:val for (key, val) in UserHome._visibility_level_choices}[self.visibility_level]
 
-  callsign = models.CharField(primary_key=True, max_length=25)
+  callsign = models.CharField(primary_key=True, max_length=25, unique=True)
   screenname = models.CharField(max_length=25, blank=True, null=True)
   #loginuser = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True, editable=False)
   loginuser_id = models.IntegerField(blank=True, null=True)
@@ -714,8 +763,37 @@ class UserHome(models.Model):
   #interests
   #friends
 
+  def UnknownGenerate():
+    if not UserHome.objects.filter(callsign="User").exists():
+      uh = UserHome()
+      uh.callsign = "User"
+      uh.loginuser_id = -1
+      uh.save()
+      uh.home_country = Country.Unknown()
+      uh.home_state = Location.Unknown()
+      uh.save()
+
   def Unknown():
+    if not UserHome.objects.filter(callsign="User").exists():
+      UserHome.UnknownGenerate()
     return UserHome.objects.filter(callsign="User").first()
+
+  def SystemGenerate():
+    if not UserHome.objects.filter(callsign="System").exists():
+      uh = UserHome()
+      uh.callsign = "System"
+      uh.loginuser_id = 0
+      uh.save()
+      uh.home_country = Country.Unknown()
+      uh.home_state = Location.Unknown()
+      uh.save()
+
+  def System():
+    if not UserHome.objects.filter(callsign="System").exists():
+      UserHome.SystemGenerate()
+    return UserHome.objects.filter(callsign="System").first()
+
+  
 
 '''
 ???
@@ -971,6 +1049,39 @@ class Gathering_Witness(models.Model):
     root_gathering = self.gathering.get_gathering_root()
     self.gathering.regid = root_gathering.regid
     return self.gathering.regid
+
+'''
+___
+'''
+class Verification(models.Model):
+  created_by = models.ForeignKey(UserHome, on_delete=models.PROTECT, editable=False)
+  created_on = models.TimeField(auto_now_add=True, editable=False)
+  updated_on = models.TimeField(auto_now=True, editable=False)
+  claim = models.FloatField(default=1, editable=False)
+  strength = models.FloatField(default=0, editable=False)
+  #notes = models.CharField(max_length=500)
+  details = models.CharField(max_length=500)
+
+  def defaultUser(details):
+    v = Verification()
+    v.created_by = UserHome.Unknown()
+    v.created_on = datetime.datetime.now()
+    v.updated_on = datetime.datetime.now()
+    v.claim = 1
+    v.strength = 0
+    v.details = details
+    v.save()
+
+  def defaultSystem(details):
+    v = Verification()
+    v.created_by = UserHome.System()
+    v.created_on = datetime.datetime.now()
+    v.updated_on = datetime.datetime.now()
+    v.claim = 10
+    v.strength = 10
+    v.details = details
+    v.save()
+
 
 '''
 ???google maps parsing

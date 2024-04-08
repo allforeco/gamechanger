@@ -24,7 +24,11 @@
     <div style="float: left; margin-bottom: 1.5em;">
       <p style="margin-top:0.35em;">
         {% if parent_location %}
-          &nbsp;&nbsp;in <a href="{% url 'action:geo_view' parent_location.id %}">{{ parent_location.name }}</a>
+          {% if parent_location.id > 0 %}
+            &nbsp;&nbsp;in <a href="{% url 'action:geo_view' parent_location.id %}">{{ parent_location.name }}</a>
+          {% else %}
+            <a>Unknown</a>
+          {% endif %}
         {% else %}
         <p style="margin-left: -25.95em; margin-top: -0.5em;">.</p>
         {% endif %}
