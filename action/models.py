@@ -401,16 +401,19 @@ class Country(models.Model):
   '''
   def pycy_get(name):
     pycy = None
-    if pycountry.countries.get(alpha_2=name):
-      pycy = pycountry.countries.get(alpha_2=name)
-    elif pycountry.countries.get(alpha_3=name):
-      pycy = pycountry.countries.get(alpha_3=name)
-    elif pycountry.countries.get(name=name):
-      pycy = pycountry.countries.get(name=name)
-    elif pycountry.countries.get(official_name=name):
-      pycy = pycountry.countries.get(official_name=name)
-    elif pycountry.countries.search_fuzzy(name):
-      pycy = pycountry.countries.search_fuzzy(name)[0]
+    try:
+      if pycountry.countries.get(alpha_2=name):
+        pycy = pycountry.countries.get(alpha_2=name)
+      elif pycountry.countries.get(alpha_3=name):
+        pycy = pycountry.countries.get(alpha_3=name)
+      elif pycountry.countries.get(name=name):
+        pycy = pycountry.countries.get(name=name)
+      elif pycountry.countries.get(official_name=name):
+        pycy = pycountry.countries.get(official_name=name)
+      elif pycountry.countries.search_fuzzy(name):
+        pycy = pycountry.countries.search_fuzzy(name)[0]
+    except:
+      pycy = None
 
     return pycy
 
@@ -452,20 +455,18 @@ class Country(models.Model):
 
     for location in Location.objects.all():
       l = location.country()
-      pycy=Country.pycy_get(l.name)
-      print(pycy)
+      if l != None:
+        pycy=Country.pycy_get(l.name)
+      else:
+        l = Location.Unknown()
       if pycy != None:
         if Country.objects.filter(name=pycy.name).exists():
           c = Country.objects.filter(name=pycy.name).first()
-          c.code = pycy.code
-          c.flag = pycy.flag
-          c.save()
           if c.code == None:
-            c.code = pycy.code
-            c.save()
+            c.code = pycy.alpha_2
           if c.flag == None:
             c.flag = pycy.flag
-            c.save()
+          c.save()
           location.in_country = Country.objects.filter(name=pycy.name).first()
         else:
           c = Country()
