@@ -268,6 +268,7 @@ def LocationCreate(request):
   if not data['address'] or len(data['address']) < 3:
     return default_CreateSubmit_Response(request, LocationParseForm(), "Location", "create_location", "Enter a full address")
     return redirect('action:location_submit')
+  if not geoParser.gkey: return default_CreateSubmit_Response(request, LocationParseForm(), "Location", "create_location", "Google maps function disabled. Try again later")
   google_metadata = geoParser.gmaps.geocode(address)
   #print(len(google_metadata), google_metadata)
 
@@ -383,7 +384,7 @@ def LocationCreate(request):
     #metadataToLocation(ln)
     #if not Location.objects.filter(in_location=Location.objects.filter(name__iexact=in_location_data_list[i]).first(), name__iexact=ln):
     
-  return default_CreateSubmit_Response(request, LocationParseForm(), "Location", "create_location", f"Location ({Location}), succssessfully created")#return redirect('action:location_submit')
+  return default_CreateSubmit_Response(request, LocationParseForm(), "Location", "create_location", f"Location ({address}), succssessfully created")#return redirect('action:location_submit')
 
 '''REPLACED BY COOKIE_PROFILE
 ___formclass for userspokegathering

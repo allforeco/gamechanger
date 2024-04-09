@@ -4,8 +4,14 @@ import os, googlemaps
 '''
 ___Google maps parser
 '''
+GOOGLEMAPSKEY = None
+if os.environ.get('GOOGLE_MAPS_API_KEY'):
+    GOOGLEMAPSKEY = os.environ['GOOGLE_MAPS_API_KEY']
+else:
+    GOOGLEMAPSKEY = None
+
 class geoParser:
-  gkey = os.environ['GOOGLE_MAPS_API_KEY']
+  gkey = GOOGLEMAPSKEY
   gmaps = googlemaps.Client(key=gkey, queries_per_second=1)
 
   def latlonTOaddress(self, lat, lon):

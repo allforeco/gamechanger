@@ -53,29 +53,6 @@ from .cookie_profile import CookieProfile, loginCookieProfile
 
 import datetime
 
-def cwd(request):
-  print("CWD: ", os.getcwd())
-  return redirect("action:start")
-
-def geogentest(request):
-  location_id = Location.objects.filter(name="Springfield").first().id
-  address = geoParser.locationTOaddress(geoParser,location_id)
-  latlon = geoParser.locationTOlatlon(geoParser,location_id)
-  print("ADDRESS", address, latlon)
-  geoaddress = geoParser.latlonTOaddress(geoParser, latlon[0], latlon[1])
-  geolatlon = geoParser.addressTOlatlon(geoParser, address)
-  print("GEO", geoaddress, geolatlon)
-
-  f1 = open('geoaddress.json', 'w')
-  f1.write(json.dumps(geoaddress))
-  f1.close()
-
-  f2 = open('geolatlon.json', 'w')
-  f2.write(json.dumps(geolatlon))
-  f2.close()
-
-  return redirect("action:start")
-
 '''UNUSED
 ???gathering formclass
 '''
