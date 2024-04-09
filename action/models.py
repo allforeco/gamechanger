@@ -359,8 +359,11 @@ class Country(models.Model):
       c.id = -1
       c.name = "Unknown"
       c.phone_prefix = -1
-      c.code = "XX"
-      c.flag = "🏳️"
+      try:
+        c.code = "XX"
+        c.flag = "🏳️"
+      except:
+        pass#pre code/flag migration
       c.save()
 
   def Unknown():
