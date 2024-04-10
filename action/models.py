@@ -27,9 +27,12 @@ ___Database registered Locations
 class Location(models.Model):
   def __str__(self):
     try:
-      return f"{self.name}, {self.in_country.code}"
+      if self.in_country.id != Country.UNKNOWN:
+        return f"{self.name}, {self.in_country.code}"
     except:
-      return f"{self.name}"
+      pass
+    
+    return f"{self.name}"
 
   name = models.CharField(max_length=100)
   in_country = models.ForeignKey('Country', on_delete=models.CASCADE, blank=True, null=True)
@@ -84,7 +87,7 @@ class Location(models.Model):
   ___order by name start->contains, searchterm q
   ___option include/exclude unknown country
   '''
-  def search(q, option = 0):
+  def search(q, option = 1):
     if option == 1:
       ls = Location.objects.all()
     else:
@@ -109,9 +112,12 @@ class Location(models.Model):
   '''
   def country(self):
     toplocation = self
-    for i in range(5):
+    for i in range(8):
       if toplocation.in_location:
-        toplocation = toplocation.in_location
+        if toplocation.in_location.id != Location.UNKNOWN:
+          toplocation = toplocation.in_location
+        else:
+          return toplocation
       else:
         return toplocation
 
