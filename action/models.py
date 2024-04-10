@@ -54,27 +54,13 @@ class Location(models.Model):
   '''
   def tracable(self):
     t=0
-    if self.in_country != Country.objects.get(id=-1): t+=1
+    if self.in_country != Country.objects.get(id=Country.UNKNOWN): t+=1
     if self.lat != None and self.lon != None: t+=1
     return t
-  
-  def UnknownGenerate():
-    if not Location.objects.filter(id=-1).exists():
-      l = Location()
-      l.id = -1
-      l.name = "Unknown"
-      l.in_country = Country.Unknown()
-      l.lat = 0
-      l.lon = 0
-      l.save()
-      #l.verified = Verification.defaultSystem("System")
-      l.in_location = Location.objects.get(id=-1)
-      l.save()
 
+  UNKNOWN = 0
   def Unknown():
-    if not Location.objects.filter(id=-1).exists():
-      Location.UnknownGenerate()
-    return Location.objects.get(id=-1)
+    return Location.objects.get(id=-Location.UNKNOWN)
   
   '''
   ___location search
@@ -353,20 +339,9 @@ class Country(models.Model):
   def pycy(self):
     return pycountry.countries.get(alpha_2=self.code)[0]
   
-  def UnknownGenerate():
-    if not Country.objects.filter(id=-1).exists():
-      c = Country()
-      c.id = -1
-      c.name = "Unknown"
-      c.phone_prefix = -1
-      #c.code = "XX"
-      #c.flag = "🏳️"
-      c.save()
-
+  UNKNOWN = 0
   def Unknown():
-    if not Country.objects.filter(id=-1).exists():
-      Country.UnknownGenerate()
-    return Country.objects.get(id=-1)
+    return Country.objects.get(id=Country.UNKNOWN)
   
   '''
   ___Get location of country
@@ -387,7 +362,7 @@ class Country(models.Model):
     if option == 1:
       csr = Country.objects.all()
     else:
-      csr = Country.objects.exclude(id=-1)
+      csr = Country.objects.exclude(id=Country.UNKNOWN)
     cs = csr.filter(code__iexact=q)
     cs |= csr.filter(name__icontains=q)
 
@@ -447,7 +422,7 @@ class Country(models.Model):
       Country.objects.all().delete()
 
     c = Country()
-    c.id = -1
+    c.id = Country.UNKNOWN
     c.name = "Unknown"
     c.code = "XX"
     c.flag = "🏳️"
@@ -455,19 +430,15 @@ class Country(models.Model):
 
     for location in Location.objects.all():
       l = location.country()
-      if l != None:
-        pycy=Country.pycy_get(l.name)
-      else:
-        l = Location.Unknown()
+      pycy=Country.pycy_get(l.name)
       if pycy != None:
         if Country.objects.filter(name=pycy.name).exists():
           c = Country.objects.filter(name=pycy.name).first()
-          if c.code == None:
+          if c.code == None or c.flag == None:
             c.code = pycy.alpha_2
-          if c.flag == None:
             c.flag = pycy.flag
-          c.save()
-          location.in_country = Country.objects.filter(name=pycy.name).first()
+            c.save()
+          location.in_country = c
         else:
           c = Country()
           c.name = pycy.name
@@ -477,6 +448,8 @@ class Country(models.Model):
           location.in_country = c
       else:
         location.in_country = Country.Unknown()
+      
+      location.save()
 
       #pycy=Country.pycy_lookup(l.name)
       #if pycy == Country.Unknown():
@@ -505,7 +478,7 @@ class Country(models.Model):
 
   def generateNew(name):
     c=None
-    if Country.pycy_lookup(name).id == -1:
+    if Country.pycy_lookup(name).id == Country.UNKNOWN:
       c = Country()
       if pycountry.countries.get(alpha_2=name):
         pycy = pycountry.countries.get(alpha_2=name)
@@ -554,23 +527,15 @@ class Organization(models.Model):
     if option == 1:
       os = Organization.objects.all()
     else:
-      os = Organization.objects.exclude(id=-1)
+      os = Organization.objects.exclude(id=Organization.UNKNOWN)
     os = os.filter(name__icontains=q)
     oout = os.filter(name__istartswith=q)
     oout |= os.exclude(name__istartswith=q)
     return oout
-  
-  def UnknownGenerate():
-    if not Organization.objects.filter(id=-1).exists():
-      o = Organization()
-      o.name = "Unknown"
-      o.verified = 10
-      o.save()
 
+  UNKNOWN = 0
   def Unknown():
-    if not Organization.objects.filter(id=-1).exists():
-      Organization.UnknownGenerate()
-    return Organization.objects.get(id=-1)
+    return Organization.objects.get(id=Organization.UNKNOWN)
 
 '''
 ___database contact information
@@ -731,16 +696,16 @@ class OrganizationContact(models.Model):
   def save(self, *args, **kwargs):
     super(OrganizationContact, self).save(*args, **kwargs)
     if not self.location:
-      self.location = Location.objects.filter(name__iexact=self.locationTitle).first() or Location.objects.get(id=-1)
+      self.location = Location.objects.filter(name__iexact=self.locationTitle).first() or Location.objects.get(id=Location.UNKNOWN)
 
-    if self.location.id > -1:
+    if self.location.id > Location.UNKNOWN:
       self.locationTitle = self.location.name
       self.category = self.location.country().name
 
     if not self.organization:
-      self.organization=Organization.objects.filter(name__iexact=self.organizationTitle).first() or Organization.objects.get(id=-1)
+      self.organization=Organization.objects.filter(name__iexact=self.organizationTitle).first() or Organization.objects.get(id=Organization.UNKNOWN)
 
-    if self.organization.id > -1:
+    if self.organization.id > Organization.UNKNOWN:
       self.organizationTitle = self.organization.name
 
     super(OrganizationContact, self).save(*args, **kwargs)
@@ -786,19 +751,10 @@ class UserHome(models.Model):
   #interests
   #friends
 
-  def UnknownGenerate():
-    if not UserHome.objects.filter(callsign="User").exists():
-      uh = UserHome()
-      uh.callsign = "User"
-      uh.loginuser_id = -1
-      uh.save()
-      uh.home_country = Country.Unknown()
-      uh.home_state = Location.Unknown()
-      uh.save()
-
+  UNKNOWN = 0
   def Unknown():
-    if not UserHome.objects.filter(callsign="User").exists():
-      UserHome.UnknownGenerate()
+    #if not UserHome.objects.filter(callsign="User").exists():
+    #  UserHome.UnknownGenerate()
     return UserHome.objects.filter(callsign="User").first()
 
   def SystemGenerate():

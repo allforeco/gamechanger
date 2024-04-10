@@ -27,13 +27,13 @@ def loginCookieProfile(request):
     if profile_dict[key]:
       profile_user_dict[key] = profile_dict[key]
     key = CookieProfile.ORGANIZATION
-    if profile_dict[key] != -1:
+    if profile_dict[key] != Organization.UNKNOWN:
       profile_user_dict[key] = Organization.objects.get(id=profile_dict[key])
     key = CookieProfile.COUNTRY
-    if profile_dict[key] != -1:
+    if profile_dict[key] != Country.UNKNOWN:
       profile_user_dict[key] = Country.objects.get(id=profile_dict[key])
     key = CookieProfile.LOCATION
-    if profile_dict[key] != -1:
+    if profile_dict[key] != Location.UNKNOWN:
       profile_user_dict[key] = Location.objects.get(id=profile_dict[key])
 
   template = loader.get_template('action/cookie_profile.html')
@@ -147,13 +147,13 @@ class CookieProfile():
         request.session[item] = data[item]
 
     if not request.session[CookieProfile.ORGANIZATION].isnumeric():
-      request.session[CookieProfile.ORGANIZATION] = -1
+      request.session[CookieProfile.ORGANIZATION] = Organization.UNKNOWN
 
     if not request.session[CookieProfile.COUNTRY].isnumeric():
-      request.session[CookieProfile.COUNTRY] = -1
+      request.session[CookieProfile.COUNTRY] = Country.UNKNOWN
 
     if not request.session[CookieProfile.LOCATION].isnumeric():
-      request.session[CookieProfile.LOCATION] = -1
+      request.session[CookieProfile.LOCATION] = Location.UNKNOWN
 
     if data[CookieProfile.USER_CONSENT] == 1:
       print("CPCP","send to FFF")
@@ -189,4 +189,7 @@ class CookieProfile():
     organization = ModelChoiceField(label="Organization", widget=autocomplete.ModelSelect2(url='/action/organization-autocomplete/'), queryset=Organization.objects.all().order_by('name'))
     
     country = ModelChoiceField(label="Country", widget=autocomplete.ModelSelect2(url='/action/country-autocomplete/'), queryset=Country.objects.all().order_by('name'))
-    town = ModelChoiceField(label="Location", widget=autocomplete.ModelSelect2(url='/action/location-incountry-filter/', forward=['country']), queryset=Location.objects.exclude(in_country=Country.Unknown()).order_by('name'))
+    try:
+      town = ModelChoiceField(label="Location", widget=autocomplete.ModelSelect2(url='/action/location-incountry-filter/', forward=['country']), queryset=Location.objects.exclude(in_country=Country.Unknown()).order_by('name'))
+    except:
+      town = ModelChoiceField(label="Location", widget=autocomplete.ModelSelect2(url='/action/location-incountry-filter/', forward=['country']), queryset=Location.objects.all().order_by('name'))

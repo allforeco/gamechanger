@@ -11,11 +11,13 @@
     <div id="{{country.0}}-{{country.1}}" class="regionbrick">
       <div style="height: 100%;">
         <h2 class="regionbricktitle">
-          {% if country.1 > -1 %}
-            <a href="{% url 'action:geo_view' country.1 %}">{{country.0}}</a>
-          {% else %}
-            {{country.0}}
-          {% endif %}
+          {% with unknown=0 %}
+            {% if country.1 > unknown %}
+              <a href="{% url 'action:geo_view' country.1 %}">{{country.0}}</a>
+            {% else %}
+              {{country.0}}
+            {% endif %}
+          {% endwith %}
         </h2>
       </div>
       <div style="float: right; width: 4em; padding:0;margin: 1em 0;">
@@ -29,11 +31,13 @@
             <ul>
               {% for contact in contacts %}
                 <li class="contact_link">
-                  {% if contact.organization.id > -1 %}
-                    <a href="{% url 'action:organization_view' contact.organization.id %}">{{contact.organization}}</a>:
-                  {% elif contact.organizationTitle %}
-                    {{contact.organizationTitle}}:
-                  {% endif %}
+                  {% with unknown= 0 %}
+                    {% if contact.organization.id > unknown %}
+                      <a href="{% url 'action:organization_view' contact.organization.id %}">{{contact.organization}}</a>:
+                    {% elif contact.organizationTitle %}
+                      {{contact.organizationTitle}}:
+                    {% endif %}
+                  {% endwith%}
                   <a href="{{contact.url}}" target="_blank" title="{{contact.info}}"><!--{{contact.contacttype}}--><img src="{{contact.icon}}" alt="{{contact.contacttype}}"/></a>
                 </li>
               {% endfor %}
@@ -57,21 +61,25 @@
                     {% if region.in_location %}
                       <!--{{region.in_location}}-->
                     {% endif %}
-                    {% if region.1 > -1 %}
-                      <a href="{% url 'action:geo_view' region.1 %}">{{region.0}}</a>
-                    {% else %}
-                      {{region.0}}
-                    {% endif %}
+                    {% with unknown=0 %}
+                      {% if region.1 > unknown %}
+                        <a href="{% url 'action:geo_view' region.1 %}">{{region.0}}</a>
+                      {% else %}
+                        {{region.0}}
+                      {% endif %}
+                    {% endwith %}
                   </td>
                   <td class="td_display_contact">
                     <ul>
                       {% for contact in contacts %}
                         <li class="contact_link">
-                          {% if contact.organization.id > -1 %}
-                            <a href="{% url 'action:organization_view' contact.organization.id %}">{{contact.organization}}</a>:
-                          {% elif contact.organizationTitle %}
-                            {{contact.organizationTitle}}:
-                          {% endif %}
+                          {% with unknown=0 %}
+                            {% if contact.organization.id > unknown %}
+                              <a href="{% url 'action:organization_view' contact.organization.id %}">{{contact.organization}}</a>:
+                            {% elif contact.organizationTitle %}
+                              {{contact.organizationTitle}}:
+                            {% endif %}
+                          {% endwith %}
                           <a href="{{contact.url}}" target="_blank" title="{{contact.info}}"><!--{{contact.contacttype}}--><img src="{{contact.icon}}" alt="{{contact.contacttype}}"/></a>
                         </li>
                       {% endfor %}

@@ -57,12 +57,12 @@ def GatheringCreate(request):
   try:
     regid = base64.urlsafe_b64encode(hashlib.md5(str(data['gathering_type']+":"+data['location']+":"+data['start_date']).encode()).digest()).decode()[:8]
     gathering_type = data['gathering_type']
-    location = Location.objects.get(id=data['location']) or Location.objects.get(id=-1)
+    location = Location.objects.get(id=data['location']) or Location.objects.get(id=Location.UNKNOWN)
     start_date = datetime.datetime.strptime(data['start_date'], "%Y-%m-%d")
     duration = datetime.timedelta(weeks=int(data['duration']))
     end_date =  start_date+duration
     expected_participants = data['expected_participants']
-    #organizations.add(Organization.objects.get(id=-1))#data['organizations'] or 
+    #organizations.add(Organization.objects.get(id=Organization.UNKNOWN))#data['organizations'] or 
     address = data['address']
     time = data['time']
     consent = data['consent']
@@ -82,7 +82,7 @@ def GatheringCreate(request):
   gathering.duration = duration #= models.DurationField(blank=True, null=True)
   gathering.end_date = end_date #= models.DateField(blank=True,null=True)
   gathering.expected_participants = expected_participants #= models.PositiveIntegerField(blank=True, null=True)
-  #gathering.organizations.add(Organization.objects.get(id=-1))#data['organizations'] or  #= models.ManyToManyField(Organization, blank=True)
+  #gathering.organizations.add(Organization.objects.get(id=Organization.UNKNOWN))#data['organizations'] or  #= models.ManyToManyField(Organization, blank=True)
   gathering.address = address #= models.CharField(blank=True, max_length=64)
   gathering.time = time #= models.CharField(blank=True, max_length=32)
   gathering.save()
