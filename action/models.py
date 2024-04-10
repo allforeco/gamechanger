@@ -60,7 +60,24 @@ class Location(models.Model):
 
   UNKNOWN = 0
   def Unknown():
-    return Location.objects.get(id=-Location.UNKNOWN)
+    if Location.objects.filter(id=Location.UNKNOWN).exists():
+      return Location.objects.filter(id=Location.UNKNOWN).first()
+    else:
+      return None
+
+  def SETUP_Unknown():
+    if not Location.Unknown():
+      unknown = Location()
+      unknown.id = Location.UNKNOWN
+      unknown.name = "Unknown"
+      unknown.in_country = Country.Unknown()
+      unknown.zip_code = None
+      unknown.lat = None
+      unknown.lon = None
+      unknown.creation_details = "SETUP"
+      unknown.save()
+      unknown.in_location = Location.Unknown()
+      unknown.save()
   
   '''
   ___location search
@@ -341,7 +358,20 @@ class Country(models.Model):
   
   UNKNOWN = 0
   def Unknown():
-    return Country.objects.get(id=Country.UNKNOWN)
+    if Country.objects.filter(id=Location.UNKNOWN).exists():
+      return Country.objects.filter(id=Location.UNKNOWN).first()
+    else:
+      return None
+  
+  def SETUP_Unknown():
+    if not Country.Unknown():
+      unknown = Country()
+      unknown.id = Country.UNKNOWN
+      unknown.name = "Unknown"
+      unknown.phone_prefix = None
+      unknown.code = "XX"
+      unknown.flag = "🏳️"
+      unknown.save()
   
   '''
   ___Get location of country
@@ -421,16 +451,14 @@ class Country(models.Model):
     if option == 1:
       Country.objects.all().delete()
 
-    c = Country()
-    c.id = Country.UNKNOWN
-    c.name = "Unknown"
-    c.code = "XX"
-    c.flag = "🏳️"
-    c.save()
+    Country.SETUP_Unknown()
 
     for location in Location.objects.all():
       l = location.country()
-      pycy=Country.pycy_get(l.name)
+      if l:
+        pycy=Country.pycy_get(l.name)
+      else:
+        pycy=None
       if pycy != None:
         if Country.objects.filter(name=pycy.name).exists():
           c = Country.objects.filter(name=pycy.name).first()
@@ -535,7 +563,18 @@ class Organization(models.Model):
 
   UNKNOWN = 0
   def Unknown():
-    return Organization.objects.get(id=Organization.UNKNOWN)
+    if Organization.objects.filter(id=Location.UNKNOWN).exists():
+      return Organization.objects.filter(id=Location.UNKNOWN).first()
+    else:
+      return None
+  
+  def SETUP_Unknown():
+    if not Organization.Unknown():
+      unknown = Organization()
+      unknown.id = Organization.UNKNOWN
+      unknown.name = "Unknown"
+      unknown.verified = 10
+      unknown.save()
 
 '''
 ___database contact information
@@ -753,9 +792,19 @@ class UserHome(models.Model):
 
   UNKNOWN = 0
   def Unknown():
-    #if not UserHome.objects.filter(callsign="User").exists():
-    #  UserHome.UnknownGenerate()
-    return UserHome.objects.filter(callsign="User").first()
+    if UserHome.objects.filter(id=Location.UNKNOWN).exists():
+      return UserHome.objects.filter(id=Location.UNKNOWN).first()
+    else:
+      return None
+  
+  def SETUP_Unknown():
+    if not UserHome.Unknown():
+      unknown = UserHome()
+      unknown.callsign = "User"
+      unknown.loginuser_id = UserHome.UNKNOWN
+      unknown.home_country = Country.Unknown()
+      unknown.home_state = Location.Unknown()
+      unknown.save()
 
   def SystemGenerate():
     if not UserHome.objects.filter(callsign="System").exists():
