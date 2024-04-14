@@ -864,7 +864,7 @@ ___database cimate actions
 '''
 class Gathering(models.Model):
   def __str__(self):
-    return str(self.regid)+":"+str(self.location.name)+"-"+str(self.start_date)
+    return str(self.regid)+":"+str(self.start_date)
 
   STRIKE = 'STRK'
   DEMO = 'DEMO'

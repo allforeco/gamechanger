@@ -341,7 +341,7 @@ def translate_maplink(request, regid, date):
   #print(f"RRRC {regid, date}")
   try:
     gathering_belong = Gathering_Belong.objects.filter(regid=regid).first()
-    gathering = Gathering.objects.filter(regid=gathering_belong.gathering).first()
+    gathering = Gathering.objects.filter(regid=gathering_belong.gathering.regid).first()
     locid = gathering.location.id
     #print(f"RRRS '{regid}' --> '{locid}'")
     return redirect('action:geo_view', locid=locid)
