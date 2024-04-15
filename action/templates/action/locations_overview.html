@@ -15,18 +15,26 @@
         </thead>
         {% if user.is_authenticated or logginbypass %}
         Auto Generate
-        {% for country in location_list %}
+        {% for country, locations in locations_dict.items %}
         <tbody>
           <tr>
             <td style="text-align: center; margin-top: 0px; vertical-align: top;">
-              <a href="{% url 'action:geo_view' country.1 %}">{{country.0}}</a>
+              {% if country %}
+                <a href="{% url 'action:geo_view' country.id %}">{{country.name}}</a>
+              {% else %}
+                ---
+              {% endif %}
             </td>
             <td>
               <ul style="float: left; margin-bottom: 1em; width: 100%;">
-                {% for location in country.2 %}
-                <li style="float: left; margin-left: 1.5em; margin-bottom: 0.5em;">
-                  <a href="{% url 'action:geo_view' location.1 %}">{{location.0}}</a>
-                </li>
+                {% for location in locations %}
+                  {% if location %}
+                    <li style="float: left; margin-left: 1.5em; margin-bottom: 0.5em;">
+                      <a href="{% url 'action:geo_view' location.id %}">{{location.name}}</a>
+                    </li>
+                  {% else %}
+                    ---
+                  {% endif %}
                 {% endfor %}
               </ul>
             </td>

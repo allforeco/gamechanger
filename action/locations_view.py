@@ -1,6 +1,6 @@
 from django.template import loader
 from django.http import HttpResponse
-from .models import Location
+from .models import Location, Country
 
 '''
 ???chached locations
@@ -15,7 +15,7 @@ def locations_view(request):
   #print(f"LEND {len(list(Location.objects.all()))} | {len(Location.valid_ids())}")
   #Country.generate()
   logginbypass = True
-  location_list=list()
+  locations_dict = dict()
   #FIXME: Remove static template file
   #template = loader.get_template('static/locations_overview.html')
   template = loader.get_template('action/spooled_locations_overview.html')
@@ -23,10 +23,9 @@ def locations_view(request):
 
   if request.user.is_authenticated or logginbypass:
     template = loader.get_template('action/locations_overview.html')
-    location_list = Location.countries(False)
-    location_list.sort(key=lambda e: e[0], reverse=False)
-    for location in location_list:
-      location[2].sort(key=lambda e: e[0], reverse=False)
+    for c in Country.objects.exclude(id=Country.UNKNOWN).exclude(code=None).order_by('name'):
+      cl = Location.objects.filter(in_country=c, name=c.name).first()
+      locations_dict[cl] = Location.objects.filter(in_country=c).order_by('name')
   else:
     try:
       with open(static_location_file, "r") as text:
@@ -34,8 +33,9 @@ def locations_view(request):
     except:
       htmlbody = """<tr><td colspan="2"><h1>Data currently not available.</h1></td></tr>"""
 
+  #print(locations_dict.values())
   context = {
-    'location_list': location_list,
+    'locations_dict': locations_dict,
     'logginbypass': logginbypass,
     'htmlbody': htmlbody,
   }
