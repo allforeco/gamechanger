@@ -83,16 +83,16 @@ class Location(models.Model):
       unknown.save()
   
   def Duplicate_is(location):
-    return Location.objects.exclude(id=location.id).filter(name=location.name, in_country=location.in_country).exists()
+    return Location.Duplicate_get(location).exists()
   
   def Duplicate_get(location):
-    return Location.objects.exclude(id=location.id).filter(name=location.name, in_country=location.in_country)
+    return Location.objects.exclude(id=location.id).filter(name=location.name, in_location=location.in_location, in_country=location.in_country)
   
   def Duplicate_is_prime(location):
     return location == Location.Duplicate_get_prime(location)
   
   def Duplicate_get_prime(location):
-    return Location.objects.filter(name=location.name, in_country=location.in_country).first()
+    return Location.objects.filter(name=location.name, in_location=location.in_location, in_country=location.in_country).first()
 
   def Duplicate_clean():
     for organizationcontact in OrganizationContact.objects.all():
@@ -102,19 +102,19 @@ class Location(models.Model):
             organizationcontact.location = Location.Duplicate_get_prime(organizationcontact.location)
             organizationcontact.save()
 
-    for location in Location.objects.all():
-      if location.in_location:
-        if Location.Duplicate_is(location.in_location):
-          if not Location.Duplicate_is_prime(location.in_location):
-            location.in_location = Location.Duplicate_get_prime(location.in_location)
-            location.save()
-
     for gathering in Gathering.objects.all():
       if gathering.location:
         if Location.Duplicate_is(gathering.location):
           if not Location.Duplicate_is_prime(gathering.location):
             gathering.location = Location.Duplicate_get_prime(gathering.location)
             gathering.save()
+
+    for location in Location.objects.all():
+      if location.in_location:
+        if Location.Duplicate_is(location.in_location):
+          if not Location.Duplicate_is_prime(location.in_location):
+            location.in_location = Location.Duplicate_get_prime(location.in_location)
+            location.save()
 
 
 
@@ -129,9 +129,16 @@ class Location(models.Model):
     else:
       ls = Location.objects.exclude(in_country=Country.Unknown())
     ls = ls.filter(name__icontains=q)
-    lout = ls.filter(name__istartswith=q)
-    lout |= ls.exclude(name__istartswith=q)
-    return lout.order_by()#.values_list('in_country', flat=True).distinct()
+    
+    lsf = Location.objects.none()
+    for location in ls:
+      if Location.Duplicate_is_prime(location):
+        lsf |= Location.objects.filter(id=location.id)
+        pass
+
+    lout = lsf.filter(name__istartswith=q)
+    lout |= lsf.exclude(name__istartswith=q)
+    return lout
   
   '''
   ___Get location of country
@@ -497,6 +504,8 @@ class Country(models.Model):
 
     for location in Location.objects.all():
       l = location.country()
+      l.in_location=None
+      l.save()
       if l:
         pycy=Country.pycy_get(l.name)
       else:
