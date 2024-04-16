@@ -25,7 +25,12 @@ def locations_view(request):
     template = loader.get_template('action/locations_overview.html')
     for c in Country.objects.exclude(id=Country.UNKNOWN).exclude(code=None).order_by('name'):
       cl = Location.objects.filter(in_country=c, name=c.name).first()
-      locations_dict[cl] = Location.objects.filter(in_country=c).order_by('name')
+      ls = Location.objects.filter(in_country=c)
+      lsf = Location.objects.none()
+      for l in ls:
+        if Location.Duplicate_is_prime(l):
+          lsf |= Location.objects.filter(id=l.id)
+      locations_dict[cl] = lsf.order_by('name')
   else:
     try:
       with open(static_location_file, "r") as text:
