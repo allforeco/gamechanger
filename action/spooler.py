@@ -251,8 +251,9 @@ def update_reg(regs, import_log = None):
         max_length = Location._meta.get_field('name').max_length
         loc_name = rec.get('GLOC','')[:max_length]
         if not loc_name:
-          loc_name = 'Unknown Place'
-          location = Location.objects.filter(name = loc_name).first()
+          #loc_name = 'Unknown Place'
+          #location = Location.objects.filter(name = loc_name).first()
+          location = Location.Unknown()
           if not location:
             location = Location(name = loc_name)
             location.save()
@@ -261,15 +262,14 @@ def update_reg(regs, import_log = None):
         else:
           (country_name, state_name, region_name, place_name, zip_code) = Location.split_location_name(loc_name)
           #country = Location.objects.filter(name=country_name, in_location__isnull=True).first()
-          countryLocation = Location.objects.filter(name=country_name, in_location=Location.Unknown()).first()
+          countryLocation = location.country()
           if not countryLocation:
             # Allow for now, close country creation soon
             #country = Country(name=country_name)
             #country.save()
             country = Country.generateNew(country_name)
-            #countryLocation = Location(name=country_name, in_location=Location.Unknown())
             try:
-              countryLocation = Location(name=country_name, in_location=Location.Unknown(), in_country=country)
+              countryLocation = Location(name=country_name, in_location=None, in_country=country)
               countryLocation.save()
               counter['Country'] += 1
               print(f"{lineno} {regid} new country {country}", file=last_import_log)

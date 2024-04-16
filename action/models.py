@@ -82,6 +82,42 @@ class Location(models.Model):
       unknown.in_location = Location.Unknown()
       unknown.save()
   
+  def Duplicate_is(location):
+    return Location.objects.exclude(id=location.id).filter(name=location.name, in_country=location.in_country).exists()
+  
+  def Duplicate_get(location):
+    return Location.objects.exclude(id=location.id).filter(name=location.name, in_country=location.in_country)
+  
+  def Duplicate_is_prime(location):
+    return location == Location.Duplicate_get_prime(location)
+  
+  def Duplicate_get_prime(location):
+    return Location.objects.filter(name=location.name, in_country=location.in_country).first()
+
+  def Duplicate_clean():
+    for organizationcontact in OrganizationContact.objects.all():
+      if organizationcontact.location:
+        if Location.Duplicate_is(organizationcontact.location):
+          if not Location.Duplicate_is_prime(organizationcontact.location):
+            organizationcontact.location = Location.Duplicate_get_prime(organizationcontact.location)
+            organizationcontact.save()
+
+    for location in Location.objects.all():
+      if location.in_location:
+        if Location.Duplicate_is(location.in_location):
+          if not Location.Duplicate_is_prime(location.in_location):
+            location.in_location = Location.Duplicate_get_prime(location.in_location)
+            location.save()
+
+    for gathering in Gathering.objects.all():
+      if gathering.location:
+        if Location.Duplicate_is(gathering.location):
+          if not Location.Duplicate_is_prime(gathering.location):
+            gathering.location = Location.Duplicate_get_prime(gathering.location)
+            gathering.save()
+
+
+
   '''
   ___location search
   ___order by name start->contains, searchterm q
@@ -95,7 +131,7 @@ class Location(models.Model):
     ls = ls.filter(name__icontains=q)
     lout = ls.filter(name__istartswith=q)
     lout |= ls.exclude(name__istartswith=q)
-    return lout
+    return lout.order_by()#.values_list('in_country', flat=True).distinct()
   
   '''
   ___Get location of country
@@ -511,23 +547,10 @@ class Country(models.Model):
       #  location.save()
 
   def generateNew(name):
-    c=None
-    if Country.pycy_lookup(name).id == Country.UNKNOWN:
-      c = Country()
-      if pycountry.countries.get(alpha_2=name):
-        pycy = pycountry.countries.get(alpha_2=name)
-      elif pycountry.countries.get(alpha_3=name):
-        pycy = pycountry.countries.get(alpha_3=name)
-      elif pycountry.countries.get(name=name):
-        pycy = pycountry.countries.get(name=name)
-      elif pycountry.countries.get(official_name=name):
-        pycy = pycountry.countries.get(official_name=name)
-      elif pycountry.countries.search_fuzzy(name):
-        pycy = pycountry.countries.search_fuzzy(name)[0]
-      
-      c.name = pycy.name
-      c.code = pycy.alpha_2
-      c.flag = pycy.flag
+    c=Country.Unknown()
+    pycy=Country.pycy_get(name)
+    if pycy:
+      c = Country(name=pycy.name, code=pycy.alpha_2, flag=pycy.flag)
       c.save()
 
     return c

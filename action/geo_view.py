@@ -34,6 +34,9 @@ import datetime
 '''
 def geo_view_handler(request, locid):
   #print(f"TOWH {locid}")
+  if not Location.Duplicate_is_prime(Location.objects.filter(id=locid).first()):
+    return redirect('action:geo_view',Location.Duplicate_get_prime(Location.objects.filter(id=locid).first()).id)
+
   this_location = Location.objects.filter(id=locid).first()
   if not (this_location):
     return redirect('action:geo_invalid')
@@ -91,6 +94,8 @@ def geo_view_handler(request, locid):
 '''
 def geo_view_handler_new(request, locid):
     # print(f"TOWH {locid}")
+    if not Location.Duplicate_is_prime(Location.objects.filter(id=locid).first()):
+      return redirect('action:geo_view_new', Location.Duplicate_get_prime(Location.objects.filter(id=locid).first()).id)
     this_location = Location.objects.filter(id=locid).first()
     if not (this_location):
         return redirect('action:geo_invalid')
@@ -170,6 +175,8 @@ def geo_view_handler_new(request, locid):
 '''
 def geo_date_view_handler(request, locid, date):
   print(f"TODH {locid} {date}")
+  if not Location.Duplicate_is_prime(Location.objects.filter(id=locid).first()):
+    return redirect('action:geo_date_view', Location.Duplicate_get_prime(Location.objects.filter(id=locid).first()).id, date)
   this_location = Location.objects.filter(id=locid).first()
   parent_location = this_location.in_location
   template = loader.get_template('action/geo_date_view.html')
