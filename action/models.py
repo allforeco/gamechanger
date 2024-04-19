@@ -92,7 +92,12 @@ class Location(models.Model):
     return location == Location.Duplicate_get_prime(location)
   
   def Duplicate_get_prime(location):
-    return Location.objects.filter(name=location.name, in_location=location.in_location, in_country=location.in_country).first()
+    prime = None
+    try:
+      prime = Location.objects.filter(name=location.name, in_location=location.in_location, in_country=location.in_country).first() or None
+    except:
+      pass
+    return prime
 
   def Duplicate_clean():
     for organizationcontact in OrganizationContact.objects.all():
