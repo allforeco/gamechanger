@@ -262,7 +262,7 @@ def update_reg(regs, import_log = None):
         else:
           (country_name, state_name, region_name, place_name, zip_code) = Location.split_location_name(loc_name)
           #country = Location.objects.filter(name=country_name, in_location__isnull=True).first()
-          countryLocation = location.country()
+          countryLocation = Location.Duplicate_get_prime(location.country())
           if not countryLocation:
             # Allow for now, close country creation soon
             #country = Country(name=country_name)
@@ -278,7 +278,7 @@ def update_reg(regs, import_log = None):
               pass
           parent_loc = countryLocation
           if state_name:
-            state = Location.objects.filter(name=state_name, in_location=parent_loc).first()
+            state = Location.Duplicate_get_prime(Location.objects.filter(name=state_name, in_location=parent_loc).first())
             if not state:
               # Allow for now, close state creation soon
               state = Location(name=state_name, in_location=parent_loc, in_country=country)
@@ -287,7 +287,7 @@ def update_reg(regs, import_log = None):
               print(f"{lineno} {regid} new state {state}", file=last_import_log)
             parent_loc = state
           if region_name:
-            region = Location.objects.filter(name=region_name, in_location=parent_loc).first()
+            region = Location.Duplicate_get_prime(Location.objects.filter(name=region_name, in_location=parent_loc).first())
             if not region:
               region = Location(name=region_name, in_location=parent_loc, in_country=country)
               region.save()
@@ -295,7 +295,7 @@ def update_reg(regs, import_log = None):
               print(f"{lineno} {regid} new region {region}", file=last_import_log)
             parent_loc = region
           if place_name:
-            place = Location.objects.filter(name=place_name, in_location=parent_loc).first()
+            place = Location.Duplicate_get_prime(Location.objects.filter(name=place_name, in_location=parent_loc).first())
             if not place:
               place = Location(name=place_name, in_location=parent_loc, in_country=country)
               place.save()
