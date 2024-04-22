@@ -100,12 +100,16 @@ class Location(models.Model):
     return prime
 
   def Duplicate_clean():
+    orcClean = 0
+    gthClean = 0
+    locClean = 0
     for organizationcontact in OrganizationContact.objects.all():
       if organizationcontact.location:
         if Location.Duplicate_is(organizationcontact.location):
           if not Location.Duplicate_is_prime(organizationcontact.location):
             organizationcontact.location = Location.Duplicate_get_prime(organizationcontact.location)
             organizationcontact.save()
+            orcClean+=1
 
     for gathering in Gathering.objects.all():
       if gathering.location:
@@ -113,6 +117,7 @@ class Location(models.Model):
           if not Location.Duplicate_is_prime(gathering.location):
             gathering.location = Location.Duplicate_get_prime(gathering.location)
             gathering.save()
+            gthClean +=1
 
     for location in Location.objects.all():
       if location.in_location:
@@ -120,6 +125,8 @@ class Location(models.Model):
           if not Location.Duplicate_is_prime(location.in_location):
             location.in_location = Location.Duplicate_get_prime(location.in_location)
             location.save()
+            locClean +=1
+    print(f"Clean orc: {orcClean} gth:{gthClean} loc:{locClean}")
 
 
 
