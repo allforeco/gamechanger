@@ -3,7 +3,7 @@ import os
 import requests
 
 def prime_send_file():
-  filename = "fff-regid.csv" #In eventmap_data dir
+  filename = "../fff-regid.csv" #In eventmap_data dir
   in_file = open(filename, "r")
   data = in_file.read()
   in_file.close()

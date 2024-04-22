@@ -262,7 +262,8 @@ def update_reg(regs, import_log = None):
         else:
           (country_name, state_name, region_name, place_name, zip_code) = Location.split_location_name(loc_name)
           #country = Location.objects.filter(name=country_name, in_location__isnull=True).first()
-          countryLocation = Location.Duplicate_get_prime(location.country())
+          #countryLocation = Location.Duplicate_get_prime(location.country())
+          countryLocation = Location.Duplicate_get_prime(Location.objects.filter(name=country_name, in_location__isnull=True).first())
           if not countryLocation:
             # Allow for now, close country creation soon
             #country = Country(name=country_name)
