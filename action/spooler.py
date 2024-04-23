@@ -436,7 +436,7 @@ def update_reg(regs, import_log = None):
           print(f"{lineno} {regid} no change to witness, {rec_updated} <= {db_updated}", file=last_import_log)
 
         counter['Completed'] += 1
-        print(f"{lineno} {regid} completed {location} in {location.in_location}: {place} {region} {state} {country} {gathering} {belong} {witness} <- '{loc_name}'", file=last_import_log)
+        print(f"{lineno} {regid} completed {location} in {location.in_location}: {place} {region} {state} {countryLocation} {gathering} {belong} {witness} <- '{loc_name}'", file=last_import_log)
       except Exception as e:
         print(f"{lineno} {regid} exception {e}", file=last_import_log)
         print(f"URXX === Exception on {lineno} updated recs:\n{e}")

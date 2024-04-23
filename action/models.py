@@ -82,11 +82,24 @@ class Location(models.Model):
       unknown.in_location = Location.Unknown()
       unknown.save()
   
+  
+  _DUPLICATEEXCEPTION = {
+    6111: [54138],
+    8181: [54776, 54778],
+    } #GB: UK
   def Duplicate_is(location):
     return Location.Duplicate_get(location).exists()
   
   def Duplicate_get(location):
-    return Location.objects.exclude(id=location.id).filter(name=location.name, in_location=location.in_location, in_country=location.in_country)
+    r = Location.objects.none()
+    for prime, duplicates in Location._DUPLICATEEXCEPTION.items():
+      if location.id == prime or location.id in duplicates:
+        r |= Location.objects.exclude(id=location.id).filter(id=prime)
+        for duplicate in duplicates:
+          r |= Location.objects.exclude(id=location.id).filter(id=duplicate)
+
+    r |= Location.objects.exclude(id=location.id).filter(name=location.name, in_location=location.in_location, in_country=location.in_country)
+    return r 
   
   def Duplicate_is_prime(location):
     return location == Location.Duplicate_get_prime(location)
@@ -94,7 +107,9 @@ class Location(models.Model):
   def Duplicate_get_prime(location):
     prime = None
     try:
-      prime = Location.objects.filter(name=location.name, in_location=location.in_location, in_country=location.in_country).first() or None
+      primeQ = Location.objects.filter(id=location.id)
+      primeQ |= Location.Duplicate_get(location) # Location.objects.filter(name=location.name, in_location=location.in_location, in_country=location.in_country).first()
+      prime = primeQ.order_by('id').first()
     except:
       pass
     return prime
@@ -150,7 +165,7 @@ class Location(models.Model):
 
     lout = lsf.filter(name__istartswith=q)
     lout |= lsf.exclude(name__istartswith=q)
-    return lout
+    return lout.order_by('id')
   
   '''
   ___Get location of country
