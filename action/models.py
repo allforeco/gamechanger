@@ -82,6 +82,69 @@ class Location(models.Model):
       unknown.in_location = Location.Unknown()
       unknown.save()
   
+  
+  _DUPLICATEEXCEPTION = {
+    6111: [54138],
+    8181: [54776, 54778],
+    } #GB: UK
+  def Duplicate_is(location):
+    return Location.Duplicate_get(location).exists()
+  
+  def Duplicate_get(location):
+    r = Location.objects.none()
+    for prime, duplicates in Location._DUPLICATEEXCEPTION.items():
+      if location.id == prime or location.id in duplicates:
+        r |= Location.objects.exclude(id=location.id).filter(id=prime)
+        for duplicate in duplicates:
+          r |= Location.objects.exclude(id=location.id).filter(id=duplicate)
+
+    r |= Location.objects.exclude(id=location.id).filter(name=location.name, in_location=location.in_location, in_country=location.in_country)
+    return r 
+  
+  def Duplicate_is_prime(location):
+    return location == Location.Duplicate_get_prime(location)
+  
+  def Duplicate_get_prime(location):
+    prime = None
+    try:
+      primeQ = Location.objects.filter(id=location.id)
+      primeQ |= Location.Duplicate_get(location) # Location.objects.filter(name=location.name, in_location=location.in_location, in_country=location.in_country).first()
+      prime = primeQ.order_by('id').first()
+    except:
+      pass
+    return prime
+
+  def Duplicate_clean():
+    orcClean = 0
+    gthClean = 0
+    locClean = 0
+    for organizationcontact in OrganizationContact.objects.all():
+      if organizationcontact.location:
+        if Location.Duplicate_is(organizationcontact.location):
+          if not Location.Duplicate_is_prime(organizationcontact.location):
+            organizationcontact.location = Location.Duplicate_get_prime(organizationcontact.location)
+            organizationcontact.save()
+            orcClean+=1
+
+    for gathering in Gathering.objects.all():
+      if gathering.location:
+        if Location.Duplicate_is(gathering.location):
+          if not Location.Duplicate_is_prime(gathering.location):
+            gathering.location = Location.Duplicate_get_prime(gathering.location)
+            gathering.save()
+            gthClean +=1
+
+    for location in Location.objects.all():
+      if location.in_location:
+        if Location.Duplicate_is(location.in_location):
+          if not Location.Duplicate_is_prime(location.in_location):
+            location.in_location = Location.Duplicate_get_prime(location.in_location)
+            location.save()
+            locClean +=1
+    print(f"Clean orc: {orcClean} gth:{gthClean} loc:{locClean}")
+
+
+
   '''
   ___location search
   ___order by name start->contains, searchterm q
@@ -93,9 +156,16 @@ class Location(models.Model):
     else:
       ls = Location.objects.exclude(in_country=Country.Unknown())
     ls = ls.filter(name__icontains=q)
-    lout = ls.filter(name__istartswith=q)
-    lout |= ls.exclude(name__istartswith=q)
-    return lout
+    
+    lsf = Location.objects.none()
+    for location in ls:
+      if Location.Duplicate_is_prime(location):
+        lsf |= Location.objects.filter(id=location.id)
+        pass
+
+    lout = lsf.filter(name__istartswith=q)
+    lout |= lsf.exclude(name__istartswith=q)
+    return lout.order_by('id')
   
   '''
   ___Get location of country
@@ -461,6 +531,8 @@ class Country(models.Model):
 
     for location in Location.objects.all():
       l = location.country()
+      l.in_location=None
+      l.save()
       if l:
         pycy=Country.pycy_get(l.name)
       else:
@@ -511,23 +583,10 @@ class Country(models.Model):
       #  location.save()
 
   def generateNew(name):
-    c=None
-    if Country.pycy_lookup(name).id == Country.UNKNOWN:
-      c = Country()
-      if pycountry.countries.get(alpha_2=name):
-        pycy = pycountry.countries.get(alpha_2=name)
-      elif pycountry.countries.get(alpha_3=name):
-        pycy = pycountry.countries.get(alpha_3=name)
-      elif pycountry.countries.get(name=name):
-        pycy = pycountry.countries.get(name=name)
-      elif pycountry.countries.get(official_name=name):
-        pycy = pycountry.countries.get(official_name=name)
-      elif pycountry.countries.search_fuzzy(name):
-        pycy = pycountry.countries.search_fuzzy(name)[0]
-      
-      c.name = pycy.name
-      c.code = pycy.alpha_2
-      c.flag = pycy.flag
+    c=Country.Unknown()
+    pycy=Country.pycy_get(name)
+    if pycy:
+      c = Country(name=pycy.name, code=pycy.alpha_2, flag=pycy.flag)
       c.save()
 
     return c

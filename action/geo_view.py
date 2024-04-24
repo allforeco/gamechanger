@@ -34,12 +34,20 @@ import datetime
 '''
 def geo_view_handler(request, locid):
   #print(f"TOWH {locid}")
+  if not Location.Duplicate_is_prime(Location.objects.filter(id=locid).first()):
+    return redirect('action:geo_view',Location.Duplicate_get_prime(Location.objects.filter(id=locid).first()).id)
   this_location = Location.objects.filter(id=locid).first()
   if not (this_location):
     return redirect('action:geo_invalid')
 
   parent_location = this_location.in_location
-  sublocation_list = Location.objects.filter(in_location=this_location).order_by('name')
+  sublocation_list_duplicates = Location.objects.filter(in_location=this_location).order_by('name')
+  sublocation_list = Location.objects.none()
+  for sl in sublocation_list_duplicates:
+    if Location.Duplicate_is_prime(sl):
+      sublocation_list |= Location.objects.filter(id=sl.id)
+  sublocation_list = sublocation_list.order_by('name')
+
   gathering_list = Gathering.objects.filter(location=this_location)
   witness_dict = {}
   #print(f"TOWH {this_location} {parent_location} {len(sublocation_list)} {len(gathering_list)}")
@@ -91,12 +99,20 @@ def geo_view_handler(request, locid):
 '''
 def geo_view_handler_new(request, locid):
     # print(f"TOWH {locid}")
+    if not Location.Duplicate_is_prime(Location.objects.filter(id=locid).first()):
+      return redirect('action:geo_view_new', Location.Duplicate_get_prime(Location.objects.filter(id=locid).first()).id)
     this_location = Location.objects.filter(id=locid).first()
     if not (this_location):
         return redirect('action:geo_invalid')
 
     parent_location = this_location.in_location
-    sublocation_list = Location.objects.filter(in_location=this_location).order_by('name')
+    sublocation_list_duplicates = Location.objects.filter(in_location=this_location).order_by('name')
+    sublocation_list = Location.objects.none()
+    for sl in sublocation_list_duplicates:
+      if Location.Duplicate_is_prime(sl):
+        sublocation_list |= Location.objects.filter(id=sl.id)
+    sublocation_list = sublocation_list.order_by('name')
+    #sublocation_list = Location.objects.filter(in_location=this_location).order_by('name')
     gathering_loc = Gathering.objects.filter(location=this_location)
     witness_dict = {}
     # print(f"TOWH {this_location} {parent_location} {len(sublocation_list)} {len(gathering_loc)}")
@@ -170,6 +186,8 @@ def geo_view_handler_new(request, locid):
 '''
 def geo_date_view_handler(request, locid, date):
   print(f"TODH {locid} {date}")
+  if not Location.Duplicate_is_prime(Location.objects.filter(id=locid).first()):
+    return redirect('action:geo_date_view', Location.Duplicate_get_prime(Location.objects.filter(id=locid).first()).id, date)
   this_location = Location.objects.filter(id=locid).first()
   parent_location = this_location.in_location
   template = loader.get_template('action/geo_date_view.html')
