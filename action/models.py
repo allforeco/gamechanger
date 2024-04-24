@@ -935,6 +935,9 @@ class Action(models.Model):
   interested_users = models.ManyToManyField(UserHome, related_name="actions_interest", blank=True)
   action_link = models.URLField(max_length=500)
 
+class Steward(models.Model):
+  alias = models.CharField(max_length=100)
+
 '''
 ___database cimate actions
 '''
@@ -962,6 +965,8 @@ class Gathering(models.Model):
 
   address = models.CharField(blank=True, max_length=64)
   time = models.CharField(blank=True, max_length=32)
+
+  steward = models.ManyToManyField(Steward, blank=True, null=True)
 
   #event_link_url = models.URLField(max_length=500, blank=True)
   contact_name = models.CharField(blank=True, max_length=64)
@@ -1159,6 +1164,7 @@ class Gathering_Witness(models.Model):
     root_gathering = self.gathering.get_gathering_root()
     self.gathering.regid = root_gathering.regid
     return self.gathering.regid
+
 
 '''
 ___
