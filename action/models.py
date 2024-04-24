@@ -83,20 +83,29 @@ class Location(models.Model):
       unknown.save()
   
   
-  _DUPLICATEEXCEPTION = {
-    6111: [54138],
-    8181: [54776, 54778],
-    } #GB: UK
+  #_DUPLICATEEXCEPTION = {
+  #  6111: [54138],
+  #  8181: [54776, 54778],
+  #  } #GB: UK
   def Duplicate_is(location):
     return Location.Duplicate_get(location).exists()
   
   def Duplicate_get(location):
     r = Location.objects.none()
-    for prime, duplicates in Location._DUPLICATEEXCEPTION.items():
-      if location.id == prime or location.id in duplicates:
-        r |= Location.objects.exclude(id=location.id).filter(id=prime)
-        for duplicate in duplicates:
-          r |= Location.objects.exclude(id=location.id).filter(id=duplicate)
+    lb = Location_Belong.objects.filter(duplicate=location).first()
+    if lb:
+      #print("Duplicate Exception", lb)
+      lbs = Location_Belong.objects.filter(prime=lb.prime)
+      r |= Location.objects.exclude(id=location.id).filter(id=lb.prime.id)
+      for l in lbs:
+        r |= Location.objects.filter(id=l.duplicate.id)
+    
+    lb = Location_Belong.objects.filter(prime=location).first()
+    if lb:
+      lbs = Location_Belong.objects.filter(prime=lb.prime)
+      #print("Duplicate Exception", lbs)
+      for l in lbs:
+        r |= Location.objects.filter(id=l.duplicate.id)
 
     r |= Location.objects.exclude(id=location.id).filter(name=location.name, in_location=location.in_location, in_country=location.in_country)
     return r 
@@ -412,6 +421,14 @@ class Location(models.Model):
       print(f"{total} looped locations found and deleted")
     else:
       print(f"{total} looped locations found")
+
+class Location_Belong(models.Model):
+  def __str__(self):
+    return str(self.duplicate.id) + "=>" + str(self.prime.id)
+
+  duplicate = models.OneToOneField(Location, on_delete=models.CASCADE, primary_key=True, editable=True)
+  prime = models.ForeignKey(Location, on_delete=models.CASCADE,related_name="+")
+  
 
 '''
 ___database countries
