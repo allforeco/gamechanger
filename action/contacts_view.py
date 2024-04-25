@@ -53,13 +53,13 @@ def contacts_import(request, option=0):
             location = Location.Unknown()
 
           if location.id == -1:
-            category=Country.pycy_lookup(row[4][:200])
+            category=Country.pycy_get(row[4][:200])
             location = category.country_location()
             oc.location=location
           else:
             category=location.in_country #row[4][:200]
           
-          if category == Country.Unknown():
+          if category == None:
             continue
 
           oc.category=category.name
@@ -131,7 +131,9 @@ def contacts_view(request):
       location= (contact.locationTitle, Location.Unknown.id)
 
     if contact.category and contact.category != Country.Unknown().name:
-      cy = Country.pycy_lookup(contact.category)
+      cy = Country.pycy_get(contact.category)
+      if not cy:
+        cy = Country.Unknown()
       category = (cy.name, cy.country_location().id)
 
       if location[1] == -1:

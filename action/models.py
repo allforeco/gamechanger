@@ -152,7 +152,22 @@ class Location(models.Model):
             locClean +=1
     print(f"Clean orc: {orcClean} gth:{gthClean} loc:{locClean}")
 
+  def all_delete(loopmax = 8):
+    ls = Location.objects.exclude(id=Location.UNKNOWN).order_by('-id')
+    for l in ls:
+      try:
+       l.delete()
+      except:
+        print("delete exception", l)
+    
+    if loopmax <= 0:
+      print("delete exception, max recursion depth")
+      return
 
+    if len(ls) > 0:
+      Location.all_delete(loopmax-1)
+
+    print("Locations: ", Location.objects.all())
 
   '''
   ___location search
@@ -461,7 +476,7 @@ class Country(models.Model):
       unknown = Country()
       unknown.id = Country.UNKNOWN
       unknown.name = "Unknown"
-      unknown.phone_prefix = None
+      unknown.phone_prefix = 0
       unknown.code = "XX"
       unknown.flag = "🏳️"
       unknown.save()
@@ -470,7 +485,7 @@ class Country(models.Model):
   ___Get location of country
   '''
   def country_location(self):
-    locations = Location.objects.filter(in_country=self, name=self.name)
+    locations = Location.objects.filter(in_country=self, name=self.name, in_location=None)
     if locations.count() > 0:
       return locations.first()
     else:
@@ -498,6 +513,8 @@ class Country(models.Model):
   ___pycountry lookup
   '''
   def pycy_get(name):
+    if name.upper() == "UK":
+      name = "United Kingdom"
     pycy = None
     try:
       if pycountry.countries.get(alpha_2=name):
@@ -509,31 +526,12 @@ class Country(models.Model):
       elif pycountry.countries.get(official_name=name):
         pycy = pycountry.countries.get(official_name=name)
       elif pycountry.countries.search_fuzzy(name):
-        pycy = pycountry.countries.search_fuzzy(name)[0]
+        #pycy = pycountry.countries.search_fuzzy(name)[0]
+        pass
     except:
       pycy = None
 
     return pycy
-
-  def pycy_lookup(name):
-    try:
-      if pycountry.countries.get(alpha_2=name):
-        pycy = pycountry.countries.get(alpha_2=name)
-      elif pycountry.countries.get(alpha_3=name):
-        pycy = pycountry.countries.get(alpha_3=name)
-      elif pycountry.countries.get(name=name):
-        pycy = pycountry.countries.get(name=name)
-      elif pycountry.countries.get(official_name=name):
-        pycy = pycountry.countries.get(official_name=name)
-      elif pycountry.countries.search_fuzzy(name):
-        pycy = pycountry.countries.search_fuzzy(name)[0]
-      
-      if Country.objects.filter(name=pycy.name).exists():
-        return Country.objects.get(name=pycy.name)
-      else:
-        return Country.Unknown()
-    except:
-      return Country.Unknown()
 
   '''
   ___generate countries
@@ -541,8 +539,13 @@ class Country(models.Model):
   '''
   def generate(option = 0):
     print("generate")
+    print_add = 0
+    print_edit = 0
+    print_reset = False
+    
     if option == 1:
       Country.objects.all().delete()
+      print_reset = True
 
     Country.SETUP_Unknown()
 
@@ -561,6 +564,7 @@ class Country(models.Model):
             c.code = pycy.alpha_2
             c.flag = pycy.flag
             c.save()
+            print_edit += 1
           location.in_country = c
         else:
           c = Country()
@@ -568,43 +572,22 @@ class Country(models.Model):
           c.code = pycy.alpha_2
           c.flag = pycy.flag
           c.save()
+          print_add += 1
           location.in_country = c
       else:
         location.in_country = Country.Unknown()
       
       location.save()
 
-      #pycy=Country.pycy_lookup(l.name)
-      #if pycy == Country.Unknown():
-      #  location.in_country=Country.Unknown()
-      #  location.save()
-      #  continue
-
-      #if not Country.objects.filter(name=pycy.name).exists():
-      #  #print(l.name)
-      #  name = pycy.name
-      #  loc = l
-      #  code = pycy.alpha_2
-      #  flag = pycy.flag
-      #  #print(name, location, code, flag, pycy, "\n")
-      #  c = Country()
-      #  c.name = name
-      #  #c.location = location
-      #  c.code = code
-      #  c.flag = flag
-      #  c.save()
-      #  location.in_country = Country.objects.get(name=pycy.name)
-      #  location.save()
-      #else:
-      #  location.in_country = Country.objects.get(name=pycy.name)
-      #  location.save()
+    print(f"New: {print_add}, Edit: {print_edit}, reset: {print_reset}")
 
   def generateNew(name):
     c=Country.Unknown()
     pycy=Country.pycy_get(name)
     if pycy:
-      c = Country(name=pycy.name, code=pycy.alpha_2, flag=pycy.flag)
-      c.save()
+      if not Country.objects.filter(name=pycy.name):
+        c = Country(name=pycy.name, code=pycy.alpha_2, flag=pycy.flag)
+        c.save()
 
     return c
 
