@@ -541,11 +541,15 @@ class Country(models.Model):
     print("generate")
     print_add = 0
     print_edit = 0
-    print_reset = False
+    print_option = 0
     
     if option == 1:
       Country.objects.all().delete()
-      print_reset = True
+      print_option = 1
+
+    if option == 2:
+      Location.objects.all().in_country=None
+      print_option = 2
 
     Country.SETUP_Unknown()
 
@@ -579,7 +583,7 @@ class Country(models.Model):
       
       location.save()
 
-    print(f"New: {print_add}, Edit: {print_edit}, reset: {print_reset}")
+    print(f"New: {print_add}, Edit: {print_edit}, reset: {print_option}")
 
   def generateNew(name):
     c=Country.Unknown()
