@@ -923,6 +923,9 @@ class Action(models.Model):
   action_link = models.URLField(max_length=500)
 
 class Steward(models.Model):
+  def __str__(self):
+    return self.alias
+
   alias = models.CharField(max_length=100)
 
 '''
@@ -953,7 +956,7 @@ class Gathering(models.Model):
   address = models.CharField(blank=True, max_length=64)
   time = models.CharField(blank=True, max_length=32)
 
-  steward = models.ManyToManyField(Steward, blank=True, null=True)
+  steward = models.ForeignKey(Steward, blank=True, null=True, on_delete=models.SET_NULL)
 
   #event_link_url = models.URLField(max_length=500, blank=True)
   contact_name = models.CharField(blank=True, max_length=64)

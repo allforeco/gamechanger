@@ -3,15 +3,16 @@ from django.http import *
 
 # Register your models here.
 
-from .models import Country, Location, Location_Belong, Organization, OrganizationContact, UserHome, Action, Gathering, Gathering_Witness, Verification
+from .models import Country, Location, Location_Belong, Organization, OrganizationContact, UserHome, Action, Gathering, Gathering_Witness, Verification, Steward
 
 admin.site.register(UserHome)
 admin.site.register(Action)
 admin.site.register(Verification)
 admin.site.register(Location_Belong)
+admin.site.register(Steward)
 
 class GatheringAdmin(admin.ModelAdmin):
-  list_display = ('regid', 'location', 'start_date')
+  list_display = ('regid', 'location', 'start_date', 'steward')
   ordering = ('location', 'regid')
   search_fields = ['regid', 'location', 'start_date']
 
