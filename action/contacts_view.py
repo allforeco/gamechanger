@@ -53,8 +53,12 @@ def contacts_import(request, option=0):
             location = Location.Unknown()
 
           if location.id == Location.UNKNOWN:
-            category=Country.pycy_get(row[4][:200])
-            location = category.country_location()
+            pycy = Country.pycy_get(row[4][:200])
+            if pycy:
+              category = Country.objects.filter(name=pycy.name).first() or Country.Unknown()
+            else:
+              category = Country.Unknown()
+            location = Country.country_location(category)
             oc.location=location
           else:
             category=location.in_country #row[4][:200]
@@ -125,13 +129,16 @@ def contacts_view(request):
     location=tuple()
     category=tuple()
 
-    if contact.location != Location.Unknown:
+    if contact.location.id != Location.UNKNOWN:
       location = (contact.location.name, contact.location.id)
     else:
-      location= (contact.locationTitle, Location.Unknown.id)
+      location= (contact.locationTitle, Location.Unknown().id)
 
-    if contact.category and contact.category != Country.Unknown().name:
-      cy = Country.pycy_get(contact.category)
+    if contact.category:
+      pycy = Country.pycy_get(contact.category)
+      cy = None
+      if pycy:
+        cy = Country.objects.filter(name=pycy.name).first()
       if not cy:
         cy = Country.Unknown()
       category = (cy.name, cy.country_location().id)
