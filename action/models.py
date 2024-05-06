@@ -83,20 +83,29 @@ class Location(models.Model):
       unknown.save()
   
   
-  _DUPLICATEEXCEPTION = {
-    6111: [54138],
-    8181: [54776, 54778],
-    } #GB: UK
+  #_DUPLICATEEXCEPTION = {
+  #  6111: [54138],
+  #  8181: [54776, 54778],
+  #  } #GB: UK
   def Duplicate_is(location):
     return Location.Duplicate_get(location).exists()
   
   def Duplicate_get(location):
     r = Location.objects.none()
-    for prime, duplicates in Location._DUPLICATEEXCEPTION.items():
-      if location.id == prime or location.id in duplicates:
-        r |= Location.objects.exclude(id=location.id).filter(id=prime)
-        for duplicate in duplicates:
-          r |= Location.objects.exclude(id=location.id).filter(id=duplicate)
+    lb = Location_Belong.objects.filter(duplicate=location).first()
+    if lb:
+      #print("Duplicate Exception", lb)
+      lbs = Location_Belong.objects.filter(prime=lb.prime)
+      r |= Location.objects.exclude(id=location.id).filter(id=lb.prime.id)
+      for l in lbs:
+        r |= Location.objects.filter(id=l.duplicate.id)
+    
+    lb = Location_Belong.objects.filter(prime=location).first()
+    if lb:
+      lbs = Location_Belong.objects.filter(prime=lb.prime)
+      #print("Duplicate Exception", lbs)
+      for l in lbs:
+        r |= Location.objects.filter(id=l.duplicate.id)
 
     r |= Location.objects.exclude(id=location.id).filter(name=location.name, in_location=location.in_location, in_country=location.in_country)
     return r 
@@ -143,7 +152,22 @@ class Location(models.Model):
             locClean +=1
     print(f"Clean orc: {orcClean} gth:{gthClean} loc:{locClean}")
 
+  def all_delete(loopmax = 8):
+    ls = Location.objects.exclude(id=Location.UNKNOWN).order_by('-id')
+    for l in ls:
+      try:
+       l.delete()
+      except:
+        print("delete exception", l)
+    
+    if loopmax <= 0:
+      print("delete exception, max recursion depth")
+      return
 
+    if len(ls) > 0:
+      Location.all_delete(loopmax-1)
+
+    print("Locations: ", Location.objects.all())
 
   '''
   ___location search
@@ -413,6 +437,14 @@ class Location(models.Model):
     else:
       print(f"{total} looped locations found")
 
+class Location_Belong(models.Model):
+  def __str__(self):
+    return str(self.duplicate.id) + "=>" + str(self.prime.id)
+
+  duplicate = models.OneToOneField(Location, on_delete=models.CASCADE, primary_key=True, editable=True)
+  prime = models.ForeignKey(Location, on_delete=models.CASCADE,related_name="+")
+  
+
 '''
 ___database countries
 '''
@@ -444,7 +476,7 @@ class Country(models.Model):
       unknown = Country()
       unknown.id = Country.UNKNOWN
       unknown.name = "Unknown"
-      unknown.phone_prefix = None
+      unknown.phone_prefix = 0
       unknown.code = "XX"
       unknown.flag = "🏳️"
       unknown.save()
@@ -453,7 +485,7 @@ class Country(models.Model):
   ___Get location of country
   '''
   def country_location(self):
-    locations = Location.objects.filter(in_country=self, name=self.name)
+    locations = Location.objects.filter(in_country=self, name=self.name, in_location=None)
     if locations.count() > 0:
       return locations.first()
     else:
@@ -481,6 +513,8 @@ class Country(models.Model):
   ___pycountry lookup
   '''
   def pycy_get(name):
+    if name.upper() == "UK":
+      name = "United Kingdom"
     pycy = None
     try:
       if pycountry.countries.get(alpha_2=name):
@@ -492,31 +526,12 @@ class Country(models.Model):
       elif pycountry.countries.get(official_name=name):
         pycy = pycountry.countries.get(official_name=name)
       elif pycountry.countries.search_fuzzy(name):
-        pycy = pycountry.countries.search_fuzzy(name)[0]
+        #pycy = pycountry.countries.search_fuzzy(name)[0]
+        pass
     except:
       pycy = None
 
     return pycy
-
-  def pycy_lookup(name):
-    try:
-      if pycountry.countries.get(alpha_2=name):
-        pycy = pycountry.countries.get(alpha_2=name)
-      elif pycountry.countries.get(alpha_3=name):
-        pycy = pycountry.countries.get(alpha_3=name)
-      elif pycountry.countries.get(name=name):
-        pycy = pycountry.countries.get(name=name)
-      elif pycountry.countries.get(official_name=name):
-        pycy = pycountry.countries.get(official_name=name)
-      elif pycountry.countries.search_fuzzy(name):
-        pycy = pycountry.countries.search_fuzzy(name)[0]
-      
-      if Country.objects.filter(name=pycy.name).exists():
-        return Country.objects.get(name=pycy.name)
-      else:
-        return Country.Unknown()
-    except:
-      return Country.Unknown()
 
   '''
   ___generate countries
@@ -524,8 +539,17 @@ class Country(models.Model):
   '''
   def generate(option = 0):
     print("generate")
+    print_add = 0
+    print_edit = 0
+    print_option = 0
+    
     if option == 1:
       Country.objects.all().delete()
+      print_option = 1
+
+    if option == 2:
+      Location.objects.all().in_country=None
+      print_option = 2
 
     Country.SETUP_Unknown()
 
@@ -544,6 +568,7 @@ class Country(models.Model):
             c.code = pycy.alpha_2
             c.flag = pycy.flag
             c.save()
+            print_edit += 1
           location.in_country = c
         else:
           c = Country()
@@ -551,43 +576,22 @@ class Country(models.Model):
           c.code = pycy.alpha_2
           c.flag = pycy.flag
           c.save()
+          print_add += 1
           location.in_country = c
       else:
         location.in_country = Country.Unknown()
       
       location.save()
 
-      #pycy=Country.pycy_lookup(l.name)
-      #if pycy == Country.Unknown():
-      #  location.in_country=Country.Unknown()
-      #  location.save()
-      #  continue
-
-      #if not Country.objects.filter(name=pycy.name).exists():
-      #  #print(l.name)
-      #  name = pycy.name
-      #  loc = l
-      #  code = pycy.alpha_2
-      #  flag = pycy.flag
-      #  #print(name, location, code, flag, pycy, "\n")
-      #  c = Country()
-      #  c.name = name
-      #  #c.location = location
-      #  c.code = code
-      #  c.flag = flag
-      #  c.save()
-      #  location.in_country = Country.objects.get(name=pycy.name)
-      #  location.save()
-      #else:
-      #  location.in_country = Country.objects.get(name=pycy.name)
-      #  location.save()
+    print(f"New: {print_add}, Edit: {print_edit}, reset: {print_option}")
 
   def generateNew(name):
     c=Country.Unknown()
     pycy=Country.pycy_get(name)
     if pycy:
-      c = Country(name=pycy.name, code=pycy.alpha_2, flag=pycy.flag)
-      c.save()
+      if not Country.objects.filter(name=pycy.name):
+        c = Country(name=pycy.name, code=pycy.alpha_2, flag=pycy.flag)
+        c.save()
 
     return c
 
@@ -918,6 +922,12 @@ class Action(models.Model):
   interested_users = models.ManyToManyField(UserHome, related_name="actions_interest", blank=True)
   action_link = models.URLField(max_length=500)
 
+class Steward(models.Model):
+  def __str__(self):
+    return self.alias
+
+  alias = models.CharField(max_length=100)
+
 '''
 ___database cimate actions
 '''
@@ -945,6 +955,8 @@ class Gathering(models.Model):
 
   address = models.CharField(blank=True, max_length=64)
   time = models.CharField(blank=True, max_length=32)
+
+  steward = models.ForeignKey(Steward, blank=True, null=True, on_delete=models.SET_NULL)
 
   #event_link_url = models.URLField(max_length=500, blank=True)
   contact_name = models.CharField(blank=True, max_length=64)
@@ -1142,6 +1154,7 @@ class Gathering_Witness(models.Model):
     root_gathering = self.gathering.get_gathering_root()
     self.gathering.regid = root_gathering.regid
     return self.gathering.regid
+
 
 '''
 ___

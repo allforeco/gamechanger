@@ -46,26 +46,30 @@ def contacts_import(request, option=0):
           oc.info=row[2][:200]
           
           oc.locationTitle=row[3][:200]
-          location=Location.objects.filter(name__iexact=row[3][:200]).first() or Location.objects.get(id=-1)
+          location=Location.objects.filter(name__iexact=row[3][:200]).first() or Location.objects.get(id=Location.UNKNOWN)
           oc.location=location #row[3][:200]
           
           if not location:
             location = Location.Unknown()
 
-          if location.id == -1:
-            category=Country.pycy_lookup(row[4][:200])
-            location = category.country_location()
+          if location.id == Location.UNKNOWN:
+            pycy = Country.pycy_get(row[4][:200])
+            if pycy:
+              category = Country.objects.filter(name=pycy.name).first() or Country.Unknown()
+            else:
+              category = Country.Unknown()
+            location = Country.country_location(category)
             oc.location=location
           else:
             category=location.in_country #row[4][:200]
           
-          if category == Country.Unknown():
+          if category == None:
             continue
 
           oc.category=category.name
           
           oc.organizationTitle=row[5][:200]
-          organization=Organization.objects.filter(name__iexact=row[5][:200]).first() or Organization.objects.get(id=-1)
+          organization=Organization.objects.filter(name__iexact=row[5][:200]).first() or Organization.objects.get(id=Organization.UNKNOWN)
           oc.organization=organization #row[5][:200]
           
           oc.source=row[6][:200]
@@ -125,16 +129,21 @@ def contacts_view(request):
     location=tuple()
     category=tuple()
 
-    if contact.location != Location.Unknown:
+    if contact.location.id != Location.UNKNOWN:
       location = (contact.location.name, contact.location.id)
     else:
-      location= (contact.locationTitle, Location.Unknown.id)
+      location= (contact.locationTitle, Location.Unknown().id)
 
-    if contact.category and contact.category != Country.Unknown().name:
-      cy = Country.pycy_lookup(contact.category)
+    if contact.category:
+      pycy = Country.pycy_get(contact.category)
+      cy = None
+      if pycy:
+        cy = Country.objects.filter(name=pycy.name).first()
+      if not cy:
+        cy = Country.Unknown()
       category = (cy.name, cy.country_location().id)
 
-      if location[1] == -1:
+      if location[1] == Location.UNKNOWN:
         location = category
     else:
       category=UNKNOWN
