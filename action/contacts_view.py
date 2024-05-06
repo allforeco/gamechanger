@@ -46,13 +46,13 @@ def contacts_import(request, option=0):
           oc.info=row[2][:200]
           
           oc.locationTitle=row[3][:200]
-          location=Location.objects.filter(name__iexact=row[3][:200]).first() or Location.objects.get(id=-1)
+          location=Location.objects.filter(name__iexact=row[3][:200]).first() or Location.objects.get(id=Location.UNKNOWN)
           oc.location=location #row[3][:200]
           
           if not location:
             location = Location.Unknown()
 
-          if location.id == -1:
+          if location.id == Location.UNKNOWN:
             category=Country.pycy_get(row[4][:200])
             location = category.country_location()
             oc.location=location
@@ -65,7 +65,7 @@ def contacts_import(request, option=0):
           oc.category=category.name
           
           oc.organizationTitle=row[5][:200]
-          organization=Organization.objects.filter(name__iexact=row[5][:200]).first() or Organization.objects.get(id=-1)
+          organization=Organization.objects.filter(name__iexact=row[5][:200]).first() or Organization.objects.get(id=Organization.UNKNOWN)
           oc.organization=organization #row[5][:200]
           
           oc.source=row[6][:200]
@@ -136,7 +136,7 @@ def contacts_view(request):
         cy = Country.Unknown()
       category = (cy.name, cy.country_location().id)
 
-      if location[1] == -1:
+      if location[1] == Location.UNKNOWN:
         location = category
     else:
       category=UNKNOWN
