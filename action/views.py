@@ -48,6 +48,7 @@ from .overview_view import latest_records_view, help_view
 from .locations_view import locations_view
 from. contacts_view import contacts_view, contacts_import
 from .organizations_view import organizations_view, organization_view
+from .gathering_view import gathering_view
 from .user_createsubmitform_view import USGCreate, USGCreateSubmit, GatheringCreate, GatheringCreateSubmit, OrganizationcontactCreate, OrganizationcontactCreateSubmit, OrganizationCreate, OrganizationCreateSubmit, LocationCreate, LocationCreateSubmit
 from .cookie_profile import CookieProfile, loginCookieProfile
 

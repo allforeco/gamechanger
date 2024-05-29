@@ -44,6 +44,7 @@ urlpatterns = [
   path('start/contacts', views.contacts_view, name='contacts_list_depricated'), #TEMP TRANSISTION
   path('contacts/import/<int:option>', views.contacts_import, name='contacts_import'),
   path('organizations/<int:orgid>/', views.organization_view, name='organization_view'),
+  path('gatherings/<str:regid>/', views.gathering_view, name='gathering_view'),
   path('eventmap_data/', views.eventmap_data_view, name='eventmap_data_view'),
   path('eventmap_data/update_csv', views.eventmap_data, name='eventmap_data'),
   #path('report_gathering', views.USGCreateSubmit, name='usg_submit'),
