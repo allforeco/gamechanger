@@ -123,11 +123,11 @@ class Location(models.Model):
       pass
     return prime
 
-  def Duplicate_clean():
+  def Duplicate_clean(organizationcontacts = [], gatherings = [], locations = []):
     orcClean = 0
     gthClean = 0
     locClean = 0
-    for organizationcontact in OrganizationContact.objects.all():
+    for organizationcontact in organizationcontacts or OrganizationContact.objects.all():
       if organizationcontact.location:
         if Location.Duplicate_is(organizationcontact.location):
           if not Location.Duplicate_is_prime(organizationcontact.location):
@@ -135,7 +135,7 @@ class Location(models.Model):
             organizationcontact.save()
             orcClean+=1
 
-    for gathering in Gathering.objects.all():
+    for gathering in gatherings or Gathering.objects.all():
       if gathering.location:
         if Location.Duplicate_is(gathering.location):
           if not Location.Duplicate_is_prime(gathering.location):
@@ -143,7 +143,7 @@ class Location(models.Model):
             gathering.save()
             gthClean +=1
 
-    for location in Location.objects.all():
+    for location in locations or Location.objects.all():
       if location.in_location:
         if Location.Duplicate_is(location.in_location):
           if not Location.Duplicate_is_prime(location.in_location):
@@ -933,7 +933,7 @@ ___database cimate actions
 '''
 class Gathering(models.Model):
   def __str__(self):
-    return self.regid
+    return str(self.regid)+":"+str(self.location.name)+"-"+str(self.start_date)
 
   STRIKE = 'STRK'
   DEMO = 'DEMO'
