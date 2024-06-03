@@ -8,13 +8,14 @@ from .models import Country, Location, Location_Belong, Organization, Organizati
 admin.site.register(UserHome)
 admin.site.register(Action)
 admin.site.register(Verification)
-admin.site.register(Location_Belong)
+
 admin.site.register(Steward)
 
 class GatheringAdmin(admin.ModelAdmin):
   list_display = ('regid', 'location', 'start_date', 'steward')
   ordering = ('location', 'regid')
   search_fields = ['regid', 'location', 'start_date']
+  autocomplete_fields = ['location']
 
 
 admin.site.register(Gathering, GatheringAdmin)
@@ -31,14 +32,24 @@ class LocationAdmin(admin.ModelAdmin):
   list_display = ('name', 'str_lat_lon', 'in_country', 'creation_details',)
   ordering = ('name',)
   search_fields = ['name']
+  autocomplete_fields = ['in_country', 'in_location']
 
 class CountryAdmin(admin.ModelAdmin):
   list_display = ('name', 'code', 'flag')
   ordering = ('name',)
   search_fields = ['name']
 
+class Location_BelongAdmin(admin.ModelAdmin):
+  #autocomplete_fields = ['prime', 'duplicate']
+  raw_id_fields = ['prime', 'duplicate']
+  @admin.display()
+  def dis(self):
+    return "return"
+  
+
 admin.site.register(Country, CountryAdmin)
 admin.site.register(Location, LocationAdmin)
+admin.site.register(Location_Belong, Location_BelongAdmin)
 
 class OrganizationAdmin(admin.ModelAdmin):
   list_display = ('name', 'verified')
@@ -55,6 +66,7 @@ admin.site.register(Organization,OrganizationAdmin)
 class OrganizationContactAdmin(admin.ModelAdmin):
   list_display = ('address', 'contacttype', 'category', 'location', 'organization')
   search_fields =['address']
+  autocomplete_fields = ['location', 'organization']
 
   def get_form(self, request, obj=None, **kwargs):
     form = super(OrganizationContactAdmin, self).get_form(request, obj, **kwargs)
