@@ -933,7 +933,7 @@ ___database cimate actions
 '''
 class Gathering(models.Model):
   def __str__(self):
-    return str(self.regid)
+    return self.regid
 
   STRIKE = 'STRK'
   DEMO = 'DEMO'
