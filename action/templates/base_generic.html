@@ -265,6 +265,12 @@
     {% endblock %}
     <div class="maincontent">
       {% block content %}<!-- default content text (typically empty) -->{% endblock %}
-    </div>     
+    </div>
+    {% if user.is_authenticated %}
+      <div style="margin:1em; padding: 1em; background-color: #cccccc; border: 0.5em solid black;">
+        <p>Extra Funtions Panel</p>
+        {% block adminpanel %}{% endblock %}
+      </div>
+    {% endif %}
   </body>
 </html>
