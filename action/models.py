@@ -123,33 +123,38 @@ class Location(models.Model):
       pass
     return prime
 
-  def Duplicate_clean(organizationcontacts = [], gatherings = [], locations = []):
+  def Duplicate_clean(locations = [], gatherings = [], organizationcontacts = [] ):
     orcClean = 0
     gthClean = 0
     locClean = 0
-    for organizationcontact in organizationcontacts or OrganizationContact.objects.all():
+    for location in locations:# or Location.objects.all():
+      if location.in_location:
+        if Location.Duplicate_is(location.in_location):
+          if not Location.Duplicate_is_prime(location.in_location):
+            print("DCL", location.in_location.id, Location.Duplicate_get_prime(location.in_location).id)
+            location.in_location = Location.Duplicate_get_prime(location.in_location)
+            location.save()
+            locClean +=1
+
+    for organizationcontact in organizationcontacts:# or OrganizationContact.objects.all():
       if organizationcontact.location:
         if Location.Duplicate_is(organizationcontact.location):
           if not Location.Duplicate_is_prime(organizationcontact.location):
+            print("DCO", organizationcontact.location.id, Location.Duplicate_get_prime(organizationcontact.location).id)
             organizationcontact.location = Location.Duplicate_get_prime(organizationcontact.location)
             organizationcontact.save()
             orcClean+=1
 
-    for gathering in gatherings or Gathering.objects.all():
+    for gathering in gatherings:# or Gathering.objects.all():
       if gathering.location:
         if Location.Duplicate_is(gathering.location):
           if not Location.Duplicate_is_prime(gathering.location):
+            print("DCG", gathering.location.id, Location.Duplicate_get_prime(gathering.location).id)
             gathering.location = Location.Duplicate_get_prime(gathering.location)
             gathering.save()
             gthClean +=1
 
-    for location in locations or Location.objects.all():
-      if location.in_location:
-        if Location.Duplicate_is(location.in_location):
-          if not Location.Duplicate_is_prime(location.in_location):
-            location.in_location = Location.Duplicate_get_prime(location.in_location)
-            location.save()
-            locClean +=1
+    
     print(f"Clean orc: {orcClean} gth:{gthClean} loc:{locClean}")
 
   def all_delete(loopmax = 8):

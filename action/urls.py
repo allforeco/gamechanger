@@ -63,4 +63,5 @@ urlpatterns = [
   path('login-create', views.CookieProfile.createprofile, name='login_cookie_profile_create'),
   path('stop', views.emergency_activate, name='emergency'),
   path('unstop', views.emergency_deactivate, name='unemergency'),
+  path('af/mad', views.AF_mark_as_duplicate, name='af_mark_as_duplicate')
 ]

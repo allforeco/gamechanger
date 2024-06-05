@@ -132,3 +132,14 @@
     </div>
   {% endif %}
 {% endblock %}
+
+{% block adminpanel %}
+    <form action="{% url 'action:af_mark_as_duplicate' %}" method="post">
+      {% csrf_token %}
+      <input type="hidden" name="duplicate" value="{{this_location.id}}" />
+      <label>Duplicate Prime location</label>
+      <input type="number" name="prime" />
+      <br />
+      <input type="submit" value="Submit Duplicate" />
+    </form>
+{% endblock %}

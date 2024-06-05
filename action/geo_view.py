@@ -21,7 +21,7 @@ from django.urls import reverse_lazy
 #from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth.decorators import login_required, permission_required
 from django import forms
-from .models import Gathering, Gathering_Belong, Gathering_Witness, Location, UserHome, Organization
+from .models import Gathering, Gathering_Belong, Gathering_Witness, Location, Location_Belong, UserHome, Organization
 from django.shortcuts import redirect
 import datetime
 
@@ -366,3 +366,15 @@ def translate_maplink(request, regid, date):
   except:
     #print(f"RRRF")
     return redirect('action:geo_invalid')
+
+def AF_mark_as_duplicate(request):
+  prime = request.POST.get('prime')
+  duplicate = request.POST.get('duplicate')
+  lb = Location_Belong(duplicate=Location.objects.get(id=duplicate), prime=Location.objects.get(id=prime))
+  lb.save()
+  for gathering in Gathering.objects.filter(location=duplicate):
+    gathering.location=Location.objects.get(id=prime)
+    gathering.save()
+
+  #for organizationcontact in organizationcontact
+  return redirect('action:geo_view', locid=duplicate)
