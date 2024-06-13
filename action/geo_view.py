@@ -34,6 +34,85 @@ import datetime
 '''
 def geo_view_handler(request, locid):
   #print(f"TOWH {locid}")
+  #LOCATION
+  if not Location.Duplicate_is_prime(Location.objects.filter(id=locid).first()):
+    return redirect('action:geo_view',Location.Duplicate_get_prime(Location.objects.filter(id=locid).first()).id)
+  this_location = Location.objects.filter(id=locid).first()
+  if not (this_location):
+    return redirect('action:geo_invalid')
+
+  parent_location = this_location.in_location
+  sublocation_list_raw = Location.objects.filter(in_location=this_location).order_by('name')
+  sublocation_list = Location.objects.none()
+  for sl in sublocation_list_raw:
+    if Location.Duplicate_is_prime(sl):
+      sublocation_list |= Location.objects.filter(id=sl.id)
+  sublocation_list = sublocation_list.order_by('name')
+
+  #GATHERING
+  gathering_list = Gathering.objects.filter(location=this_location)
+  for sl in sublocation_list:
+    gathering_list |= Gathering.objects.filter(location=sl)
+  
+  witness_list = Gathering_Witness.objects.none()
+  for gathering in gathering_list:
+    witness_list |= Gathering_Witness.objects.filter(gathering=gathering)
+    #for gw in gwl:
+    #  gwr = gw.set_gathering_to_root()
+    #  witness_list |= gwr
+
+  event_list = []
+  for witness in witness_list:
+    is_witness = True
+    is_witnessed = True
+    event_list.append((witness.date, witness, is_witness, is_witnessed))
+
+  for gathering in gathering_list:
+    is_witness = False
+    is_witnessed = Gathering_Witness.objects.filter(gathering=gathering).exists()
+    event_list.append((gathering.start_date, gathering, is_witness, is_witnessed))
+
+  event_list.sort(key=lambda e: e[0], reverse=True)
+  
+  event_list_upcomming = []
+  event_list_past = []
+
+  total_participants = sum([w.participants for w in witness_list if w.participants])
+  template = loader.get_template('action/geo_view.html')
+  try:
+    favorite_location = UserHome.objects.get(callsign=request.user.username).favorite_locations.filter(name=this_location.name).exists()
+  except:
+    favorite_location = False
+  
+  context = {
+    'this_location': this_location,
+    'parent_location': parent_location,
+    'sublocation_list': sublocation_list,
+    'event_list': event_list,
+    'total_participants': total_participants,
+    'favorite_location': favorite_location,
+    'root_gathering': witness_list[0].gathering if witness_list else [],
+  }
+
+  if request.POST.get('favorite'):
+    #print(f"FAVV {request.POST.get('favorite')}")
+    handle_favorite(request, this_location.id)
+
+  if request.user.is_authenticated:
+    #print(f"FAVU User {request.user.username}")
+    try:
+      userhome = UserHome.objects.get(callsign=request.user.username)
+      gathering = Gathering.objects.filter(location=locid).first()
+      context['favorite_location'] = str(gathering.location.id in [loc.id for loc in userhome.favorite_locations.all()])
+      #print(f"FAVQ {context['favorite_location']} {gathering.location.id} {userhome.favorite_locations.all()}")
+    except:
+      #print(f"FAVF No userhome object for user {request.user.username}")
+      userhome = None
+
+  return HttpResponse(template.render(context, request))
+
+def OLD_geo_view_handler(request, locid):
+  #print(f"TOWH {locid}")
   if not Location.Duplicate_is_prime(Location.objects.filter(id=locid).first()):
     return redirect('action:geo_view',Location.Duplicate_get_prime(Location.objects.filter(id=locid).first()).id)
   this_location = Location.objects.filter(id=locid).first()
