@@ -270,6 +270,8 @@
       <div style="margin:1em; padding: 1em; background-color: #cccccc; border: 0.5em solid black;">
         <p>Extra Funtions Panel</p>
         {% block adminpanel %}{% endblock %}
+        <a href="{% url 'action:emergency' %}"><button>Stop User Input</button></a>
+        <a href="{% url 'action:unemergency' %}"><button>Enable User Input</button></a>
       </div>
     {% endif %}
   </body>
