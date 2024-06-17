@@ -1,7 +1,7 @@
 {% extends "base_generic.html" %}
 
 {% block title %}
-    <title>Gathering Overview - Gamechanger Action Tracker</title>
+    <title>Gathering Overview ({{gathering.regid}}) - Gamechanger Action Tracker</title>
 {% endblock %}
 
 {% block content %}
@@ -13,19 +13,31 @@
       <table style="width: 50%;" class="table-sort-mark">
         <thead>
           <tr>
-            <td>Date</td>
-            <td>Type</td>
-            <td>Location</td>
-            <td>Notes</td>
+            <th>Date</th>
+            <th>Type</th>
+            <th>Location</th>
+            <th>Notes</th>
+            <th>Id</th>
           </tr>
         </thead>
         <tbody>
           <td>
             {{gathering.start_date|date:'Y-m-d'}} {% if gathering.start_date != gathering.end_date %} - {{gathering.end_date|date:'Y-m-d'}}{% endif %}
           </td>
-          <td>{{gathering.gathering_type}}</td>
-          <td>{{gathering.location}}</td>
+          <td>
+            {% for gathering_type in gathering_types %}
+              {% if gathering_type.0 == gathering.gathering_type %}
+                {{gathering_type.1}}
+              {%endif%}
+            {%endfor%}
+          </td>
+          <td>
+            {%if gathering.location %}
+            <a href="{% url 'action:geo_view' gathering.location.id %}">{{gathering.location}}</a>
+            {%endif%}
+          </td>
           <td>{{gathering.address}}<br />{{gathering.time}}</td>
+          <td>{{gathering.regid}}</td>
         </tbody>
       </table>
       <br />

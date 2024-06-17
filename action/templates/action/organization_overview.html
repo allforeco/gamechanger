@@ -53,8 +53,10 @@
             <a href="{% url 'action:gathering_view' gathering.gathering.regid %}">{{gathering.gathering.regid}}</a>
           </td>
           <td>
-            <a href="{% url 'action:geo_view' gathering.gathering.location.country.id %}">{{gathering.gathering.location.country}}</a>;
-            <a href="{% url 'action:geo_view' gathering.gathering.location.id %}">{{gathering.gathering.location.name}}</a>
+            {%if gathering.gathering.location %}
+              <a href="{ url 'action:geo_view' gathering.gathering.location.country.id }">{{gathering.gathering.location.country}}</a>;
+              <a href="{% url 'action:geo_view' gathering.gathering.location.id %}">{{gathering.gathering.location.name}}</a>
+            {%endif%}
           </td>
           <td style="text-align: center;">
             <a target="_blank" href="https://map.fridaysforfuture.org/?e={{gathering.gathering.regid}}"><img src="/static/icon_globe.png"/><sup><sup><img src="/static/icon-external.png"/></sup></sup></a>

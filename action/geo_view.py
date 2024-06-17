@@ -92,6 +92,7 @@ def geo_view_handler(request, locid):
     'total_participants': total_participants,
     'favorite_location': favorite_location,
     'root_gathering': witness_list[0].gathering if witness_list else [],
+    'gathering_types': Gathering.gathering_type.field.choices,
   }
 
   if request.POST.get('favorite'):
@@ -154,6 +155,7 @@ def OLD_geo_view_handler(request, locid):
     'total_participants': total_participants,
     'favorite_location': favorite_location,
     'root_gathering': witness_list[0].gathering if witness_list else [],
+    'gathering_types': Gathering.gathering_type.field.choices,
   }
 
   if request.POST.get('favorite'):

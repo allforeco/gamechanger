@@ -22,6 +22,7 @@ def gathering_view(request, regid):
     'gathering':gathering,
     'gathering_witness_list':gathering_witness_list,
     'organization':organization,
+    'gathering_types':Gathering.gathering_type.field.choices
     }
 
   return HttpResponse(template.render(context, request))

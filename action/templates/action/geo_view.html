@@ -84,6 +84,7 @@
           <th>Map</th>
           <th>Participants</th>
           <th>Overview</th>
+          <th>Type</th>
           <th>Witness Proof Link</th>
           <th>Host</th>
         </tr>
@@ -92,9 +93,18 @@
         {% for event in event_list %}
         <tr>
           <td class="td_date">
-            <span style="background-color:{% if event.3 %}green{% else %}yellow{% endif %};">
-            {{event.0|date:'Y-m-d'}}
-            </span>
+            {% if event.2 %}
+            <form action="{% url 'action:geo_update' %}" method="POST">
+              {% csrf_token %}
+                <input type="hidden" value="False" name="isnewevent"/>
+                <input type="hidden" value="{{event.1.gathering.regid}}" name="regid"/>
+                <input type="hidden" value="{{this_location.id}}" name="locid"/>
+                <input type="hidden" value="{{event.1.id}}" name="witness"/>
+              <input type="submit" value="{{event.0|date:'Y-m-d' }}" style="background-color:{% if event.3 %}#1DA64A{% else %}#A5A51D{% endif %} !important;"/>
+            </form>
+            {%else%}
+              <input type="submit" value="{{event.0|date:'Y-m-d'}}" style="background-color:{% if event.3 %}#1DA64A{% else %}#A5A51D{% endif %} !important; cursor: not-allowed;"/>
+            {%endif%}
           </td>
           <td id="th_map">
             {% if event.2 %}
@@ -119,6 +129,21 @@
               Witnessing <a href="{% url 'action:gathering_view' event.1.gathering.regid %}">{{event.1.gathering.regid}}</a>
             {% else %}
               Event &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp<a href="{% url 'action:gathering_view' event.1.regid %}">{{event.1.regid}}</a>
+            {% endif %}
+          </td>
+          <td class="td_type">
+            {% if event.2 %}
+              {% for gathering_type in gathering_types %}
+                {% if gathering_type.0 == event.1.gathering.gathering_type %}
+                  {{gathering_type.1}}
+                {%endif%}
+              {%endfor%}
+            {% else %}
+              {% for gathering_type in gathering_types %}
+                {% if gathering_type.0 == event.1.gathering_type %}
+                  {{gathering_type.1}}
+                {%endif%}
+              {%endfor%}
             {% endif %}
           </td>
           <td class="td_link">
