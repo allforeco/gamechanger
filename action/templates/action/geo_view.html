@@ -85,7 +85,7 @@
           <th>Participants</th>
           <th>Overview</th>
           <th>Type</th>
-          <th>Witness Proof Link</th>
+          <th>Recording Media Link</th>
           <th>Host</th>
         </tr>
       </thead>
@@ -126,9 +126,9 @@
           </td>
           <td class="td_overview">
             {% if event.2 %}
-              Witnessing <a href="{% url 'action:gathering_view' event.1.gathering.regid %}">{{event.1.gathering.regid}}</a>
+               <a href="{% url 'action:gathering_view' event.1.gathering.regid %}">Record <!--{{event.1.gathering.regid}}--></a>
             {% else %}
-              Event &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp<a href="{% url 'action:gathering_view' event.1.regid %}">{{event.1.regid}}</a>
+               <a href="{% url 'action:gathering_view' event.1.regid %}">Event <!--{{event.1.regid}}--></a>
             {% endif %}
           </td>
           <td class="td_type">
@@ -198,70 +198,6 @@
       </tbody>
     </table>
   {% endif %}
-
-  <!--
-  {% if witness_list %}
-    <div class="gathering">
-      <table class="table-sort-mark">
-        <tr>
-          <th sort="dat-true">Date</th>
-          <th>Map</th>
-          <th sort="int-false">Participants</th>
-          <th>Link</th>
-          <th sort="str-false">Host</th>
-        </tr>
-        {% for witness in witness_list %}
-          <tr>
-            <td>
-              <span hidden="true">{{witness.date|date:'Y-m-d' }}</span>
-              <form action="{% url 'action:geo_update' %}" method="POST">
-                {% csrf_token %}
-                <input type="hidden" value="False" name="isnewevent"/>
-                <input type="hidden" value="{{witness.gathering.regid}}" name="regid"/>
-                <input type="hidden" value="{{this_location.id}}" name="locid"/>
-                <input type="hidden" value="{{witness.id}}" name="witness"/>
-                <input type="submit" value="{{witness.date|date:'Y-m-d' }}"/>
-              </form>
-            </td>
-            <td style="text-align: center;"><a target="_blank" href="https://map.fridaysforfuture.org/?e={{witness.gathering.regid}}"><img src="/static/icon_globe.png"/><sup><sup><img style="width: 16px;" src="/static/icon-external.png"/></sup></sup></a></td>
-            <td style="text-align: right;">
-              {% if witness.participants %}
-                <span>{{ witness.participants }}</span>
-              {% else %}
-              <span>?</span>
-              {% endif %}
-            </td>
-            <td style="text-align: center;">
-              {% if witness.proof_url %}
-                <a target="_blank" href="{{ witness.proof_url }}">
-                  {% if "facebook.com" in witness.proof_url or "scontent" in witness.proof_url %}
-                    <img src="/static/icon_fb30.png"/>
-                  {% elif "instagram.com" in witness.proof_url %}
-                    <img src="/static/icon_insta30.png"/>
-                  {% elif "twitter.com" in witness.proof_url %}
-                    <img src="/static/icon_twitter30.png"/>
-                  {% elif "youtube.com" in witness.proof_url %}
-                    <img src="/static/icon_yt30.png"/>
-                  {% else %}
-                    <img src="/static/icon_pic.png"/>
-                  {% endif %}
-                  <sup><sup><img style="width: 16px;" src="/static/icon-external.png"/></sup></sup></a>
-              {% endif %}
-            </td> 
-            <td>
-              {% if witness.organization %}
-              <span hidden="true">{{ witness.organization }}</span>
-                <small>{{ witness.organization }}</small>
-              {% else %}
-              <span hidden=true>z-sort</span>
-              {% endif %}
-            </td>
-          </tr>
-        {% endfor %}
-      </table>
-    </div>
-  {% endif %}
-  -->
 {% endblock %}
 
 {% block adminpanel %}

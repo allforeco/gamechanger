@@ -1,7 +1,7 @@
 {% extends "base_generic.html" %}
 
 {% block title %}
-    <title>Gathering Overview ({{gathering.regid}}) - Gamechanger Action Tracker</title>
+    <title>Event Overview ({{gathering.regid}}) - Gamechanger Action Tracker</title>
 {% endblock %}
 
 {% block content %}
@@ -9,7 +9,7 @@
   {% if user.is_authenticated or logginbypass %}
   {% if gathering %}
     <div>
-      <h2>Gathering</h2>
+      <h2>Event</h2>
       <table style="width: 50%;" class="table-sort-mark">
         <thead>
           <tr>
@@ -41,7 +41,7 @@
         </tbody>
       </table>
       <br />
-      <h2>Gathering Witness List</h2>
+      <h2>Event Recording List</h2>
       {% if gathering_witness_list %}
         <table style="width: 50%;" class="table-sort-mark">
           <thead>

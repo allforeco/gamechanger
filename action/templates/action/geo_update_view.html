@@ -16,7 +16,7 @@
     <input type="hidden" name="isnewevent" value="{{isnewevent}}"/>
     <table class="table-sort-mark">
       <tr>
-        <th>Gathering Type *</th>
+        <th>Event Type *</th>
         <td>
           <select required name="gathering-type" class="i-can-add-my-own-attrs-now">
             {% for id, name in gathering_types %}
@@ -101,7 +101,7 @@
       {% endif %}
       <table class="table-sort-mark">
         <tr>
-          <th>Gathering</th>
+          <th>Event</th>
           <td>
             <ul>
               <li>Type: <span>{{gathering.get_gathering_type_str}}</span></li>

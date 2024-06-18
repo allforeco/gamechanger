@@ -35,7 +35,7 @@
     </table>
     {%endif%}
 
-    <h2>Previous Gatherings (100 latest)</h2>
+    <h2>Previous Events (100 latest)</h2>
     <table style="width: 50%;" class="table-sort-mark">
       <thead>
         <tr>
@@ -48,7 +48,7 @@
       <tbody>
         {% for gathering in gathering_witness_list %}
         <tr>
-          <td>{{gathering.date|date:"Y-m-d"}}</td> <!---->
+          <td>{{gathering.date|date:"Y-m-d"}}</td>
           <td>
             <a href="{% url 'action:gathering_view' gathering.gathering.regid %}">{{gathering.gathering.regid}}</a>
           </td>
