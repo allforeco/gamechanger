@@ -970,6 +970,75 @@ class Gathering(models.Model):
   contact_notes = models.CharField(blank=True, max_length=64)
 
   '''
+  ___Uniform table data
+  '''
+  def datalist_template(model = False, date = False, date_end = False, overview = False, gtype = False, location = False, country = False, map_link = False, orgs = False, participants = False, note_address = False, note_time = False, recorded = False, recorded_link = False, record = False):
+    return locals()
+  
+  def datalist(event, isrecord, datalist_template):
+    values = {}
+
+    if isrecord:
+      key = 'date'
+      if datalist_template[key]: values[key] = date = event.date
+      key = 'date_end'
+      if datalist_template[key]: values[key] = date_end = None
+      key = 'overview'
+      if datalist_template[key]: values[key] = overview = event.gathering.regid
+      key = 'gtype'
+      if datalist_template[key]: values[key] = gtype = event.gathering._gathering_type_choices[event.gathering.gathering_type]
+      key = 'location'
+      if datalist_template[key]: values[key] = location = event.gathering.location
+      key = 'country'
+      if datalist_template[key]: values[key] = country = event.gathering.location.country()
+      key = 'map_link'
+      if datalist_template[key]: values[key] = map_link = "https://map.fridaysforfuture.org/?e="+event.gathering.regid
+      key = 'participants'
+      if datalist_template[key]: values[key] = participants = event.participants
+      key = 'orgs'
+      if datalist_template[key]: values[key] = orgs = event.organization
+      key = 'note_address'
+      if datalist_template[key]: values[key] = note_address = event.gathering.address
+      key = 'note_time'
+      if datalist_template[key]: values[key] = note_time = event.gathering.time
+      key = 'recorded'
+      if datalist_template[key]: values[key] = recorded = True
+      key = 'recorded_link'
+      if datalist_template[key]: values[key] = recorded_link = event.proof_url
+    else:
+      key = 'date'
+      if datalist_template[key]: values[key] = date = event.start_date
+      key = 'date_end'
+      if datalist_template[key]: values[key] = date_end = event.end_date
+      key = 'overview'
+      if datalist_template[key]: values[key] = overview = event.regid
+      key = 'gtype'
+      if datalist_template[key]: values[key] = gtype = event._gathering_type_choices[event.gathering_type]
+      key = 'location'
+      if datalist_template[key]: values[key] = location = event.location
+      key = 'country'
+      if datalist_template[key]: values[key] = country = event.location.country()
+      key = 'map_link'
+      if datalist_template[key]: values[key] = map_link = "https://map.fridaysforfuture.org/?e="+event.regid
+      key = 'participants'
+      if datalist_template[key]: values[key] = participants = event.expected_participants
+      key = 'orgs'
+      if datalist_template[key]: values[key] = orgs = event.organizations.first()
+      key = 'note_address'
+      if datalist_template[key]: values[key] = note_address = event.address
+      key = 'note_time'
+      if datalist_template[key]: values[key] = note_time = event.time
+      key = 'recorded'
+      if datalist_template[key]: values[key] = recorded = Gathering_Witness.objects.filter(gathering=event.regid).exsists()
+      key = 'recorded_link'
+      if datalist_template[key]: values[key] = recorded_link = None
+    
+    if datalist_template['model']: values['model'] = model = event
+    if datalist_template['record']: values['record'] = record = isrecord
+    
+    return values
+
+  '''
   ___stringify self attributes
   '''
   def data_all(self):

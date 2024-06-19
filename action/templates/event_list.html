@@ -1,0 +1,181 @@
+<style>
+  .table_wrap{
+    width:100%;
+    /*min-width:370px;*/
+    overflow-x:scroll;
+  }
+
+  table{
+    /*width:100%;
+    max-width:960px;
+    min-width: 480px;*/
+    white-space: nowrap;
+  }
+
+  th{
+    padding:0.5em;
+  }
+
+  td{
+    padding:0.25em;
+  }
+
+  .recorded{
+    background-color:#1DA64A !important;
+  }
+
+  .notrecorded{
+    background-color:#A5A51D !important;
+    cursor: not-allowed;
+  }
+</style>
+{% block table %}
+{% if event_head %}
+<div class="table_wrap">
+  <table>
+    <thead>
+        <tr>
+          {% if event_head.date %}
+            <th class="th_date">
+              Date{% if event_head.date_end %} - End Date {% endif %}
+            </th>
+          {% endif %}
+
+          {% if event_head.overview %}
+            <th calss="th_overview">
+              Overview
+            </th>
+          {% endif %}
+
+          {% if event_head.g_type %}
+            <th calss="th_gtype">
+              Action Type
+            </th>
+          {% endif %}
+
+          {% if event_head.location %}
+            <th calss="th_location">
+              {% if event_head.country %}Country; {% endif %}
+              Location
+            </th>
+          {% endif %}
+
+          {% if event_head.map_link %}
+            <th calss="th_map_link">
+              Map
+            </th>
+          {% endif %}
+
+          {% if event_head.participants %}
+            <th calss="th_participants">
+              Participants
+            </th>
+          {% endif %}
+
+          {% if event_head.orgs %}
+            <th calss="th_organization">
+              Organization
+            </th>
+          {% endif %}
+
+          {% if event_head.note_address or event_head.note_time %}
+            <th calss="th_gtype">
+              Notes
+            </th>
+          {% endif %}
+        </tr>
+    </thead>
+    <tbody>
+      {% for event in event_list %}
+        <tr>
+          {% if event_head.date %}
+            <td class="td_date">
+              {% if event_head.record %}
+                {% if event.record and event.model %}
+                  <form action="{% url 'action:geo_update' %}" method="POST">
+                    {% csrf_token %}
+                      <input type="hidden" value="False" name="isnewevent"/>
+                      <input type="hidden" value="{{event.overview}}" name="regid"/>
+                      <input type="hidden" value="{{event.location}}" name="locid"/>
+                      <input type="hidden" value="{{model.id}}" name="witness"/>
+                      <input type="submit" value="{% if event.date %}{{event.date|date:'Y-m-d'}}{% if event_head.date_end %} - {{date.date_end|date:'Y-m-d'}}{%endif%}{% endif %}" class="{% if event.recorded %}recorded{% else %}notrecorded{% endif %}"/>
+                  </form>
+                {% else %}
+                  <input type="submit" value="{% if event.date %}{{event.date|date:'Y-m-d'}}{% if event_head.date_end %} - {{date.date_end|date:'Y-m-d'}}{%endif%}{% endif %}" class="{% if event.recorded %}recorded{% else %}notrecorded{% endif %}"/>
+                {% endif %}
+              {% else %}
+                {% if event.date %}{{event.date|date:'Y-m-d'}}{% if event_head.date_end %} - {{date.date_end|date:'Y-m-d'}}{%endif%}{% endif %}
+              {% endif %}
+            </td>
+          {% endif %}
+
+          {% if event_head.overview %}
+            <td calss="td_overview">
+              {% if event.overview %}
+                <a href="{% url 'action:gathering_view' event.overview %}"><img alt="Link" src="/static/overview.png"/></a>
+              {% endif %}
+            </td>
+          {% endif %}
+
+          {% if event_head.g_type %}
+            <td calss="td_gtype">
+              {% if event.gtype %}
+                {{event.gtype}}
+              {% endif %}
+            </td>
+          {% endif %}
+
+          {% if event_head.location %}
+            <td calss="td_location">
+              {% if event.location %}
+                {% if event_head.country %}
+                  {{event.country}}; 
+                {% endif %}
+                {% if event.location %}
+                  {{event.location}}
+                {% endif %}
+            </td>
+          {% endif %}
+
+          {% if event_head.map_link %}
+            <td calss="td_map_link">
+              {% if event.map_link %}
+                <a href={{event.map_link}} target="_blank"><img alt="Link" src="/static/icon_globe.png"/></a>
+              {% endif %}
+            </td>
+          {% endif %}
+
+          {% if event_head.participants %}
+            <td calss="td_participants">
+              {% if event.participants %}
+                {{event.participants}}
+              {% endif %}
+            </td>
+          {% endif %}
+
+          {% if event_head.orgs %}
+            <td calss="td_organization">
+              {% if event.orgs %}
+                {{event.orgs}}
+              {% endif %}
+            </td>
+          {% endif %}
+
+          {% if event_head.note_address or event_head.note_time %}
+            <td calss="td_gtype">
+              {% if event.note_address %}
+                {{event.note_address}}<br/>
+              {% endif %}
+              {% if event.note_time %}
+                {{event.note_time}}
+              {% endif %}
+            </td>
+          {% endif %}
+        </tr>
+        {% endif %}
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+{% endblock%}
