@@ -26,6 +26,9 @@
 
   .notrecorded{
     background-color:#A5A51D !important;
+  }
+
+  .record{
     cursor: not-allowed;
   }
 </style>
@@ -72,6 +75,12 @@
             </th>
           {% endif %}
 
+          {% if event_head.recorded_link %}
+            <th calss="th_recorded_link">
+              Record Link
+            </th>
+          {% endif %}
+
           {% if event_head.orgs %}
             <th calss="th_organization">
               Organization
@@ -90,7 +99,7 @@
         <tr>
           {% if event_head.date %}
             <td class="td_date">
-              {% if event_head.record %}
+              {% if event_head.recorded %}
                 {% if event.record and event.model %}
                   <form action="{% url 'action:geo_update' %}" method="POST">
                     {% csrf_token %}
@@ -98,13 +107,14 @@
                       <input type="hidden" value="{{event.overview}}" name="regid"/>
                       <input type="hidden" value="{{event.location}}" name="locid"/>
                       <input type="hidden" value="{{model.id}}" name="witness"/>
-                      <input type="submit" value="{% if event.date %}{{event.date|date:'Y-m-d'}}{% if event_head.date_end %} - {{date.date_end|date:'Y-m-d'}}{%endif%}{% endif %}" class="{% if event.recorded %}recorded{% else %}notrecorded{% endif %}"/>
+                      <input type="submit" value="{% if event.date %}{{event.date|date:'Y-m-d'}}{% endif %}" class="{% if event.recorded %}recorded{% else %}notrecorded{% endif %}"/>
                   </form>
-                {% else %}
-                  <input type="submit" value="{% if event.date %}{{event.date|date:'Y-m-d'}}{% if event_head.date_end %} - {{date.date_end|date:'Y-m-d'}}{%endif%}{% endif %}" class="{% if event.recorded %}recorded{% else %}notrecorded{% endif %}"/>
+                {% endif %}
+                {% if not event.record %}
+                  <input type="submit" value="{% if event.date %}{{event.date|date:'Y-m-d'}}{% if event_head.date_end %} - {{event.date_end|date:'Y-m-d'}}{%endif%}{% endif %}" class="{% if event.recorded %}recorded{% else %}notrecorded{% endif %} record"/>
                 {% endif %}
               {% else %}
-                {% if event.date %}{{event.date|date:'Y-m-d'}}{% if event_head.date_end %} - {{date.date_end|date:'Y-m-d'}}{%endif%}{% endif %}
+                {% if event.date %}{{event.date|date:'Y-m-d'}}{% if event_head.date_end %}{% if event.date_end%} - {{event.date_end|date:'Y-m-d'}}{% endif %}{%endif%}{% endif %}
               {% endif %}
             </td>
           {% endif %}
@@ -113,6 +123,8 @@
             <td calss="td_overview">
               {% if event.overview %}
                 <a href="{% url 'action:gathering_view' event.overview %}"><img alt="Link" src="/static/overview.png"/></a>
+                <!--{% if event.record %} (Witness) {% endif %}-->
+                <!--{% if not event.record %} (Event) {% endif %}-->
               {% endif %}
             </td>
           {% endif %}
@@ -129,10 +141,10 @@
             <td calss="td_location">
               {% if event.location %}
                 {% if event_head.country %}
-                  {{event.country}}; 
+                <a href={% url 'action:geo_view' event.country.id %}>{{event.country}}</a>; 
                 {% endif %}
                 {% if event.location %}
-                  {{event.location}}
+                  <a href={% url 'action:geo_view' event.location.id %}>{{event.location}}</a>
                 {% endif %}
             </td>
           {% endif %}
@@ -149,6 +161,14 @@
             <td calss="td_participants">
               {% if event.participants %}
                 {{event.participants}}
+              {% endif %}
+            </td>
+          {% endif %}
+
+          {% if event_head.recorded_link %}
+            <td calss="td_recorded_link">
+              {% if event.recorded_link %}
+                <a href={{event.recorded_link}}><img alt="Link" src="/static/recorded_link.png"/></a>
               {% endif %}
             </td>
           {% endif %}

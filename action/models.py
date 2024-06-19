@@ -979,59 +979,111 @@ class Gathering(models.Model):
     values = {}
 
     if isrecord:
-      key = 'date'
-      if datalist_template[key]: values[key] = date = event.date
-      key = 'date_end'
-      if datalist_template[key]: values[key] = date_end = None
-      key = 'overview'
-      if datalist_template[key]: values[key] = overview = event.gathering.regid
-      key = 'gtype'
-      if datalist_template[key]: values[key] = gtype = event.gathering._gathering_type_choices[event.gathering.gathering_type]
-      key = 'location'
-      if datalist_template[key]: values[key] = location = event.gathering.location
-      key = 'country'
-      if datalist_template[key]: values[key] = country = event.gathering.location.country()
-      key = 'map_link'
-      if datalist_template[key]: values[key] = map_link = "https://map.fridaysforfuture.org/?e="+event.gathering.regid
-      key = 'participants'
-      if datalist_template[key]: values[key] = participants = event.participants
-      key = 'orgs'
-      if datalist_template[key]: values[key] = orgs = event.organization
-      key = 'note_address'
-      if datalist_template[key]: values[key] = note_address = event.gathering.address
-      key = 'note_time'
-      if datalist_template[key]: values[key] = note_time = event.gathering.time
-      key = 'recorded'
-      if datalist_template[key]: values[key] = recorded = True
-      key = 'recorded_link'
-      if datalist_template[key]: values[key] = recorded_link = event.proof_url
+      try:
+        key = 'date'
+        if datalist_template[key]: values[key] = date = event.date
+      except: pass
+      try:
+        key = 'date_end'
+        if datalist_template[key]: values[key] = date_end = None
+      except: pass
+      try:
+        key = 'overview'
+        if datalist_template[key]: values[key] = overview = event.gathering.regid
+      except: pass
+      try:
+        key = 'gtype'
+        if datalist_template[key]: values[key] = gtype = event.gathering._gathering_type_choices[event.gathering.gathering_type]
+      except: pass
+      try:
+        key = 'location'
+        if datalist_template[key]: values[key] = location = event.gathering.location
+      except: pass
+      try:
+        key = 'country'
+        if datalist_template[key]: values[key] = country = event.gathering.location.country()
+      except: pass
+      try:
+        key = 'map_link'
+        if datalist_template[key]: values[key] = map_link = "https://map.fridaysforfuture.org/?e="+event.gathering.regid
+      except: pass
+      try:
+        key = 'participants'
+        if datalist_template[key]: values[key] = participants = event.participants
+      except: pass
+      try:
+        key = 'orgs'
+        if datalist_template[key]: values[key] = orgs = event.organization
+      except: pass
+      try:
+        key = 'note_address'
+        if datalist_template[key]: values[key] = note_address = event.gathering.address
+      except: pass
+      try:
+        key = 'note_time'
+        if datalist_template[key]: values[key] = note_time = event.gathering.time
+      except: pass
+      try:
+        key = 'recorded'
+        if datalist_template[key]: values[key] = recorded = True
+      except: pass
+      try:
+        key = 'recorded_link'
+        if datalist_template[key]: values[key] = recorded_link = event.proof_url
+      except: pass
     else:
-      key = 'date'
-      if datalist_template[key]: values[key] = date = event.start_date
-      key = 'date_end'
-      if datalist_template[key]: values[key] = date_end = event.end_date
-      key = 'overview'
-      if datalist_template[key]: values[key] = overview = event.regid
-      key = 'gtype'
-      if datalist_template[key]: values[key] = gtype = event._gathering_type_choices[event.gathering_type]
-      key = 'location'
-      if datalist_template[key]: values[key] = location = event.location
-      key = 'country'
-      if datalist_template[key]: values[key] = country = event.location.country()
-      key = 'map_link'
-      if datalist_template[key]: values[key] = map_link = "https://map.fridaysforfuture.org/?e="+event.regid
-      key = 'participants'
-      if datalist_template[key]: values[key] = participants = event.expected_participants
-      key = 'orgs'
-      if datalist_template[key]: values[key] = orgs = event.organizations.first()
-      key = 'note_address'
-      if datalist_template[key]: values[key] = note_address = event.address
-      key = 'note_time'
-      if datalist_template[key]: values[key] = note_time = event.time
-      key = 'recorded'
-      if datalist_template[key]: values[key] = recorded = Gathering_Witness.objects.filter(gathering=event.regid).exsists()
-      key = 'recorded_link'
-      if datalist_template[key]: values[key] = recorded_link = None
+      try:
+        key = 'date'
+        if datalist_template[key]: values[key] = date = event.start_date
+      except: pass
+      try:
+        key = 'date_end'
+        if datalist_template[key]: values[key] = date_end = event.end_date
+      except: pass
+      try:
+        key = 'overview'
+        if datalist_template[key]: values[key] = overview = event.regid
+      except: pass
+      try:
+        key = 'gtype'
+        if datalist_template[key]: values[key] = gtype = event._gathering_type_choices[event.gathering_type]
+      except: pass
+      try:
+        key = 'location'
+        if datalist_template[key]: values[key] = location = event.location
+      except: pass
+      try:
+        key = 'country'
+        if datalist_template[key]: values[key] = country = event.location.country()
+      except: pass
+      try:
+        key = 'map_link'
+        if datalist_template[key]: values[key] = map_link = "https://map.fridaysforfuture.org/?e="+event.regid
+      except: pass
+      try:
+        key = 'participants'
+        if datalist_template[key]: values[key] = participants = event.expected_participants
+      except: pass
+      try:
+        key = 'orgs'
+        if datalist_template[key]: values[key] = orgs = event.organizations.first()
+      except: pass
+      try:
+        key = 'note_address'
+        if datalist_template[key]: values[key] = note_address = event.address
+      except: pass
+      try:
+        key = 'note_time'
+        if datalist_template[key]: values[key] = note_time = event.time
+      except: pass
+      try:
+        key = 'recorded'
+        if datalist_template[key]: values[key] = recorded = Gathering_Witness.objects.filter(gathering=event.regid).exists()
+      except: pass
+      try:
+        key = 'recorded_link'
+        if datalist_template[key]: values[key] = recorded_link = None
+      except: pass
     
     if datalist_template['model']: values['model'] = model = event
     if datalist_template['record']: values['record'] = record = isrecord
