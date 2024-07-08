@@ -3,7 +3,7 @@ from django.http import HttpResponse
 from django.shortcuts import redirect
 from django import forms
 
-from .models import Organization, OrganizationContact, Gathering_Witness
+from .models import Organization, OrganizationContact, Gathering_Witness, Gathering
 
 '''
 ___organization list view
@@ -40,15 +40,27 @@ def organization_view(request, orgid):
     }
     return HttpResponse(template.render(context, request))
   contact_list = OrganizationContact.objects.filter(organization=organization)
+  gathering_list = Gathering.objects.filter(organizations__in=[organization])
   gathering_witness_list = Gathering_Witness.objects.filter(organization=organization).order_by('-date')[:100]
-  #print("org", organization)
-  #print("cl", contact_list)
-  #print("gwl", gathering_witness_list)
+
+  #event_head = Gathering.datalist_template(date=True, location=True, map_link=True, overview=True, recorded=True, record=True, model=True)
+  event_head = Gathering.datalist_template(model = True, date = True, date_end = True, overview = True, gtype = True, location = True, country = True, map_link = True, orgs = True, participants = True, note_address = True, note_time = True, recorded = True, recorded_link = True, record = True)
+  event_list = []
+
+  for gw in gathering_witness_list:
+    event_list.append(Gathering.datalist(gw, True, event_head))
+
+  for g in gathering_list:
+    event_list.append(Gathering.datalist(g, False, event_head))
   
+  event_list.sort(key=lambda e: e['date'], reverse=True)
+
   context = {
     'organization':organization,
     'contact_list': contact_list,
     'gathering_witness_list': gathering_witness_list,
+    'event_head':event_head,
+    'event_list':event_list,
     }
 
   return HttpResponse(template.render(context, request))

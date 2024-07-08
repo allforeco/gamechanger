@@ -13,29 +13,31 @@
   <h1>{{organization.name}}</h1>
 
     {% if contact_list %}
-    <h2>Contacts</h2>
-    <table style="width: 50%;" class="table-sort-mark">
-      <thead>
-        <tr>
-          <th>Contact Notes</th>
-          <th>Contact Type</th>
-          <th>Contact Address</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for contact in contact_list %}
-        <tr>
-          <td style="padding: 1em;">{{contact.info}}</td>
-          <td style="padding: 1em;">{{contact.description}}</td>
-          <td style="padding: 1em;" target="_blank"><a href="{{contact.addressacces}}{{contact.address}}" >{{contact.address}}<img style="height: 1em; position: relative; top:-10px;" src="/static/icon-external.png"/></a></td>
+      <h2>Contacts</h2>
+      <table style="width: 50%;" class="table-sort-mark">
+        <thead>
+          <tr>
+            <th>Contact Notes</th>
+            <th>Contact Type</th>
+            <th>Contact Address</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for contact in contact_list %}
+          <tr>
+            <td style="padding: 1em;">{{contact.info}}</td>
+            <td style="padding: 1em;">{{contact.description}}</td>
+            <td style="padding: 1em;" target="_blank"><a href="{{contact.addressacces}}{{contact.address}}" >{{contact.address}}<img style="height: 1em; position: relative; top:-10px;" src="/static/icon-external.png"/></a></td>
 
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
     {%endif%}
 
-    <h2>Previous Events (100 latest)</h2>
+    <h2>Previous Events</h2>
+    {% include 'event_list.html' %}
+    <!--
     <table style="width: 50%;" class="table-sort-mark">
       <thead>
         <tr>
@@ -65,8 +67,10 @@
         {% endfor %}
       </tbody>
     </table>
+    -->
 
     {% endif %}
+    
 </div>
 {% endif %}
 {% if organization == None %}

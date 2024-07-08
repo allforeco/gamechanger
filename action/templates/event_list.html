@@ -152,7 +152,7 @@
           {% if event_head.map_link %}
             <td calss="td_map_link">
               {% if event.map_link %}
-                <a href={{event.map_link}} target="_blank"><img alt="Link" src="/static/icon_globe.png"/></a>
+                <a href={{event.map_link}} target="_blank"><img alt="Link" src="/static/icon_globe{% if event.location.lon < -30 %}US{% elif event.location.lon > 60 %}AU{% elif event.location.lon > -30 and event.location.lon < 60 %}EU{% endif %}.png"/></a>
               {% endif %}
             </td>
           {% endif %}
@@ -168,7 +168,16 @@
           {% if event_head.recorded_link %}
             <td calss="td_recorded_link">
               {% if event.recorded_link %}
-                <a href={{event.recorded_link}}><img alt="Link" src="/static/recorded_link.png"/></a>
+                <a href={{event.recorded_link}}>
+                  <img alt="Link" 
+                    {% if "facebook.com" in event.recorded_link or event.recorded_link in record.6 %}src="/static/icon_fb30.png"
+                    {% elif "instagram.com" in event.recorded_link %}src="/static/icon_insta30.png"
+                    {% elif "twitter.com" in event.recorded_link %}src="/static/icon_twitter30.png"
+                    {% elif "youtube.com" in event.recorded_link %}src="/static/icon_yt30.png"
+                    {% else %}src="/static/icon_pic.png"
+                    {% endif %}
+                  />
+                </a>
               {% endif %}
             </td>
           {% endif %}
