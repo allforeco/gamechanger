@@ -17,149 +17,45 @@
   </div>
 
   <div>
-    <h2 style="margin-bottom: 0.25em;">Latest Records</h2>
-    <table class="table-sort-mark">
-      <thead>
-        <tr>
-          <th sort="int-true">Latest</th>
-          <th sort="dat-false">Date</th>
-          <th>Map</th>
-          <th sort="str-false">Location</th>
-          <th sort="str-false">Host</th>
-          <th sort="int-false">Participants</th>
-          <th>Photo</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for record in record_list %}
-        <tr>
-          <td style="text-align: center;">
-            <span>{{record.0}}</span>
-          </td>
-          <td> 
-            <span>{{record.1}}</span>
-          </td>
-          {% if record.2 %}
-          <td style="text-align: center;">
-            <a target="_blank" href="https://map.fridaysforfuture.org/?e={{record.2}}"><img src="/static/icon_globe.png"/><sup><sup><img src="/static/icon-external.png"/></sup></sup></a>
-          </td>
-          <td>
-            <a href="{% url 'action:geo_view' record.3|first %}">{{record.3|last}}</a>
-          </td>
-          {% else %}
-          <td style="text-align: center;">
-            <img src="/static/icon-cross.png"/>
-          </td>
-          <td>
-            <span>Unknown Place</span>
-          </td>
-          {% endif %}
-          <td>
-            {% if record.4 %}
-            <span>{{record.4}}</span>
-            {% else %}
-            <span hidden="true">z-sort</span>
-            {% endif %}
-          </td>
-          <td style="text-align: right;">
-            {% if record.5 %}
-            <span>{{record.5}}</span>
-            {% else %}
-            <span>?</span>
-            {% endif %}
-          </td>
-          <td style="text-align: center;">
-            {% if record.6 %}
-              <a style="margin-bottom:-0em;" target="_blank" href="{{ record.6 }}">
-                {% if "facebook.com" in record.6 or "scontent" in record.6 %}
-                  <img src="/static/icon_fb30.png"/>
-                {% elif "instagram.com" in record.6 %}
-                  <img src="/static/icon_insta30.png"/>
-                {% elif "twitter.com" in record.6 %}
-                  <img src="/static/icon_twitter30.png"/>
-                {% elif "youtube.com" in record.6 %}
-                <img src="/static/icon_yt30.png"/>
-                {% else %}
-                  <img src="/static/icon_pic.png"/>
-                {% endif %}
-                <sup><sup><img style="width: 16px;" src="/static/icon-external.png"/></sup></sup></a>
-            {% endif %}
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-
-  <div>
-    <h2 style="margin-bottom: 0.25em;">Upcoming Events</h2>
-    <table>
-      <thead>
-        <tr>
-          <th sort="dat-true">Date</th>
-          <th sort="str-false">Type</th>
-          <th>Map</th>
-          <th sort="str-false">Location</th>
-          <th sort="str-false">Host</th>
-          <th sort="int-false">Expected Participants</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for gathering in gathering_list %}
-        <tr>
-          <td>
-            <span>{{gathering.0}}</span>
-          </td>
-          <td>
-            <span>{{gathering.1}}</span>
-          </td>
-          <td style="text-align: center;">
-            <a target="_blank" href="https://map.fridaysforfuture.org/map?e={{gathering.2}}"><img src="/static/icon_globe.png"/><sup><sup><img src="/static/icon-external.png"/></sup></sup></a>
-          </td>
-          <td>
-            <a href="{% url 'action:geo_view' gathering.3|first %}">{{gathering.3|last}}</a>
-          </td>
-          <td>
-            {% if gathering.4 %}
-            <span>{{gathering.4}}</span>
-            {% else %}
-            <span hidden>z-sort</span>
-            {% endif%}
-          </td>
-          <td style="text-align: right;">
-            {% if gathering.5 %}
-            <span>{{gathering.5}}</span>
-            {% else %}
-            <span>?</span>
-            {% endif %}
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-
-  <div>
     <h2 style="margin-bottom: 0.25em;">Activity Leaderboard</h2>
     <table>
       <thead>
         <th sort="str-false">Country</th>
-        <th sort="int-true">Events</th>
+        <th sort="int-true">Activity</th>
+        <th sort="int-false">Events</th>
         <th sort="int-false">Records</th>
       </thead>
-      {% for location in leaderboard_list %}
+      {% for item in leaderboard_list %}
       <tr>
         <td>
-          <a href="{% url 'action:geo_view' location.1 %}" >{{location.0}}</a>
+          <a href="{ url 'action:geo_view' item.0.id %}" >{{item.0.name}}</a>
         </td>
         <td>
-          <span>{{location.2}}</span>
+          <span>{{item.1}}</span>
         </td>
         <td>
-          <span>{{location.3}}</span>
+          <span>{{item.2}}</span>
+        </td>
+        <td>
+          <span>{{item.3}}</span>
         </td>
       </tr>
       {% endfor %}
     </table>
   </div>
+
+  <div>
+    <h2 style="margin-bottom: 0.25em;">Upcoming Events</h2>
+    {% with event_list=plan_list %}
+      {% include 'event_list.html' %}
+    {% endwith %}
+  </div>
+
+  <div>
+    <h2 style="margin-bottom: 0.25em;">Latest Records</h2>
+    {% with event_list=witness_list %}
+      {% include 'event_list.html' %}
+    {% endwith %}
+  </div>
+
 {% endblock %}

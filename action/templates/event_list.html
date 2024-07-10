@@ -170,7 +170,7 @@
               {% if event.recorded_link %}
                 <a href={{event.recorded_link}}>
                   <img alt="Link" 
-                    {% if "facebook.com" in event.recorded_link or event.recorded_link in record.6 %}src="/static/icon_fb30.png"
+                    {% if "facebook.com" in event.recorded_link or "scontent" in event.recorded_link %}src="/static/icon_fb30.png"
                     {% elif "instagram.com" in event.recorded_link %}src="/static/icon_insta30.png"
                     {% elif "twitter.com" in event.recorded_link %}src="/static/icon_twitter30.png"
                     {% elif "youtube.com" in event.recorded_link %}src="/static/icon_yt30.png"
