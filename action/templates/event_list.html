@@ -104,9 +104,9 @@
                   <form action="{% url 'action:geo_update' %}" method="POST">
                     {% csrf_token %}
                       <input type="hidden" value="False" name="isnewevent"/>
-                      <input type="hidden" value="{{event.overview}}" name="regid"/>
-                      <input type="hidden" value="{{event.location}}" name="locid"/>
-                      <input type="hidden" value="{{model.id}}" name="witness"/>
+                      <input type="hidden" value="{{event.model.gathering.regid}}" name="regid"/>
+                      <input type="hidden" value="{{event.model.gathering.location.id}}" name="locid"/>
+                      <input type="hidden" value="{{event.model.id}}" name="witness"/>
                       <input type="submit" value="{% if event.date %}{{event.date|date:'Y-m-d'}}{% endif %}" class="{% if event.recorded %}recorded{% else %}notrecorded{% endif %}"/>
                   </form>
                 {% endif %}

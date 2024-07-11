@@ -289,7 +289,7 @@ def geo_update_view(request):
   this_gathering = Gathering.objects.filter(regid=regid)
   if this_gathering:
     this_gathering = this_gathering.first()
-  this_witness = Gathering_Witness.objects.filter(pk=wintess_id)
+  this_witness = Gathering_Witness.objects.filter(id=wintess_id)
   if this_witness:
     this_witness = this_witness.first()
   else:
