@@ -14,8 +14,9 @@ ___startpage view
 ___lists
 '''
 def start_view_handler(request):
-  filter_weeks = int(request.POST.get('filter_weeks','2'))
+  filter_weeks = datetime.timedelta(weeks=4) #int(request.POST.get('filter_weeks','2'))
   list_length = 50
+  today = datetime.datetime.today()
 
   #LEADERBOARD LOGIC
   leaderboard_dict=dict()
@@ -29,19 +30,20 @@ def start_view_handler(request):
     leaderboard_dict[country][index]+=1
 
   #GATHERING PLAN LOGIC
-  event_head = Gathering.datalist_template(model=True, date=True, date_end=False, location=True, map_link=True, orgs=True, participants=True,recorded=True, overview=True)
-  gathering_plans = Gathering.objects.filter(start_date__gte=(datetime.datetime.today()-datetime.timedelta(days=1)))#[:list_length])
+  event_plan_head = Gathering.datalist_template(model=True, date=True, date_end=True, location=True, map_link=True, orgs=True, participants=True,recorded=True, overview=True)
+  gathering_plans = Gathering.objects.filter(end_date__range=[today, today+filter_weeks]).order_by("-start_date")
   event_plan_list = []
 
   for gp in gathering_plans:
-    event_plan_list.append(Gathering.datalist(gp, False, event_head))
+    event_plan_list.append(Gathering.datalist(gp, False, event_plan_head))
     leaderboard_append(gp.location.country(), False)
 
   #EVENT WITNESSING LOGIC
-  gathering_witness = Gathering_Witness.objects.order_by("-updated").filter(updated__gte=datetime.datetime.today()-datetime.timedelta(days=7*filter_weeks))
+  event_record_head = Gathering.datalist_template(model=True, date=True, date_end=False, location=True,recorded_link=True, map_link=True, orgs=True, participants=True,recorded=True, overview=True)
+  gathering_witness = Gathering_Witness.objects.filter(updated__range=[today-filter_weeks, today]).order_by("-date")
   gathering_witness_list = []
   for gw in gathering_witness:
-    gathering_witness_list.append(Gathering.datalist(gw, True, event_head))
+    gathering_witness_list.append(Gathering.datalist(gw, True, event_record_head))
     leaderboard_append(gw.gathering.location.country(), True)
 
   leaderboard = []
@@ -55,7 +57,8 @@ def start_view_handler(request):
   template = loader.get_template('action/start.html')
   context = {
     'filter_weeks': filter_weeks,
-    'event_head': event_head,
+    'event_plan_head': event_plan_head,
+    'event_record_head': event_record_head,
     'plan_list': event_plan_list,
     'witness_list': gathering_witness_list,
     'leaderboard_list': leaderboard,
