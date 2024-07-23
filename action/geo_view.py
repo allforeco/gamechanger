@@ -49,6 +49,8 @@ def geo_view_handler(request, locid):
       sublocation_list |= Location.objects.filter(id=sl.id)
   sublocation_list = sublocation_list.order_by('name')
 
+  event_head = Gathering.datalist_template(date=True, recorded=True,model=True,record=True, location=True, map_link=True, participants=True, overview=True, gtype=True, orgs=True, recorded_link=True)
+  event_list = []
   #GATHERING
   gathering_list = Gathering.objects.filter(location=this_location)
   for sl in sublocation_list:
@@ -60,19 +62,18 @@ def geo_view_handler(request, locid):
     #for gw in gwl:
     #  gwr = gw.set_gathering_to_root()
     #  witness_list |= gwr
-
-  event_list = []
+  
+  #event_list = []
   for witness in witness_list:
-    is_witness = True
-    is_witnessed = True
-    event_list.append((witness.date, witness, is_witness, is_witnessed))
+    gw = witness
+    gw.gathering = Gathering.objects.get(regid=witness.set_gathering_to_root())
+    event_list.append(Gathering.datalist(event=gw, isrecord=True, datalist_template=event_head))
 
   for gathering in gathering_list:
-    is_witness = False
-    is_witnessed = Gathering_Witness.objects.filter(gathering=gathering).exists()
-    event_list.append((gathering.start_date, gathering, is_witness, is_witnessed))
+    event_list.append(Gathering.datalist(event=witness, isrecord=True, datalist_template=event_head))
 
-  event_list.sort(key=lambda e: e[0], reverse=True)
+  #print("EVL",event_list[0])
+  event_list.sort(key=lambda e: e['date'], reverse=True)
   
   event_list_upcomming = []
   event_list_past = []
@@ -88,6 +89,7 @@ def geo_view_handler(request, locid):
     'this_location': this_location,
     'parent_location': parent_location,
     'sublocation_list': sublocation_list,
+    'event_head': event_head,
     'event_list': event_list,
     'total_participants': total_participants,
     'favorite_location': favorite_location,
