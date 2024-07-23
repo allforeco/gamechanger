@@ -77,7 +77,7 @@
 
           {% if event_head.recorded_link %}
             <th calss="th_recorded_link">
-              Record Link
+              Media Record Link
             </th>
           {% endif %}
 
@@ -185,7 +185,7 @@
           {% if event_head.orgs %}
             <td calss="td_organization">
               {% if event.orgs %}
-                {{event.orgs}}
+                <a href="{% url 'action:organization_view' event.orgs.id %}">{{event.orgs}}</a>
               {% endif %}
             </td>
           {% endif %}
