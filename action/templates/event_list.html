@@ -44,6 +44,12 @@
             </th>
           {% endif %}
 
+          {% if event_head.activity_type %}
+            <th class="th_activity_type">
+              Activity Type
+            </th>
+          {% endif %}
+
           {% if event_head.overview %}
             <th calss="th_overview">
               Overview
@@ -117,6 +123,12 @@
               {% else %}
                 {% if event.date %}{{event.date|date:'Y-m-d'}}{% if event_head.date_end %}{% if event.date_end%} - {{event.date_end|date:'Y-m-d'}}{% endif %}{%endif%}{% endif %}
               {% endif %}
+            </td>
+          {% endif %}
+
+          {% if event_head.activity_type %}
+            <td class="td_activity_type">
+              {{event.activity_type}}
             </td>
           {% endif %}
 

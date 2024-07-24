@@ -972,7 +972,7 @@ class Gathering(models.Model):
   '''
   ___Uniform table data
   '''
-  def datalist_template(model = False, date = False, date_end = False, overview = False, gtype = False, location = False, country = False, map_link = False, orgs = False, participants = False, note_address = False, note_time = False, recorded = False, recorded_link = False, record = False):
+  def datalist_template(model = False, date = False, date_end = False, activity_type = False, overview = False, gtype = False, location = False, country = False, map_link = False, orgs = False, participants = False, note_address = False, note_time = False, recorded = False, recorded_link = False, record = False):
     return locals()
   
   def datalist(event, isrecord, datalist_template):
@@ -994,6 +994,12 @@ class Gathering(models.Model):
     try:
       key = 'date_end'
       if datalist_template[key]: values[key] = date_end = obj_event.end_date
+    except: pass
+    try:
+      key = 'activity_type'
+      if datalist_template[key]: 
+        if isrecord: values[key] = activity_type = "Record"
+        else: values[key] = activity_type = "Event"
     except: pass
     try:
       key = 'overview'
