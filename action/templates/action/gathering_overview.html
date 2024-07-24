@@ -10,6 +10,10 @@
   {% if gathering %}
     <div>
       <h2>Event</h2>
+      {% with event_list=event_main event_head=event_main_head %}
+        {% include 'event_list.html' %}
+      {% endwith %}
+      <!--
       <table style="width: 50%;" class="table-sort-mark">
         <thead>
           <tr>
@@ -40,9 +44,15 @@
           <td>{{gathering.regid}}</td>
         </tbody>
       </table>
-      <br />
-      <h2>Event Recording List</h2>
-      {% if gathering_witness_list %}
+    </div>
+    -->
+    <div>
+      {% if event_record_list %}
+        <h2>Event Record List</h2>
+        {% with event_list=event_record_list event_head=event_record_head %}
+          {% include 'event_list.html' %}
+        {% endwith %}
+        <!--
         <table style="width: 50%;" class="table-sort-mark">
           <thead>
             <th>Date</th>
@@ -79,11 +89,18 @@
             {% endfor %}
           </tbody>
         </table>
+        -->
+      {% else %}
+      <p>No Records for this Event</p>  
       {% endif %}
+    </div>
+    <!--
+    <div>
       {% if organization %}
         <p>Organized by <a href="{% url 'action:organization_view' organization.id %}">{{organization.name}}</a></p>
       {% endif %}
     </div>
+    -->
   {% endif %}
   {% endif %}
 {% endblock %}
