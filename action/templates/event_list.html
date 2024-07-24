@@ -123,8 +123,8 @@
           {% if event_head.overview %}
             <td calss="td_overview">
               {% if event.overview %}
-                <a href="{% url 'action:gathering_view' event.overview %}"><img alt="Link" src="/static/overview.png"/></a>
-                <!--{% if event.record %} (Witness) {% endif %}-->
+                <a href="{% url 'action:gathering_view' event.overview %}"><img alt="{% if event.record %}(R) {% endif %}{% if not event.record %}(E) {% endif %}Link" src="/static/overview.png"/></a>
+                <!--{% if event.record %} (Record) {% endif %}-->
                 <!--{% if not event.record %} (Event) {% endif %}-->
               {% endif %}
             </td>

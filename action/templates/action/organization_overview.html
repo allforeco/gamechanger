@@ -5,81 +5,43 @@
 {% endblock %}
 
 {% block content %}
-{% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
-{% if user.is_authenticated or logginbypass %}
-{% if organization %}
-<div>
-  <h2>Organization</h1>
-  <h1>{{organization.name}}</h1>
+  {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+  {% if user.is_authenticated or logginbypass %}
+  {% if organization %}
+    <div>
+      <h1>{{organization.name}}</h1>
 
-    {% if contact_list %}
-      <h2>Contacts</h2>
-      <table style="width: 50%;" class="table-sort-mark">
-        <thead>
-          <tr>
-            <th>Contact Notes</th>
-            <th>Contact Type</th>
-            <th>Contact Address</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for contact in contact_list %}
-          <tr>
-            <td style="padding: 1em;">{{contact.info}}</td>
-            <td style="padding: 1em;">{{contact.description}}</td>
-            <td style="padding: 1em;" target="_blank"><a href="{{contact.addressacces}}{{contact.address}}" >{{contact.address}}<img style="height: 1em; position: relative; top:-10px;" src="/static/icon-external.png"/></a></td>
+        {% if contact_list %}
+          <h2>Contacts</h2>
+          <table style="width: 50%;" class="table-sort-mark">
+            <thead>
+              <tr>
+                <th>Contact Notes</th>
+                <th>Contact Type</th>
+                <th>Contact Address</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for contact in contact_list %}
+              <tr>
+                <td style="padding: 1em;">{{contact.info}}</td>
+                <td style="padding: 1em;">{{contact.description}}</td>
+                <td style="padding: 1em;" target="_blank"><a href="{{contact.addressacces}}{{contact.address}}" >{{contact.address}}<img style="height: 1em; position: relative; top:-10px;" src="/static/icon-external.png"/></a></td>
 
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    {%endif%}
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {%endif%}
 
-    <h2>Previous Events</h2>
-    {% include 'event_list.html' %}
-    <!--
-    <table style="width: 50%;" class="table-sort-mark">
-      <thead>
-        <tr>
-          <th style="width: 10%;">Date</th>
-          <th>Event Overview</th>
-          <th>Loction</th>
-          <th style="width: 10%;">Map</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for gathering in gathering_witness_list %}
-        <tr>
-          <td>{{gathering.date|date:"Y-m-d"}}</td>
-          <td>
-            <a href="{% url 'action:gathering_view' gathering.gathering.regid %}">{{gathering.gathering.regid}}</a>
-          </td>
-          <td>
-            {%if gathering.gathering.location %}
-              <a href="{ url 'action:geo_view' gathering.gathering.location.country.id }">{{gathering.gathering.location.country}}</a>;
-              <a href="{% url 'action:geo_view' gathering.gathering.location.id %}">{{gathering.gathering.location.name}}</a>
-            {%endif%}
-          </td>
-          <td style="text-align: center;">
-            <a target="_blank" href="https://map.fridaysforfuture.org/?e={{gathering.gathering.regid}}"><img src="/static/icon_globe.png"/><sup><sup><img src="/static/icon-external.png"/></sup></sup></a>
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-    -->
-
-    {% endif %}
-    
-</div>
-{% endif %}
-{% if organization == None %}
-<div>
-  <p>None</p>
-</div>
-{% endif %}
-
-<style>
-  
-</style>
+        <h2>Activity</h2>
+        {% include 'event_list.html' %}
+        {% endif %}
+        
+    </div>
+  {% else %}
+    <div>
+      <p>None</p>
+    </div>
+  {% endif %}
 {% endblock %}
