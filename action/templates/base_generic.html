@@ -225,7 +225,7 @@
         {% endif %}
         <a href="{% url 'action:start' %}">Start</a>
         <a href="{% url 'action:locations_list' %}">Locations</a>
-        <a href="{% url 'action:latest_records' %}">Records</a>
+        <!--<a href="{% url 'action:latest_records' %}">Records</a>-->
         <a href="https://actionnetwork.org/groups/map-count-reporting-manual" target="_blank">User Manual <sup><sup><img style="width: 16px;" src='/static/icon-external.png'/></sup></sup></a>
       </div>
 
@@ -263,16 +263,17 @@
 			</div>
 		</div>
     {% endblock %}
-    <div class="maincontent">
-      {% block content %}<!-- default content text (typically empty) -->{% endblock %}
-    </div>
     {% if user.is_authenticated %}
-      <div style="margin:1em; padding: 1em; background-color: #cccccc; border: 0.5em solid black;">
+      <input type="button" value="Toggle Admin Extra Functions Panel" onclick="efp = document.getElementById('EFP'); if (efp.style.display=='none'){efp.style.display='block'} else {efp.style.display='none'}">
+      <div id="EFP" style="margin:1em; padding: 1em; background-color: #cccccc; border: 0.5em solid black; display:none;">
         <p>Extra Funtions Panel</p>
         {% block adminpanel %}{% endblock %}
         <a href="{% url 'action:emergency' %}"><button>Stop User Input</button></a>
         <a href="{% url 'action:unemergency' %}"><button>Enable User Input</button></a>
       </div>
     {% endif %}
+    <div class="maincontent">
+      {% block content %}<!-- default content text (typically empty) -->{% endblock %}
+    </div>
   </body>
 </html>
