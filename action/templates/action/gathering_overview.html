@@ -9,98 +9,20 @@
   {% if user.is_authenticated or logginbypass %}
   {% if gathering %}
     <div>
-      <h2>Event</h2>
+      <h2>Event <input type="button" value="Copy Event Link" onclick="navigator.clipboard.writeText(window.location)" /></h2>
       {% with event_list=event_main event_head=event_main_head %}
         {% include 'event_list.html' %}
       {% endwith %}
-      <!--
-      <table style="width: 50%;" class="table-sort-mark">
-        <thead>
-          <tr>
-            <th>Date</th>
-            <th>Type</th>
-            <th>Location</th>
-            <th>Notes</th>
-            <th>Id</th>
-          </tr>
-        </thead>
-        <tbody>
-          <td>
-            {{gathering.start_date|date:'Y-m-d'}} {% if gathering.start_date != gathering.end_date %} - {{gathering.end_date|date:'Y-m-d'}}{% endif %}
-          </td>
-          <td>
-            {% for gathering_type in gathering_types %}
-              {% if gathering_type.0 == gathering.gathering_type %}
-                {{gathering_type.1}}
-              {%endif%}
-            {%endfor%}
-          </td>
-          <td>
-            {%if gathering.location %}
-            <a href="{% url 'action:geo_view' gathering.location.id %}">{{gathering.location}}</a>
-            {%endif%}
-          </td>
-          <td>{{gathering.address}}<br />{{gathering.time}}</td>
-          <td>{{gathering.regid}}</td>
-        </tbody>
-      </table>
-    </div>
-    -->
     <div>
       {% if event_record_list %}
         <h2>Event Record List</h2>
         {% with event_list=event_record_list event_head=event_record_head %}
           {% include 'event_list.html' %}
         {% endwith %}
-        <!--
-        <table style="width: 50%;" class="table-sort-mark">
-          <thead>
-            <th>Date</th>
-            <th>Participants</th>
-            <th>Link</th>
-          </thead>
-          <tbody>
-            {% for gathering_witness in gathering_witness_list %}
-              <tr>
-                <td style="text-align: center;">
-                  {{gathering_witness.date|date:'Y-m-d'}}
-                </td>
-                <td style="text-align: center;">
-                  {{gathering_witness.participants}}
-                </td>
-                <td  style="text-align: center;">
-                  {% if gathering_witness.proof_url %}
-                <a target="_blank" href="{{ gathering_witness.proof_url }}">
-                  {% if "facebook.com" in gathering_witness.proof_url or "scontent" in gathering_witness.proof_url %}
-                    <img src="/static/icon_fb30.png"/>
-                  {% elif "instagram.com" in gathering_witness.proof_url %}
-                    <img src="/static/icon_insta30.png"/>
-                  {% elif "twitter.com" in gathering_witness.proof_url %}
-                    <img src="/static/icon_twitter30.png"/>
-                  {% elif "youtube.com" in gathering_witness.proof_url %}
-                    <img src="/static/icon_yt30.png"/>
-                  {% else %}
-                    <img src="/static/icon_pic.png"/>
-                  {% endif %}
-                  <sup><sup><img style="width: 16px;" src="/static/icon-external.png"/></sup></sup></a>
-              {% endif %}
-                </td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-        -->
       {% else %}
       <p>No Records for this Event</p>  
       {% endif %}
     </div>
-    <!--
-    <div>
-      {% if organization %}
-        <p>Organized by <a href="{% url 'action:organization_view' organization.id %}">{{organization.name}}</a></p>
-      {% endif %}
-    </div>
-    -->
   {% endif %}
   {% endif %}
 {% endblock %}
