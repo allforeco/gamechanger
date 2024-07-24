@@ -50,7 +50,7 @@
             </th>
           {% endif %}
 
-          {% if event_head.g_type %}
+          {% if event_head.gtype %}
             <th calss="th_gtype">
               Action Type
             </th>
@@ -94,6 +94,7 @@
           {% endif %}
         </tr>
     </thead>
+    <span hidden>{{event_head}}</span>
     <tbody>
       {% for event in event_list %}
         <tr>
@@ -129,7 +130,7 @@
             </td>
           {% endif %}
 
-          {% if event_head.g_type %}
+          {% if event_head.gtype %}
             <td calss="td_gtype">
               {% if event.gtype %}
                 {{event.gtype}}
@@ -139,9 +140,8 @@
 
           {% if event_head.location %}
             <td calss="td_location">
-              {% if event.location %}
-                {% if event_head.country %}
-                <a href={% url 'action:geo_view' event.country.id %}>{{event.country}}</a>; 
+              {% if event_head.country %}
+                  <a href={% url 'action:geo_view' event.country.id %}>{{event.country}}</a>{% if event.location %}; {% endif %}
                 {% endif %}
                 {% if event.location %}
                   <a href={% url 'action:geo_view' event.location.id %}>{{event.location}}</a>
@@ -201,7 +201,6 @@
             </td>
           {% endif %}
         </tr>
-        {% endif %}
       {% endfor %}
     </tbody>
   </table>
