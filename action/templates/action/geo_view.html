@@ -51,11 +51,23 @@
   {% endif %}
 
   <h2>Records</h2>
-  {% if witness_list %}
-    <p>{{ witness_list|length }} events with a total of {{ total_participants }} 
+  {% if event_list %}
+    <p>{{ event_list|length }} events with a total of {{ total_participants }} 
     recorded participants</p>
   {% else %}
     <p>No results registered yet.</p>
+  {% endif %}
+
+  {% if event_list %}
+    <form action="{% url 'action:geo_update' %}" method="POST">
+      {% csrf_token %}
+      <input type="hidden" value="False" name="isnewevent"/>
+      <input type="hidden" value="{{root_gathering.regid}}" name="regid"/>
+      <input type="hidden" value="{{this_location.id}}" name="locid"/>
+      <!--<input type="submit" value="Register new Event">-->
+      <input type="submit" value="Record Event"/>
+    </form>
+    <br/>
   {% endif %}
 
   {% with event_list=event_list %}
