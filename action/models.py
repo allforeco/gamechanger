@@ -184,13 +184,18 @@ class Location(models.Model):
       ls = Location.objects.all()
     else:
       ls = Location.objects.exclude(in_country=Country.Unknown())
-    ls = ls.filter(name__icontains=q)
-    
     lsf = Location.objects.none()
-    for location in ls:
-      if Location.Duplicate_is_prime(location):
-        lsf |= Location.objects.filter(id=location.id)
-        pass
+
+    if q[2] == '!':
+      for c in Country.objects.filter(code__iexact=q[0:2]):
+        lsf |= Location.objects.filter(name=c.name)
+    else:
+      ls = ls.filter(name__icontains=q)
+
+      for location in ls:
+        if Location.Duplicate_is_prime(location):
+          lsf |= Location.objects.filter(id=location.id)
+          pass
 
     lout = lsf.filter(name__istartswith=q)
     lout |= lsf.exclude(name__istartswith=q)
