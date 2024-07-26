@@ -68,9 +68,24 @@ def geo_view_handler(request, locid):
     gw = witness
     gw.gathering = Gathering.objects.get(regid=witness.set_gathering_to_root())
     event_list.append(Gathering.datalist(event=gw, isrecord=True, datalist_template=event_head))
+    if len(event_list) > 0:
+      dup = False
+      for event in event_list:
+        if event['date'] == witness.date and event['overview'] == witness.gathering.regid:
+          dup=True
+      
+      if not dup:
+        event_list.append(Gathering.datalist(event=witness, isrecord=True, datalist_template=event_head))
 
   for gathering in gathering_list:
-    event_list.append(Gathering.datalist(event=witness, isrecord=True, datalist_template=event_head))
+    if len(event_list) > 0:
+      dup = False
+      for event in event_list:
+        if event['overview'] == gathering.regid:
+          dup=True
+      
+      if not dup:
+        event_list.append(Gathering.datalist(event=gathering, isrecord=False, datalist_template=event_head))
 
   #print("EVL",event_list[0])
   event_list.sort(key=lambda e: e['date'], reverse=True)
