@@ -51,10 +51,11 @@ def geo_view_handler(request, locid):
 
   event_head = Gathering.datalist_template(date=True, recorded=True,model=True,record=True, location=True, map_link=True, participants=True, overview=True, gtype=True, orgs=True, recorded_link=True)
   event_list = []
+  plan_list = []
   #GATHERING
   gathering_list = Gathering.objects.filter(location=this_location)
-  for sl in sublocation_list:
-    gathering_list |= Gathering.objects.filter(location=sl)
+  #for sl in sublocation_list:
+  #  gathering_list |= Gathering.objects.filter(location=sl)
   
   witness_list = Gathering_Witness.objects.none()
   for gathering in gathering_list:
