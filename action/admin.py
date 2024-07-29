@@ -14,7 +14,7 @@ admin.site.register(Steward)
 class GatheringAdmin(admin.ModelAdmin):
   list_display = ('regid', 'location', 'start_date', 'steward')
   ordering = ('location', 'regid')
-  search_fields = ['regid', 'location', 'start_date']
+  search_fields = ['regid', 'location__name', 'start_date']
   autocomplete_fields = ['location']
 
 
@@ -23,7 +23,7 @@ admin.site.register(Gathering, GatheringAdmin)
 class GatheringWitnessAdmin(admin.ModelAdmin):
   list_display = ('gathering', 'date', 'participants', 'organization')
   ordering = ('-date',)
-  search_fields = ['date', 'organization']
+  search_fields = ['gathering__name', 'date', 'organization']
 
 
 admin.site.register(Gathering_Witness, GatheringWitnessAdmin)
