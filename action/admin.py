@@ -66,7 +66,7 @@ admin.site.register(Organization,OrganizationAdmin)
 class OrganizationContactAdmin(admin.ModelAdmin):
   list_display = ('address', 'contacttype', 'category', 'location', 'organization')
   search_fields =['address']
-  autocomplete_fields = ['location', 'organization']
+  autocomplete_fields = ['location__name', 'organization__name']
 
   def get_form(self, request, obj=None, **kwargs):
     form = super(OrganizationContactAdmin, self).get_form(request, obj, **kwargs)
