@@ -49,7 +49,7 @@ def geo_view_handler(request, locid):
       sublocation_list |= Location.objects.filter(id=sl.id)
   sublocation_list = sublocation_list.order_by('name')
 
-  event_head = Gathering.datalist_template(date=True, recorded=True,model=True,record=True, location=True, map_link=True, participants=True, overview=True, gtype=True, orgs=True, recorded_link=True)
+  event_head = Gathering.datalist_template(date=True, recorded=True,model=True,record=True, location=True, map_link=True, participants=True, overview=True, gtype=False, orgs=True, recorded_link=True)
   event_list = []
   plan_list = []
   #GATHERING
