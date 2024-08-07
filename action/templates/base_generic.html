@@ -220,13 +220,20 @@
 		<h2 style="margin-top: 8px; margin-bottom: 8px; display: inline-block">GameChanger<br>Action Tracker</h2>
 		<div class="linkbanner"><!-- #cccccc -->
 			<div class="menu_left">
-        {% if user.is_authenticated %}
-        <a href="{% url 'action:home' %}">Home</a>
-        {% endif %}
-        <a href="{% url 'action:start' %}">Start</a>
-        <a href="{% url 'action:locations_list' %}">Locations</a>
-        <!--<a href="{% url 'action:latest_records' %}">Records</a>-->
-        <a href="https://actionnetwork.org/groups/map-count-reporting-manual" target="_blank">User Manual <sup><sup><img style="width: 16px;" src='/static/icon-external.png'/></sup></sup></a>
+        <span id="link_internal">
+          {% if user.is_authenticated %}
+            <a href="{% url 'action:home' %}">Home</a>
+          {% endif %}
+          <a href="{% url 'action:start' %}">Start</a>
+          <a href="{% url 'action:locations_list' %}">Locations</a>
+        </span>
+        <span id="link_external" style="border-left: 3px solid #25A04F; padding-left: 1em; margin-left: 0.5em">
+          <!--<a href="https://fridaysforfuture.org" target="_blank"><img src="" alt="Fridays For Future"> <sup><sup><img style="width: 16px;" src='/static/icon-external.png'/></sup></sup></a>-->
+          <a href="https://map.fridaysforfuture.org" target="_blank"><img src="" alt="Map"> <sup><sup><img style="width: 16px;" src='/static/icon-external.png'/></sup></sup></a>
+          <a href="https://docs.google.com/forms/d/e/1FAIpQLSfakAGKkwd5FCt_LFgorf_Kfsd2UPU6kq6CfaRJDPgkOcqG_Q/viewform" target="_blank"><img src="" alt="Register Form"/> <sup><sup><img style="width: 16px;" src='/static/icon-external.png'/></sup></sup></a>
+          <!--<a href="{% url 'action:latest_records' %}">Records</a>-->
+          <a href="https://actionnetwork.org/groups/map-count-reporting-manual" target="_blank">User Manual <sup><sup><img style="width: 16px;" src='/static/icon-external.png'/></sup></sup></a>
+        </span>
       </div>
 
 			<div class="menu_right">
