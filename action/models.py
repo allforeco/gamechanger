@@ -26,13 +26,17 @@ ___Database registered Locations
 '''
 class Location(models.Model):
   def __str__(self):
+    out = f"{self.name}"
     try:
+      if self.id != self.country_location().id:
+        if self.id != self.state_location().id:
+          out += f", {self.state_location().name}"
       if self.in_country.id != Country.UNKNOWN:
-        return f"{self.name}, {self.in_country.code}"
+        out += f", {self.in_country.code}"
     except:
       pass
     
-    return f"{self.name}"
+    return out
 
   name = models.CharField(max_length=100)
   in_country = models.ForeignKey('Country', on_delete=models.CASCADE, blank=True, null=True)
@@ -51,6 +55,9 @@ class Location(models.Model):
   def str_lat_lon(self):
     return f"({self.lat},{self.lon})"
 
+  def location_range_depth(self):
+    return 8
+  
   '''
   ___location integrity by
   ___country and coordinate validity
@@ -204,7 +211,7 @@ class Location(models.Model):
   '''
   ___Get location of country
   '''
-  def country_location(self):
+  def c_country_location(self):
     locations = Location.objects.filter(in_country=self.in_country, name=self.in_country.name)
     if locations.count() > 0:
       return locations.first()
@@ -214,16 +221,24 @@ class Location(models.Model):
   '''
   ___finds toplocation as country
   '''
-  def country(self):
+  def country_location(self):
+    return self.in_location_list()[-1]
+
+  def state_location(self):
+    return self.in_location_list()[-2]
+      
+  def in_location_list(self):
+    in_locations = [self]
     toplocation = self
-    for i in range(8):
+    for i in range(self.location_range_depth()):
       if toplocation.in_location:
         if toplocation.in_location.id != Location.UNKNOWN:
           toplocation = toplocation.in_location
+          in_locations.append(toplocation)
         else:
-          return toplocation
+          return in_locations
       else:
-        return toplocation
+        return in_locations
 
   '''
   ___
@@ -564,7 +579,7 @@ class Country(models.Model):
     Country.SETUP_Unknown()
 
     for location in Location.objects.all():
-      l = location.country()
+      l = location.country_location()
       l.in_location=None
       l.save()
       if l:
@@ -818,7 +833,7 @@ class OrganizationContact(models.Model):
 
     if self.location.id > Location.UNKNOWN:
       self.locationTitle = self.location.name
-      self.category = self.location.country().name
+      self.category = self.location.in_country.name
 
     if not self.organization:
       self.organization=Organization.objects.filter(name__iexact=self.organizationTitle).first() or Organization.objects.get(id=Organization.UNKNOWN)
@@ -1023,7 +1038,7 @@ class Gathering(models.Model):
     except: pass
     try:
       key = 'country'
-      if datalist_template[key]: values[key] = country = obj_event.location.country()
+      if datalist_template[key]: values[key] = country = obj_event.location.country_location()
     except: pass
     try:
       key = 'map_link'

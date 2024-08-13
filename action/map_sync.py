@@ -201,7 +201,7 @@ class Eventmap_Data():
   def data_process_location(self):
     #LOCATION; country, town, lat, lon, location_google_name
     if self.object_location:
-      self.country = self.object_location.country()
+      self.country = self.object_location.country_location()
       self.town = self.object_location.name
       self.lat = self.object_location.lat
       self.lon = self.object_location.lon

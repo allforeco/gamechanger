@@ -480,7 +480,7 @@ def download_post(request):
           #CNAME |gathering.contact_name
           #CORG2 |organization
           #CSPOKE ?| private / public
-          #ECOUNTRY x|gathering.location.country()
+          #ECOUNTRY x|gathering.location.country_location()
           #ECITY x|gathering.location.city
           #ELOCATION |gathering.location
           #ETYPE |gathering.gathering_type

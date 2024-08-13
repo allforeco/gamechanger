@@ -14,10 +14,10 @@ def organizations_view(request):
   organizations_region_dict = {}
   for organization in organizations_list:
     contacts = OrganizationContact.objects.filter(organization=organization)
-    if not organization.primary_location.country() in organizations_region_dict.keys():
-      organizations_region_dict[organization.primary_location.country()] = [[organization,contacts]]
+    if not organization.primary_location.country_location() in organizations_region_dict.keys():
+      organizations_region_dict[organization.primary_location.country_location()] = [[organization,contacts]]
     else:
-      organizations_region_dict[organization.primary_location.country()] += [[organization,contacts]]
+      organizations_region_dict[organization.primary_location.country_location()] += [[organization,contacts]]
 
   template = loader.get_template('action/organizations_overview.html')
   context = {'organizations_region_dict':organizations_region_dict}

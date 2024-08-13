@@ -36,7 +36,7 @@ def start_view_handler(request):
 
   for gp in gathering_plans:
     event_plan_list.append(Gathering.datalist(gp, False, event_plan_head))
-    leaderboard_append(gp.location.country(), False)
+    leaderboard_append(gp.location.country_location(), False)
 
   #EVENT WITNESSING LOGIC
   event_record_head = Gathering.datalist_template(model=True, date=True, date_end=False, location=True,recorded_link=True, map_link=True, orgs=True, participants=True,recorded=True, overview=True)
@@ -44,7 +44,7 @@ def start_view_handler(request):
   gathering_witness_list = []
   for gw in gathering_witness:
     gathering_witness_list.append(Gathering.datalist(gw, True, event_record_head))
-    leaderboard_append(gw.gathering.location.country(), True)
+    leaderboard_append(gw.gathering.location.country_location(), True)
 
   leaderboard = []
   for item in leaderboard_dict.items():
