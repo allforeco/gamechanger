@@ -1,0 +1,35 @@
+{% extends "base_generic.html" %}
+
+{% block title %}
+    <title>Revent Note List - Gamechanger Tribe Tracker</title>
+{% endblock %}
+
+{% block content %}
+    {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+    {% if user.is_authenticated or logginbypass %}
+    {% endif %}
+
+    {# The return to the revent list button #}
+    <form action="{% url 'tribe:revent' %}" method="post">{% csrf_token %}
+        <input type="submit" value="Back to the overview">
+    </form>
+
+    {# Create reventnote button #}
+    <form action="{% url 'tribe:reventnote-add' revent_pk %}" method="post">
+        {% csrf_token %}
+        <input type="submit" value="+ Add new Note...">
+    </form>
+
+    {# The update form #}
+    <form method="post">
+        {% csrf_token %}
+        <ul>
+            {% for note in notes %}
+                <li><a href="{% url 'tribe:reventnote-update' note.pk %}">{{ note.creation_date|date:'Y-m-d' }}</a>: {{ note.text }}</li>
+            {% empty %}
+                <li>No notes yet.</li>
+            {% endfor %}        
+        </ul>
+        <input type="submit" value="Update">
+    </form>
+{% endblock %}

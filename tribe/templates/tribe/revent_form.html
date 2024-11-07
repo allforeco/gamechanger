@@ -1,0 +1,29 @@
+{% extends "base_generic.html" %}
+
+{% block title %}
+    <title>Revent Detail - Gamechanger Tribe Tracker</title>
+{% endblock %}
+
+{% block content %}
+    {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+    {% if user.is_authenticated or logginbypass %}
+    {% endif %}
+
+    {# The return to the list button #}
+    <form action="{% url 'tribe:revent' %}" method="post">{% csrf_token %}
+        <input type="submit" value="Back to the overview">
+    </form>
+
+    {# The update form #}
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <input type="submit" value="Update">
+    </form>
+    {% if revent.pk %}
+        <form action="{% url 'tribe:revent-delete' self.pk %}" method="post">{% csrf_token %}
+            <input type="submit" value="Delete...">
+        </form>
+    {% endif %}
+{% endblock %}
+

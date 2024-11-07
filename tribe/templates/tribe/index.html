@@ -1,0 +1,71 @@
+{% extends "base_generic.html" %}
+
+{% block title %}
+    <title>Revent Overview - Gamechanger Tribe Tracker</title>
+{% endblock %}
+
+{% block content %}
+    {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+    {% if user.is_authenticated or logginbypass %}
+    {% endif %}
+
+    {# Create revent button #}
+    <form action="{% url 'tribe:revent-add' %}" method="post">
+        {% csrf_token %}
+        <input type="submit" value="+ Add new Revent...">
+    </form>
+
+    {# List of revents #}
+    {% if revents %}
+        <table>
+            <thead>
+                <th>Name</th>
+                <th>Notes</th>
+                <th>Roles</th>
+                <th>Location</th>
+                <th>Contact</th>
+            </thead>
+            {% for revent in revents %}
+                <tr>
+                    <td> {# Name #}
+                        <p>{{ revent.name }}</p>
+                        <div style='text-align:center; vertical-align:bottom; color:#000080'><br/><a href="{% url 'tribe:revent-update' revent.id %}">[Edit]</a></div>
+                    </td>
+                    <td> {# Notes #}
+                        <ul>
+                            {% for note in notes|dict_key:revent.id %}
+                                <li>{{ note.0|date:'Y-m-d' }}: {{ note.1 }}</li>
+                            {% endfor %}
+                        </ul>
+                        <div style='text-align:center; vertical-align:bottom; color:#000080'><br/><a href="{% url 'tribe:reventnote-list' revent.id %}">[Edit]</a></div>
+                    </td>
+                    <td> {# Roles #}
+                        <ul>
+                            {% for role in roles|dict_key:revent.id %}
+                                <li>{{ role.0 }}: <a href="% url 'tribe:person' role.1 %">{{ role.2 }}</a></li>
+                                
+                            {% endfor %}
+                        </ul>
+                        <div style='text-align:center; vertical-align:bottom; color:#000080'><br/><a href="{% url 'tribe:revent-detail' revent.id %}">[Edit]</a></div>
+                    </td>
+                    <td> {# Location, Country #}
+                        {{ revent.in_location.name }}
+                        <br/>{{ revent.in_country.name }}
+                        <div style='text-align:center; vertical-align:bottom; color:#000080'><br/><a href="{% url 'tribe:revent-detail' revent.id %}">[Edit]</a></div>
+                    </td>
+                    <td> {# Contact #}
+                        <ul>
+                            {% for contact in contacts|dict_key:revent.id %}
+                                <li><a href="{{ contact.0 }}">{{ contact.1 }}</a></li>
+                            {% endfor %}
+                        </ul>
+                        <div style='text-align:center; vertical-align:bottom; color:#000080'><br/><a href="{% url 'tribe:revent-detail' revent.id %}">[Edit]</a></div>
+                    </td>
+                </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        <p>No Revents are available yet.</p>
+    {% endif %}
+{% endblock %}
+
