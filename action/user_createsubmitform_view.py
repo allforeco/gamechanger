@@ -426,7 +426,8 @@ class USGformgathering(Form):
   gathering_consent = ChoiceField(choices=_consent_options)
   gathering_type = ChoiceField(choices=Gathering._gathering_type_choices)
   gathering_country = ModelChoiceField(widget=autocomplete.ModelSelect2(url='/action/country-autocomplete/'), queryset=Country.objects.all().order_by('name'))
-  gathering_location = ModelChoiceField(widget=autocomplete.ModelSelect2(url='/action/location-incountry-filter/', forward=['gathering_country']), queryset=Location.objects.exclude(in_country=Country.Unknown()).order_by('name'))
+  ##JANL gathering_location = ModelChoiceField(widget=autocomplete.ModelSelect2(url='/action/location-incountry-filter/', forward=['gathering_country']), queryset=Location.objects.exclude(in_country=Country.Unknown()).order_by('name'))
+  gathering_location = ModelChoiceField(widget=autocomplete.ModelSelect2(url='/action/location-incountry-filter/', forward=['gathering_country']), queryset=Location.objects.order_by('name'))
   #ModelChoiceField(queryset=Location.objects.exclude(in_country=Country.Unknown()).order_by('name', 'in_country')) #
   gathering_address = CharField()
   gathering_link = CharField()

@@ -30,7 +30,7 @@ if os.environ.get('DEBUG'):
 else:
     DEBUG = False
 
-ALLOWED_HOSTS = ['www.gamechanger.eco', 'gamechanger.eco', '127.0.0.1']
+ALLOWED_HOSTS = ['www.gamechanger.eco', 'gamechanger.eco', '127.0.0.1', 'localhost']
 
 
 # Application definition
@@ -38,14 +38,15 @@ ALLOWED_HOSTS = ['www.gamechanger.eco', 'gamechanger.eco', '127.0.0.1']
 INSTALLED_APPS = [
     'action.apps.ActionConfig',
     'klapp.apps.KlappConfig',
-    'twiff2.apps.Twiff2Config',
+    'tribe.apps.TribeConfig',
+    #'twiff2.apps.Twiff2Config',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django_cron',
+    #'django_cron',
     'jquery',
     'dal', # django-autocomplete-light
     'dal_select2', # django-autocomplete-light
@@ -138,5 +139,10 @@ DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
+STATICFILES_DIRS = [
+  BASE_DIR / "static",
+  BASE_DIR / "static-django"
+]
+
 STATIC_URL = '/static/'
-STATIC_ROOT = '/var/www/gamechanger.eco/static/'
+STATIC_ROOT = '/Users/jarlix/git/gamechanger'

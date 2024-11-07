@@ -29,13 +29,17 @@ class Klapp(StreamListener):
   MASTODON_LOGIN_PASS = os.environ['MASTODON_LOGIN_PASS']
   CLIENT_ID_FILE = '.env/Klapp.secret'
 
-  KLAPP_SERVER = "http://127.0.0.1:8000"
+  KLAPP_SERVER = "https://www.gamechanger.eco"
+  SIM_KLAPP_SERVER = "http://127.0.0.1:8000"
   KLAPP_POST_PATH = "klapp/botchat"
 
   def __init__(self, sim = False):
     logging.info(f"Klapp.__init__()")
     self.sim = sim
-    self.post_path = f"{Klapp.KLAPP_SERVER}/{Klapp.KLAPP_POST_PATH}"
+    if sim:
+      self.post_path = f"{Klapp.SIM_KLAPP_SERVER}/{Klapp.KLAPP_POST_PATH}"
+    else:
+      self.post_path = f"{Klapp.KLAPP_SERVER}/{Klapp.KLAPP_POST_PATH}"
 
   def on_update(self, status):
     logging.info(f"Klapp.on_update({status})")
@@ -43,12 +47,14 @@ class Klapp(StreamListener):
       logging.info(f"Content\n{status.content}!")
 
   def on_notification(self, notification):
-    logging.info(f"Klapp.on_notification({notification})")
+    logging.debug(f"Klapp.on_notification({notification})")
     if notification.type == "follow":
       logging.info(f"Followed by {notification.account.display_name}!")
 
     elif notification.type == "mention":
-      logging.info(f"Mentioned by {notification.account.display_name}!")
+      #logging.info(f"Mentioned by {notification.account.display_name}!")
+      logging.info(f"Mentioned by {notification.account.display_name}!\n{notification.status.content}")
+      logging.info(f"{notification.account.username}")
 
       response = requests.post(self.post_path, data={
         'user_handle':notification.account.username,
@@ -159,18 +165,19 @@ class Klapp(StreamListener):
 # Main
 ############################################################
 def usage():
-  print("")
+  print("Usage: ")
 
 def main():
   logging.basicConfig(
     level=logging.INFO, 
-    format='%(asctime)s: %(message)s')
+    format='\n##### %(asctime)s: %(message)s')
   logging.info(f"Klapp main() running")
   sim = False
   try:
     opts, args = getopt.getopt(sys.argv[1:],"hds",
-      ["help", "debug", "sim"])
-  except getopt.GetoptError:
+      ["help", "debug", "sim", "logfilename"])
+  except getopt.GetoptError as ge:
+    print(f"Command line parsing failed '{ge}'")
     usage()
     sys.exit(2)
   for opt, arg in opts:
@@ -179,6 +186,8 @@ def main():
       sys.exit()
     elif opt in ("-d", "--debug"):
       logging.basicConfig(level=logging.DEBUG)
+    elif opt in ("--logfilename"):
+      logging.basicConfig(filename=arg)
     elif opt in ("-s", "--sim"):
       sim = True
       print(f"Running in local SIMULATION mode.")
@@ -186,10 +195,13 @@ def main():
       print(f"Unknown flag '{opt}', exiting")
       sys.exit(2)
   
+  logging.info(f"Klapp main() starting server")
   klapp = Klapp(sim)
+  logging.info(f"Klapp main() logging in to mastodon")
   klapp.login()
   while True:
     try:
+      logging.info(f"Klapp main() serving")
       klapp.serve()
     except Exception as ex:
       logging.error(f"Klapp.serve() exception", exc_info=ex)

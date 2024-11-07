@@ -59,13 +59,13 @@ import datetime
 '''
 class GatheringSearch(FormView):
   class GatheringSearchForm(forms.ModelForm):
-    class Meta:
-      model = Gathering
-      fields = ['gathering_type', 'location', 'start_date']
-      print(f"GSF1 ")
-      widgets = {
-        'location': autocomplete.ModelSelect2(url='/action/location-autocomplete/')
-      }
+    #class Meta:
+    #  model = Gathering
+    #  fields = ['gathering_type', 'location', 'start_date']
+    #  print(f"GSF1 ")
+    #  widgets = {
+    #    'location': autocomplete.ModelSelect2(url='/action/location-autocomplete/')
+    #  }
     def get_success_url(self):
       return reverse_lazy('action:overview', kwargs={'regid': '11111111'})
   template_name = 'action/gathering_search.html'

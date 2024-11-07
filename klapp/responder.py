@@ -15,15 +15,18 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from .models import Actor, Quote, Post, Conversation
+from .iden import IdenBot
 from html.parser import HTMLParser
 from io import StringIO
 import json, logging, random
 
 PK_SELF_ACTOR_ID = 7
 SUPPORTED_LANGUAGES = ["en", "sv"]
+TOPIC_DB = "klapp/topics/nuclear_stance_db.json"
 
 logging.basicConfig(
-  level=logging.INFO, 
+  level=logging.DEBUG, 
+  filename="klapp/logs/responder.log",
   format='%(asctime)s: %(message)s')
 logging.info(f"Responder initialized")
 
@@ -37,6 +40,8 @@ class Responder:
     self.child_commands = None
     self.message_params = {}
     self.responses = []
+    self.iden_bot = None
+    self.iden_thread = None
     logging.info(f"Responder: {self.get_user_handle()} {self.get_display_name()} {self.get_lang()} {self.get_usable_lang()}")
 
   def get_user_handle(self):
@@ -94,7 +99,7 @@ class Responder:
   def get_response_actions(self):
     self.fetch_curr_post()
     self.collect_commands()
-    self.parse_inc_message()
+    self.clean_inc_message()
     self.handle_post_settings()
     self.execute_command()
     return self.get_responses()
@@ -132,7 +137,7 @@ class Responder:
     except:
       return {}
 
-  def parse_inc_message(self):
+  def clean_inc_message(self):
     # Stolen from https://stackoverflow.com/questions/753052/strip-html-from-strings-in-python
     def strip_tags(html):
       s = MLStripper()
@@ -178,11 +183,21 @@ class Responder:
       return self.new_post_to_user(self.curr_post.pk)
     (command, arg) = parse_command(self.command_line, self.commands)
     if not command:
-      logging.warning(f'Responder.execute_command: unknown command')
+      if not self.iden_thread:
+        if not self.iden_bot:
+          self.iden_bot = IdenBot(self.get_display_name(),[TOPIC_DB])
+        self.iden_thread = self.iden_bot.start_thread()
+      logging.info(f'Responder.execute_command: relaying to iden: {arg}')
+      iden_response = self.iden_bot.stream_qa(
+        self.iden_thread, 
+        "assistant", 
+        "You must respond with a single number. Number 1 if the user talks about nuclear power. Number 2 if the user talks about forestry. Number 0 in all other situations.", 
+        arg
+      )
       return self.respond_to_user(
         self.get_user(),
-        self.get_named_post("system-error-unknown-command").body, 
-        {'commands':", ".join(list(self.commands.keys()))})
+        self.get_named_post("discuss-response").body, 
+        {'response': iden_response})
     if isinstance(self.commands[command], int):
       logging.debug(f'Responder.execute_command: new post "{command}" -> post {self.commands[command]}')
       return self.new_post_to_user(self.commands[command])
@@ -201,7 +216,14 @@ class Responder:
 
   def process_special_command(self, command, arg):
     # historia .uppdatera .visa inbox
-    if command == "zip":
+    if command == "iden":
+      logging.debug(f"iden {arg} {self.get_user()}")
+      self.respond_to_user(
+        self.get_user(),
+        self.get_named_post("discuss-response").body,
+        {'response':"<Here's my response>"})
+
+    elif command == "zip":
       logging.debug(f"zip {arg} {self.get_user()}")
       user = Actor.objects.get(pk=self.get_user().pk)
       user.zip_code = str(arg.upper())[:user._meta.get_field('zip_code').max_length]
