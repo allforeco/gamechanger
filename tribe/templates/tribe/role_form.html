@@ -1,7 +1,7 @@
 {% extends "base_generic.html" %}
 
 {% block title %}
-    <title>ReventNote Detail - Gamechanger Tribe Tracker</title>
+    <title>Role Detail - Gamechanger Tribe Tracker</title>
 {% endblock %}
 
 {% block content %}
@@ -12,14 +12,14 @@
     {# The return to the revent list link #}
     <p><a href="{% url 'tribe:revent' %}">Back to the overview</a></p>
 
-    {# The return to the reventnote list link #}
-    <p><a href="{% url 'tribe:reventnote-list' revent.pk %}">Back to the notes list</a></p>
+    {# The return to the role list link #}
+    <p><a href="{% url 'tribe:role-list' revent.pk %}">Back to the roles list</a></p>
 
     {# Revent context info #}
-    <h1>Notes for {{ revent.name }}</h1>
+    <h1>Roles for {{ revent.name }}</h1>
 
     {# Create reventnote button #}
-    <p><a href="{% url 'tribe:reventnote-add' revent.pk %}">+ Add new Note...</a></p>
+    <p><a href="{% url 'tribe:role-add' revent.pk %}">+ Add new Role...</a></p>
 
     {# The update form #}
     <form method="post">
@@ -27,8 +27,8 @@
         {{ form.as_p }}
         <input type="submit" value="Update">
     </form>
-    {% if reventnote.pk %}
-        <form action="{% url 'tribe:reventnote-delete' reventnote.pk %}" method="post">
+    {% if role.pk %}
+        <form action="{% url 'tribe:role-delete' role.pk %}" method="post">
             {% csrf_token %}
             <input type="submit" value="Delete...">
         </form>

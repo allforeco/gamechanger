@@ -49,27 +49,6 @@ def index(request):
     }
     return HttpResponse(template.render(context, request))
 
-
-class ReventDetailForm(forms.Form):
-    name = forms.CharField()
-    message = forms.CharField(widget=forms.Textarea)
-
-    def send_email(self):
-        # send email using the self.cleaned_data dictionary
-        pass
-
-class ReventDetailView(FormView):
-    template_name = "tribe/revent_form.html"
-    model = Revent
-    form_class = ReventDetailForm
-    success_url = "/thanks/"
-
-    def form_valid(self, form):
-        # This method is called when valid form data has been POSTed.
-        # It should return an HttpResponse.
-        #form.send_email()
-        return super().form_valid(form)
-
 class ReventCreateView(CreateView):
     model = Revent
     fields = ["name"]
@@ -96,13 +75,21 @@ class ReventNoteListView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["notes"] = ReventNote.objects.filter(in_revent=self.kwargs['pk'])
-        context["revent_pk"] = self.kwargs['pk']
+        context["reventnote_list"] = ReventNote.objects.filter(in_revent=self.kwargs['pk'])
+        logger.info(f'#### ReventNoteListView {len(context["reventnote_list"])} items')
+        context["revent"] = Revent.objects.get(pk=self.kwargs['pk'])
+        logger.info(f'#### ReventNoteListView revent {context["revent"]}')
         return context
 
 class ReventNoteCreateView(CreateView):
     model = ReventNote
     fields = ["text"]
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["revent"] = Revent.objects.get(pk=self.kwargs['pk'])
+        logger.info(f'#### ReventNoteCreateView revent {context["revent"]}')
+        return context
 
     def form_valid(self, form):
         logger.info('#### form_valid')
@@ -120,6 +107,12 @@ class ReventNoteUpdateView(UpdateView):
     model = ReventNote
     fields = ["text"]
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["revent"] = Revent.objects.get(pk=self.object.in_revent.pk)
+        logger.info(f'#### ReventNoteUpdateView revent {context["revent"]}')
+        return context
+
     def get_success_url(self):
         return reverse("tribe:reventnote-list", kwargs={"pk":self.object.in_revent.pk})
 
@@ -127,4 +120,52 @@ class ReventNoteDeleteView(DeleteView):
     model = ReventNote
 
     def get_success_url(self):
-        return None#reverse("tribe:reventnote-list", kwargs={"pk":self.object.in_revent.pk})
+        return reverse("tribe:reventnote-list", kwargs={"pk":self.object.in_revent.pk})
+
+class RoleListView(ListView):
+    model = Role
+    paginate_by = 10  # if pagination is desired
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["role_list"] = Role.objects.filter(in_revent=self.kwargs['pk'])#.order_by("-seq")
+        context["revent"] = Revent.objects.get(pk=self.kwargs['pk'])
+        return context
+
+class RoleCreateView(CreateView):
+    model = Role
+    fields = ["role_type", "seq", "person"]
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["revent"] = Revent.objects.get(pk=self.kwargs['pk'])
+        return context
+
+    def form_valid(self, form):
+        logger.info('#### RoleCreate form_valid')
+        logger.info(f'#### self {self}')
+        logger.info(f'#### self dict {self.__dict__}')
+        logger.info(f'#### self pk {self.kwargs.get("pk")}')
+        form.instance.in_revent = Revent.objects.filter(pk=self.kwargs.get("pk")).first()
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse("tribe:role-list", kwargs={"pk":self.object.in_revent.pk})
+
+class RoleUpdateView(UpdateView):
+    model = Role
+    fields = ["role_type", "seq", "person"]
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["revent"] = Revent.objects.get(pk=self.object.in_revent.pk)
+        return context
+
+    def get_success_url(self):
+        return reverse("tribe:role-list", kwargs={"pk":self.object.in_revent.pk})
+
+class RoleDeleteView(DeleteView):
+    model = Role
+
+    def get_success_url(self):
+        return reverse("tribe:role-list", kwargs={"pk":self.object.in_revent.pk})

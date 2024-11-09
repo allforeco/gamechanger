@@ -128,6 +128,9 @@ class Role(models.Model):
     creation_date = models.DateTimeField(auto_now_add=True, editable=False)
     creator = models.ForeignKey(Person, related_name="assigner_of_role", on_delete=models.SET_NULL, null=True, editable=False)
 
+    class Meta:
+        ordering = ["-seq"]
+
     def get_role_name(self):
         lookup = {key:s for (key,s) in Role._role_type_choices}
         return lookup.get(self.role_type,self.role_type)
@@ -191,6 +194,9 @@ class ReventNote(models.Model):
     date = models.DateTimeField(auto_now_add=True, editable=True)
     creation_date = models.DateTimeField(auto_now_add=True, editable=False)
     creator = models.ForeignKey(Person, related_name="source_of_note", on_delete=models.SET_NULL, null=True, editable=False)
+
+    class Meta:
+        ordering = ["-date"]
 
     def __str__(self):
         return f'[Note for {self.in_revent} "{self.text[:10]}"]'

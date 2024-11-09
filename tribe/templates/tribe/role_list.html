@@ -1,7 +1,7 @@
 {% extends "base_generic.html" %}
 
 {% block title %}
-    <title>Revent Note List - Gamechanger Tribe Tracker</title>
+    <title>Role List - Gamechanger Tribe Tracker</title>
 {% endblock %}
 
 {% block content %}
@@ -13,17 +13,17 @@
     <p><a href="{% url 'tribe:revent' %}">Back to the overview</a></p>
 
     {# Revent context info #}
-    <h1>Notes for {{ revent.name }}</h1>
+    <h1>Roles for {{ revent.name }}</h1>
 
-    {# Create reventnote link #}
-    <p><a href="{% url 'tribe:reventnote-add' revent.pk %}">+ Add new Note...</a></p>
+    {# Create role link #}
+    <p><a href="{% url 'tribe:role-add' revent.pk %}">+ Add new Role...</a></p>
 
-    {# The list of notes #}
+    {# The list of roles #}
     <ul>
-        {% for note in reventnote_list %}
-            <li><a href="{% url 'tribe:reventnote-update' note.pk %}">{{ note.creation_date|date:'Y-m-d' }}</a>: {{ note.text }}</li>
+        {% for role in role_list %}
+            <li><a href="{% url 'tribe:role-update' role.pk %}">{{ role.role_type }}</a>: {{ role.person }}</li>
         {% empty %}
-            <li>No notes yet.</li>
+            <li>No roles yet.</li>
         {% endfor %}        
     </ul>
 {% endblock %}
