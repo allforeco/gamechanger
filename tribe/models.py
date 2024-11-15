@@ -140,38 +140,23 @@ class Role(models.Model):
 
 
 class ContactInfo(models.Model):
-    OTHER="OTHR"
-    EMAIL="MAIL"
-    PHONE="PHON"
-    WEBSITE="WEBS"
-    YOUTUBE="YOUT"
-    TWITTER="TWTR"
-    FACEBOOK="FCBK"
-    INSTAGRAM="INSG"
-    LINKEDIN="LNIN"
-    VIMEO="VIME"
-    WHATSAPP="WHAP"
-    TELEGRAM="TLGM"
-    DISCORD="DCRD"
-    SLACK="SLAK"
-    _contact_type_choices =[
-        (OTHER, "Other Contact Address"),
-        (EMAIL, "Email Address"),
-        (PHONE, "Phone Number"),
-        (WEBSITE, "Organization Website URL"),
-        (YOUTUBE, "Youtube URL"),
-        (TWITTER, "X (formerly twitter) URL"),
-        (FACEBOOK, "Facebook URL"),
-        (INSTAGRAM, "Instagram URL"),
-        (LINKEDIN, "LinkedIn URL"), #!!!
-        (VIMEO, "Vimeo URL"), #!!!
-        (WHATSAPP, "WhatsApp group URL"), #!!!
-        (TELEGRAM, "Telegram group URL"), #!!!
-        (DISCORD, "Discord group URL"), #!!!
-        (SLACK, "Slack group URL"), #!!!
-    ]
+    class Medium(models.TextChoices):
+        OTHER     = "OTHR", "Other Contact Address"
+        EMAIL     = "MAIL", "Email Address"
+        PHONE     = "PHON", "Phone Number"
+        WEBSITE   = "WEBS", "Organization Website URL"
+        YOUTUBE   = "YOUT", "Youtube URL"
+        TWITTER   = "TWTR", "X (formerly twitter) URL"
+        FACEBOOK  = "FCBK", "Facebook URL"
+        INSTAGRAM = "INSG", "Instagram URL"
+        LINKEDIN  = "LNIN", "LinkedIn URL"
+        VIMEO     = "VIME", "Vimeo URL"
+        WHATSAPP  = "WHAP", "WhatsApp group URL"
+        TELEGRAM  = "TLGM", "Telegram group URL"
+        DISCORD   = "DCRD", "Discord group URL"
+        SLACK     = "SLAK", "Slack group URL"
 
-    info_type = models.CharField(max_length=4, choices=_contact_type_choices)
+    info_type = models.CharField(max_length=4, choices=Medium)
     seq = models.FloatField(blank=True, null=True)
     info = models.CharField(max_length=1000, null=True, blank=True)
     in_revent = models.ForeignKey(Revent, on_delete=models.CASCADE, blank=True, null=True)
@@ -179,13 +164,8 @@ class ContactInfo(models.Model):
     creation_date = models.DateTimeField(auto_now_add=True, editable=False)
     creator = models.ForeignKey(Person, related_name="source_of_info", on_delete=models.SET_NULL, null=True, editable=False)
 
-    def get_contact_type_name(self):
-        lookup = {key:s for (key,s) in ContactInfo._contact_type_choices}
-        return lookup.get(self.info_type,self.info_type)
-
     def __str__(self):
-        lookup = {key:s for (key,s) in ContactInfo._contact_type_choices}
-        return f'[Contact {self.person if self.person else self.in_revent} {lookup.get(self.info_type,self.info_type)}]'
+        return f'[Contact {self.person if self.person else self.in_revent} {self.get_info_type_display()}]'
 
 
 class ReventNote(models.Model):

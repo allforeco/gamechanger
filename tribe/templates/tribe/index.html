@@ -52,7 +52,11 @@
                     <td> {# Contact #}
                         <ul>
                             {% for contact in contacts|dict_key:revent.id %}
-                                <li><a href="{{ contact.2 }}">{{ contact.1 }}</a></li>
+                                {% if contact.3 %}
+                                    <li><a href="{{ contact.2 }}">{{ contact.1 }}</a></li>
+                                {% else %}
+                                    <li>{{ contact.1 }}: {{ contact.2 }}</a></li>
+                                {% endif %}
                             {% endfor %}
                         </ul>
                         <div style='text-align:center; vertical-align:bottom; color:#000080'><br/><a href="{% url 'tribe:contactinfo-list' revent.id %}">[Edit]</a></div>

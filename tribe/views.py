@@ -39,8 +39,9 @@ def get_roles_list(rev):
 def get_contact_info_list(rev):
     return [(
         contact.pk,
-        contact.get_contact_type_name(),
+        contact.get_info_type_display(),
         contact.info, 
+        contact.info.lower().startswith('http'),
     ) for contact in ContactInfo.objects.filter(in_revent=rev).order_by("-seq")]
 
 def index(request):
