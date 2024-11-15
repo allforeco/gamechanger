@@ -27,8 +27,8 @@
         {{ form.as_p }}
         <input type="submit" value="Update">
     </form>
-    {% if role.pk %}
-        <form action="{% url 'tribe:role-delete' role.pk %}" method="post">
+    {% if role.0 %}
+        <form action="{% url 'tribe:role-delete' role.0 %}" method="post">
             {% csrf_token %}
             <input type="submit" value="Delete...">
         </form>

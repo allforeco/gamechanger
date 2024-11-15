@@ -31,7 +31,7 @@
                     <td> {# Notes #}
                         <ul>
                             {% for note in notes|dict_key:revent.id %}
-                                <li>{{ note.0|date:'Y-m-d' }}: {{ note.1 }}</li>
+                                <li>{{ note.1|date:'Y-m-d' }}: {{ note.2 }}</li>
                             {% endfor %}
                         </ul>
                         <div style='text-align:center; vertical-align:bottom; color:#000080'><br/><a href="{% url 'tribe:reventnote-list' revent.id %}">[Edit]</a></div>
@@ -39,7 +39,7 @@
                     <td> {# Roles #}
                         <ul>
                             {% for role in roles|dict_key:revent.id %}
-                                <li>{{ role.0 }}: <a href="% url 'tribe:role-list' revent.pk %">{{ role.2 }}</a></li>  
+                                <li>{{ role.1 }}: <a href="% url 'tribe:role-list' revent.pk %">{{ role.3 }}</a></li>  
                             {% endfor %}
                         </ul>
                         <div style='text-align:center; vertical-align:bottom; color:#000080'><br/><a href="{% url 'tribe:role-list' revent.id %}">[Edit]</a></div>
@@ -52,7 +52,7 @@
                     <td> {# Contact #}
                         <ul>
                             {% for contact in contacts|dict_key:revent.id %}
-                                <li><a href="{{ contact.0 }}">{{ contact.1 }}</a></li>
+                                <li><a href="{{ contact.2 }}">{{ contact.1 }}</a></li>
                             {% endfor %}
                         </ul>
                         <div style='text-align:center; vertical-align:bottom; color:#000080'><br/><a href="{% url 'tribe:contactinfo-list' revent.id %}">[Edit]</a></div>

@@ -21,7 +21,7 @@
     {# The list of contacts #}
     <ul>
         {% for cinfo in contactinfo_list %}
-            <li><a href="{% url 'tribe:contactinfo-update' cinfo.pk %}">{{ cinfo.info_type }}</a>: {{ cinfo.info }}</li>
+            <li><a href="{% url 'tribe:contactinfo-update' cinfo.0 %}">{{ cinfo.1 }}</a>: {{ cinfo.2 }}</li>
         {% empty %}
             <li>No contact-infos yet.</li>
         {% endfor %}        

@@ -21,7 +21,7 @@
     {# The list of roles #}
     <ul>
         {% for role in role_list %}
-            <li><a href="{% url 'tribe:role-update' role.pk %}">{{ role.role_type }}</a>: {{ role.person }}</li>
+            <li><a href="{% url 'tribe:role-update' role.0 %}">{{ role.1 }}</a>: {{ role.3 }}</li>
         {% empty %}
             <li>No roles yet.</li>
         {% endfor %}        

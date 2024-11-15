@@ -21,6 +21,28 @@ logger.info('#### Started')
 
 # Create your views here.
 
+def get_notes_list(rev):
+    return [(
+        note.pk,
+        note.creation_date,
+        note.text, 
+    ) for note in ReventNote.objects.filter(in_revent=rev).order_by("-date")]
+
+def get_roles_list(rev):
+    return [(
+        role.pk,
+        role.get_role_name(), 
+        role.person.id,
+        role.person.callsign,
+    ) for role in Role.objects.filter(in_revent=rev).order_by("-seq")]
+
+def get_contact_info_list(rev):
+    return [(
+        contact.pk,
+        contact.get_contact_type_name(),
+        contact.info, 
+    ) for contact in ContactInfo.objects.filter(in_revent=rev).order_by("-seq")]
+
 def index(request):
     revents = Revent.objects.order_by("-creation_date")
     template = loader.get_template("tribe/index.html")
@@ -28,19 +50,9 @@ def index(request):
     roles = {}
     contacts = {}
     for rev in revents:
-        notes[rev.id] = [(
-            note.creation_date,
-            note.text, 
-            ) for note in ReventNote.objects.filter(in_revent=rev).order_by("-date")]
-        roles[rev.id] = [(
-            role.get_role_name(), 
-            role.person.id,
-            role.person.callsign,
-            ) for role in Role.objects.filter(in_revent=rev).order_by("-seq")]
-        contacts[rev.id] = [(
-            contact.info, 
-            contact.get_contact_type_name(),
-            ) for contact in ContactInfo.objects.filter(in_revent=rev).order_by("-seq")]
+        notes[rev.id] = get_notes_list(rev)
+        roles[rev.id] = get_roles_list(rev)
+        contacts[rev.id] = get_contact_info_list(rev.id)
     context = {
         "revents": revents,
         "notes": notes,
@@ -128,7 +140,7 @@ class RoleListView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["role_list"] = Role.objects.filter(in_revent=self.kwargs['pk'])#.order_by("-seq")
+        context["role_list"] = get_roles_list(self.kwargs['pk'])
         context["revent"] = Revent.objects.get(pk=self.kwargs['pk'])
         return context
 
@@ -176,7 +188,7 @@ class ContactInfoListView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["contactinfo_list"] = ContactInfo.objects.filter(in_revent=self.kwargs['pk']).order_by("-seq")
+        context["contactinfo_list"] = get_contact_info_list(self.kwargs['pk'])
         context["revent"] = Revent.objects.get(pk=self.kwargs['pk'])
         return context
 
