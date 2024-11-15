@@ -1,4 +1,4 @@
-{% extends "base_generic.html" %}
+{% extends "tribe/base_tribe.html" %}
 
 {% block title %}
     <title>Revent Overview - Gamechanger Tribe Tracker</title>
@@ -55,7 +55,7 @@
                                 <li><a href="{{ contact.0 }}">{{ contact.1 }}</a></li>
                             {% endfor %}
                         </ul>
-                        <div style='text-align:center; vertical-align:bottom; color:#000080'><br/><a href="{% url 'tribe:revent-update' revent.id %}">[Edit]</a></div>
+                        <div style='text-align:center; vertical-align:bottom; color:#000080'><br/><a href="{% url 'tribe:contactinfo-list' revent.id %}">[Edit]</a></div>
                     </td>
                 </tr>
             {% endfor %}

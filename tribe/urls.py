@@ -18,5 +18,9 @@ urlpatterns = [
     path("revent/<int:pk>/role/add/", views.RoleCreateView.as_view(), name="role-add"),
     path("revent/role/<int:pk>", views.RoleUpdateView.as_view(), name="role-update"),
     path("revent/role/<int:pk>/delete/", views.RoleDeleteView.as_view(), name="role-delete"),
+    path("revent/<int:pk>/contacts/", views.ContactInfoListView.as_view(), name="contactinfo-list"),
+    path("revent/<int:pk>/contact/add/", views.ContactInfoCreateView.as_view(), name="contactinfo-add"),
+    path("revent/contact/<int:pk>", views.ContactInfoUpdateView.as_view(), name="contactinfo-update"),
+    path("revent/contact/<int:pk>/delete/", views.ContactInfoDeleteView.as_view(), name="contactinfo-delete"),
     #path('person/<int:reventid>/', views.Person.as_view(), name='person'),
 ]

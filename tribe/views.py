@@ -169,3 +169,47 @@ class RoleDeleteView(DeleteView):
 
     def get_success_url(self):
         return reverse("tribe:role-list", kwargs={"pk":self.object.in_revent.pk})
+
+class ContactInfoListView(ListView):
+    model = ContactInfo
+    paginate_by = 10  # if pagination is desired
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["contactinfo_list"] = ContactInfo.objects.filter(in_revent=self.kwargs['pk']).order_by("-seq")
+        context["revent"] = Revent.objects.get(pk=self.kwargs['pk'])
+        return context
+
+class ContactInfoCreateView(CreateView):
+    model = ContactInfo
+    fields = ["info_type", "seq", "info"]
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["revent"] = Revent.objects.get(pk=self.kwargs['pk'])
+        return context
+
+    def form_valid(self, form):
+        form.instance.in_revent = Revent.objects.filter(pk=self.kwargs.get("pk")).first()
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse("tribe:contactinfo-list", kwargs={"pk":self.object.in_revent.pk})
+
+class ContactInfoUpdateView(UpdateView):
+    model = ContactInfo
+    fields = ["info_type", "seq", "info"]
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["revent"] = Revent.objects.get(pk=self.object.in_revent.pk)
+        return context
+
+    def get_success_url(self):
+        return reverse("tribe:contactinfo-list", kwargs={"pk":self.object.in_revent.pk})
+
+class ContactInfoDeleteView(DeleteView):
+    model = ContactInfo
+
+    def get_success_url(self):
+        return reverse("tribe:contactinfo-list", kwargs={"pk":self.object.in_revent.pk})

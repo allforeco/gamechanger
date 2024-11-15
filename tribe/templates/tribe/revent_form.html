@@ -1,4 +1,4 @@
-{% extends "base_generic.html" %}
+{% extends "tribe/base_tribe.html" %}
 
 {% block title %}
     <title>Revent Detail - Gamechanger Tribe Tracker</title>
@@ -21,7 +21,7 @@
         <input type="submit" value="Update">
     </form>
     {% if revent.pk %}
-        <form action="{% url 'tribe:revent-delete' self.pk %}" method="post">{% csrf_token %}
+        <form action="{% url 'tribe:revent-delete' revent.pk %}" method="post">{% csrf_token %}
             <input type="submit" value="Delete...">
         </form>
     {% endif %}

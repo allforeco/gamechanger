@@ -1,0 +1,29 @@
+{% extends "tribe/base_tribe.html" %}
+
+{% block title %}
+    <title>Contact Info List - Gamechanger Tribe Tracker</title>
+{% endblock %}
+
+{% block content %}
+    {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+    {% if user.is_authenticated or logginbypass %}
+    {% endif %}
+
+    {# The return to the revent list link #}
+    <p><a href="{% url 'tribe:revent' %}">Back to the overview</a></p>
+
+    {# Revent context info #}
+    <h1>Contacts Infos for {{ revent.name }}</h1>
+
+    {# Create contact link #}
+    <p><a href="{% url 'tribe:contactinfo-add' revent.pk %}">+ Add new Contact Info...</a></p>
+
+    {# The list of contacts #}
+    <ul>
+        {% for cinfo in contactinfo_list %}
+            <li><a href="{% url 'tribe:contactinfo-update' cinfo.pk %}">{{ cinfo.info_type }}</a>: {{ cinfo.info }}</li>
+        {% empty %}
+            <li>No contact-infos yet.</li>
+        {% endfor %}        
+    </ul>
+{% endblock %}
