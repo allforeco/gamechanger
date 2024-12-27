@@ -209,7 +209,7 @@ def update_reg(regs, import_log = None):
     print(f"Action spooler update_reg log taken on {datetime.datetime.ctime(datetime.datetime.utcnow())}", file=last_import_log)
     print(f"ULOG Writing update_reg log to {last_import_log_name}")
 
-    headers = regs[0] # RID,RUPD,GLOC,GLAT,GLON,CORG2,EDATE,EENDDATE,REVNUM,REVPROOF,RSOURCE,ETYPE,EFREQ,ETIME,ELINK
+    headers = regs[0] # RID,RUPD,GLOC,GLAT,GLON,CORG2,EDATE,EENDDATE,REVNUM,REVPROOF,RSOURCE,ETYPE,EFREQ,ETIME,ELINK,SSTEWARD,SGUIDE
     print(f"URHD Read headers {headers}")
     line_count = len(regs)
     counter = {'Completed':0, 'Country':0, 'State':0, 'Region':0, 'Place':0,
@@ -225,17 +225,20 @@ def update_reg(regs, import_log = None):
       rec = {}
       for col, val in enumerate(line):
         rec[headers[col]] = val
-      regid = rec.get('RID', None)
-      edate = rec.get('EDATE', None)
-      eenddate = rec.get('EENDDATE', None)
+      regid = rec.get('RID', "")
+      edate = rec.get('EDATE', "")
+      eenddate = rec.get('EENDDATE', "")
       etype_raw = rec.get('ETYPE', 'Strike')
       etype = Gathering.get_gathering_type_code(etype_raw)
-      eaddress = rec.get('ELOCATION', None)[:Gathering._meta.get_field('address').max_length]
-      etime = rec.get('ETIME', None)[:Gathering._meta.get_field('time').max_length]
-      cname = rec.get('CNAME', None)[:Gathering._meta.get_field('contact_name').max_length]
-      cemail = rec.get('CEMAIL', None)[:Gathering._meta.get_field('contact_email').max_length]
-      cphone = rec.get('CPHONE', None)[:Gathering._meta.get_field('contact_phone').max_length]
-      cnotes = rec.get('CNOTES', None)[:Gathering._meta.get_field('contact_notes').max_length]
+      eaddress = rec.get('ELOCATION', "")[:Gathering._meta.get_field('address').max_length]
+      etime = rec.get('ETIME', "")[:Gathering._meta.get_field('time').max_length]
+      cname = rec.get('CNAME', "")[:Gathering._meta.get_field('contact_name').max_length]
+      cemail = rec.get('CEMAIL', "")[:Gathering._meta.get_field('contact_email').max_length]
+      cphone = rec.get('CPHONE', "")[:Gathering._meta.get_field('contact_phone').max_length]
+      cnotes = rec.get('CNOTES', "")[:Gathering._meta.get_field('contact_notes').max_length]
+      event_link_url = rec.get('ELINK', "")[:Gathering._meta.get_field('event_link_url').max_length]
+      steward = rec.get('SSTEWARD', "")[:Gathering._meta.get_field('steward').max_length]
+      guide = rec.get('SGUIDE', "")[:Gathering._meta.get_field('guide').max_length]
 
       if not regid or not edate:
         print(f"{lineno} missing regid {regid} or edate {edate}", file=last_import_log)
@@ -340,7 +343,10 @@ def update_reg(regs, import_log = None):
             contact_name=cname,
             contact_email=cemail,
             contact_phone=cphone,
-            contact_notes=cnotes)
+            contact_notes=cnotes,
+            event_link_url=event_link_url,
+            steward=None,
+            guide=None)
           gathering.save() 
           if organization:
             gathering.organizations.add(organization)
@@ -368,6 +374,9 @@ def update_reg(regs, import_log = None):
             dirty = True
           if gathering.contact_notes != cnotes:
             gathering.contact_notes = cnotes
+            dirty = True
+          if gathering.event_link_url != event_link_url:
+            gathering.event_link_url = event_link_url
             dirty = True
           if dirty:
             print(f"{lineno} {regid} updated gathering {gathering.gathering_type} {gathering.end_date}", file=last_import_log)

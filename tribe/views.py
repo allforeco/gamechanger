@@ -5,13 +5,14 @@ from django.http import HttpResponse
 #from django.forms import ModelForm
 from django.views.generic.list import ListView
 from django.views.generic.edit import FormView, CreateView, UpdateView, DeleteView
+from django.views.generic.detail import DetailView
 from django.urls import reverse, reverse_lazy
 #from django.core.exceptions import ValidationError
 #from django.contrib.auth.decorators import login_required, permission_required
 from django import forms
 #from django.db.models import Sum
 #from django.contrib.auth.models import User
-from .models import Revent, Role, ContactInfo, ReventNote
+from .models import Revent, Location, Role, ContactInfo, ReventNote
 import logging
 
 logger = logging.getLogger(__name__)
@@ -182,6 +183,88 @@ class RoleDeleteView(DeleteView):
 
     def get_success_url(self):
         return reverse("tribe:role-list", kwargs={"pk":self.object.in_revent.pk})
+
+class ReventLocationView(UpdateView):
+    model = Revent
+    fields = ["in_location"]
+    template_name = "tribe/location_view.html"
+
+    def get_success_url(self):
+        return reverse("tribe:revent")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["revent"] = Revent.objects.get(pk=self.kwargs['pk'])
+        logger.info(f'#### Location Revent {self.kwargs["pk"]}')
+        if context["revent"].in_location:
+            loc = Location.objects.filter(pk=context["revent"].in_location.pk)
+            context["location"] = loc.first() if loc else None
+            logger.info(f'#### Location {context["location"]}')
+        return context
+
+class ReventCountryView(UpdateView):
+    model = Revent
+    fields = ["in_country"]
+    template_name = "tribe/country_view.html"
+
+    def get_success_url(self):
+        return reverse("tribe:location-view", args=[self.kwargs["pk"]])
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["revent"] = Revent.objects.get(pk=self.kwargs['pk'])
+        logger.info(f'#### Location Revent {self.kwargs["pk"]}')
+        return context
+
+class ReventPlaceView(UpdateView):
+    model = Revent
+    fields = ["in_country"]
+    template_name = "tribe/country_view.html"
+
+    def get_success_url(self):
+        return reverse("tribe:location-view", args=[self.kwargs["pk"]])
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["revent"] = Revent.objects.get(pk=self.kwargs['pk'])
+        logger.info(f'#### Location Revent {self.kwargs["pk"]}')
+        context["location"] = Location.objects.get(pk=context["revent"].in_location.pk)
+        logger.info(f'#### Location pk {context["location"]}')
+        return context
+
+class LocationCreateView(CreateView):
+    model = Location
+    fields = ["name", "in_country", "in_location"]
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["revent"] = Revent.objects.get(pk=self.kwargs['pk'])
+        return context
+
+    def form_valid(self, form):
+        form.instance.in_revent = Revent.objects.filter(pk=self.kwargs.get("pk")).first()
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse("tribe:location-view", kwargs={"pk":self.object.in_revent.pk})
+
+class LocationUpdateView(UpdateView):
+    model = Location
+    fields = ["name", "in_country", "in_location"]
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["revent"] = Revent.objects.get(pk=self.object.in_revent.pk)
+        return context
+
+    def get_success_url(self):
+        return reverse("tribe:location-view", kwargs={"pk":self.object.in_revent.pk})
+
+class LocationDeleteView(DeleteView):
+    model = Location
+
+    def get_success_url(self):
+        return reverse("tribe:location-view", kwargs={"pk":self.object.in_revent.pk})
 
 class ContactInfoListView(ListView):
     model = ContactInfo

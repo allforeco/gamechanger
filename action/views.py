@@ -455,25 +455,32 @@ def download_post(request):
       for gupdate in gupdates:
         gupdate_belong = None
         try:
-          bels = Gathering_Belong.objects.filter(regid=gupdate.gathering.regid)
-          bel = bels.first()
-          gupdate_belong = bel.gathering
-        except:
-          pass
-        if not gupdate_belong:
-          print(f"GUD8 missing belong for {gupdate.gathering.regid}")
-          gupdate_belong = gupdate.gathering
-        if gupdate.gathering.regid != gupdate_belong.regid:
-          print(f"GUD9 belong {gupdate.gathering.regid} => {gupdate_belong}")
-        content.writerow(['Witness', 
-          gupdate_belong,
-          gupdate.date, 
-          gupdate.participants,
-          gupdate.proof_url, 
-          gupdate.creation_time,
-          gupdate.updated,
-          gupdate.organization.name if gupdate.organization else '',])
-
+          try:
+            bels = Gathering_Belong.objects.filter(regid=gupdate.gathering.regid)
+            bel = bels.first()
+            gupdate_belong = bel.gathering
+          except:
+            pass
+          if not gupdate_belong:
+            print(f"GUD8 missing belong for {gupdate.gathering.regid}")
+            gupdate_belong = gupdate.gathering
+          if gupdate.gathering.regid != gupdate_belong.regid:
+            print(f"GUD9 belong {gupdate.gathering.regid} => {gupdate_belong}")
+          content.writerow(['Witness', 
+            gupdate_belong,
+            gupdate.date, 
+            gupdate.participants,
+            gupdate.proof_url, 
+            gupdate.creation_time,
+            gupdate.updated,
+            gupdate.organization.name if gupdate.organization else '',
+            gupdate.gathering.event_link_url,
+            gupdate.gathering.steward,
+            gupdate.gathering.guide,
+          ])
+        except Exception as e:
+          print(f"GUDX {e}")
+      
           #rtime ?|creattime
           #rsource |'Gamechanger'
           #CMAIL |gathering.contact_mail / defmail

@@ -43,7 +43,13 @@ def organization_view(request, orgid):
   gathering_list = Gathering.objects.filter(organizations__in=[organization])
   gathering_witness_list = Gathering_Witness.objects.filter(organization=organization).order_by('-date')[:100]
 
-  event_head = Gathering.datalist_template(date=True, location=True, gtype=False, activity_type=True, participants=True, recorded_link=True, map_link=True, overview=True, recorded=True, record=True, model=True)
+  event_head = Gathering.datalist_template(
+    date=True, location=True, gtype=False, 
+    activity_type=True, participants=True, 
+    event_link=True, recorded_link=True, 
+    map_link=True, overview=True, 
+    recorded=True, record=True, model=True,
+    steward=True)
   event_list = []
 
   for gw in gathering_witness_list:

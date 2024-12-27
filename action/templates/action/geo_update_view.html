@@ -111,6 +111,9 @@
               {% else %}
               <li>Date: <span>{{gathering.start_date|date:'Y-m-d'}}</li>
               {% endif %}
+              {% if gathering.contact_email %}
+              <li>Contact: <span><a href="mailto:{{gathering.contact_email}}">✉️</a></li>
+              {% endif %}
             </ul>
           </td>
         </tr>
@@ -138,6 +141,17 @@
           <th>Media Link URL</th>
           <td>
             <input type="url" name="proof_url" value="{{witness.proof_url}}" placeholder="(optional) Share a photo collection from the event!" size="60"/>
+          </td>
+        </tr>
+        <tr>
+          <th>Steward</th>
+          <td>
+            <select name="steward"  placeholder="(optional) Name of the steward fof this event">
+              <option value="">None</option>
+              {% for stw in stewards %}
+                <option value="{{stw.pk}}" {% if stw.pk == gathering.steward.pk %}selected{% endif %}>{{stw.alias}}</option>
+              {% endfor %}
+            </select>
           </td>
         </tr>
         <tr>

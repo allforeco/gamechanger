@@ -1,0 +1,24 @@
+{% extends "tribe/base_tribe.html" %}
+
+{% block title %}
+    <title>Revent Country View - Gamechanger Tribe Tracker</title>
+{% endblock %}
+
+{% block content %}
+    {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+    {% if user.is_authenticated or logginbypass %}
+    {% endif %}
+
+    {# The return to the revent list link #}
+    <p><a href="{% url 'tribe:revent' %}">Back to the overview</a></p>
+
+    {# Revent context info #}
+    <h1>Country for {{ revent.name }}</h1>
+
+    {# The update form #}
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <input type="submit" value="Update">
+    </form>
+{% endblock %}

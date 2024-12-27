@@ -51,50 +51,62 @@
           {% endif %}
 
           {% if event_head.overview %}
-            <th calss="th_overview">
+            <th class="th_overview">
               Overview
             </th>
           {% endif %}
 
           {% if event_head.gtype %}
-            <th calss="th_gtype">
+            <th class="th_gtype">
               Action Type
             </th>
           {% endif %}
 
           {% if event_head.location %}
-            <th calss="th_location">
+            <th class="th_location">
               {% if event_head.country %}Country; {% endif %}
               Location
             </th>
           {% endif %}
 
           {% if event_head.map_link %}
-            <th calss="th_map_link">
+            <th class="th_map_link">
               Map
             </th>
           {% endif %}
 
           {% if event_head.participants %}
-            <th calss="th_participants">
+            <th class="th_participants">
               Participants
             </th>
           {% endif %}
 
+          {% if event_head.event_link %}
+            <th class="th_event_link">
+              Event Link
+            </th>
+          {% endif %}
+
           {% if event_head.recorded_link %}
-            <th calss="th_recorded_link">
+            <th class="th_recorded_link">
               Media Record Link
             </th>
           {% endif %}
 
           {% if event_head.orgs %}
-            <th calss="th_organization">
+            <th class="th_organization">
               Organization
             </th>
           {% endif %}
 
+          {% if event_head.steward %}
+            <th class="th_steward">
+              Steward
+            </th>
+          {% endif %}
+
           {% if event_head.note_address or event_head.note_time %}
-            <th calss="th_gtype">
+            <th class="th_gtype">
               Notes
             </th>
           {% endif %}
@@ -133,7 +145,7 @@
           {% endif %}
 
           {% if event_head.overview %}
-            <td calss="td_overview">
+            <td class="td_overview">
               {% if event.overview %}
                 <a href="{% url 'action:gathering_view' event.overview %}"><img alt="Link" src="/static/overview.png"/></a>
                 <!--{% if event.record %} (Record) {% endif %}-->
@@ -143,7 +155,7 @@
           {% endif %}
 
           {% if event_head.gtype %}
-            <td calss="td_gtype">
+            <td class="td_gtype">
               {% if event.gtype %}
                 {{event.gtype}}
               {% endif %}
@@ -151,7 +163,7 @@
           {% endif %}
 
           {% if event_head.location %}
-            <td calss="td_location">
+            <td class="td_location">
               {% if event_head.country %}
                   <a href={% url 'action:geo_view' event.country.id %}>{{event.country}}</a>{% if event.location %}; {% endif %}
                 {% endif %}
@@ -162,7 +174,7 @@
           {% endif %}
 
           {% if event_head.map_link %}
-            <td calss="td_map_link">
+            <td class="td_map_link">
               {% if event.map_link %}
                 <a href={{event.map_link}} target="_blank"><img alt="Link" src="/static/icon_globe{% if event.location.lon < -30 %}US{% elif event.location.lon > 60 %}AU{% elif event.location.lon > -30 and event.location.lon < 60 %}EU{% endif %}.png"/></a>
               {% endif %}
@@ -170,15 +182,32 @@
           {% endif %}
 
           {% if event_head.participants %}
-            <td calss="td_participants">
+            <td class="td_participants">
               {% if event.participants %}
                 {{event.participants}}
               {% endif %}
             </td>
           {% endif %}
 
+          {% if event_head.event_link %}
+            <td class="td_recorded_link">
+              {% if event.event_link %}
+                <a href={{event.event_link}}>
+                  <img alt="Link" 
+                    {% if "facebook.com" in event.event_link or "scontent" in event.recorded_link %}src="/static/icon_fb30.png"
+                    {% elif "instagram.com" in event.event_link %}src="/static/icon_insta30.png"
+                    {% elif "twitter.com" in event.event_link %}src="/static/icon_twitter30.png"
+                    {% elif "youtube.com" in event.event_link %}src="/static/icon_yt30.png"
+                    {% else %}src="/static/icon_pic.png"
+                    {% endif %}
+                  />
+                </a>
+              {% endif %}
+            </td>
+          {% endif %}
+
           {% if event_head.recorded_link %}
-            <td calss="td_recorded_link">
+            <td class="td_recorded_link">
               {% if event.recorded_link %}
                 <a href={{event.recorded_link}}>
                   <img alt="Link" 
@@ -195,7 +224,7 @@
           {% endif %}
 
           {% if event_head.orgs %}
-            <td calss="td_organization">
+            <td class="td_organization">
               {% if event.orgs %}
                 <a href="{% url 'action:organization_view' event.orgs.id %}">{{event.orgs}}</a>
               {% endif %}
@@ -203,7 +232,7 @@
           {% endif %}
 
           {% if event_head.note_address or event_head.note_time %}
-            <td calss="td_gtype">
+            <td class="td_gtype">
               {% if event.note_address %}
                 {{event.note_address}}<br/>
               {% endif %}
@@ -212,6 +241,14 @@
               {% endif %}
             </td>
           {% endif %}
+
+          {% if event_head.steward %}
+          <td clqss="td_gtype">
+            {% if event.steward %}
+              {{event.steward}}
+            {% endif %}
+          </td>
+        {% endif %}
         </tr>
       {% endfor %}
     </tbody>

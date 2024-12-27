@@ -21,7 +21,7 @@ from django.urls import reverse_lazy
 #from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth.decorators import login_required, permission_required
 from django import forms
-from .models import Gathering, Gathering_Belong, Gathering_Witness, Location, Location_Belong, UserHome, Organization
+from .models import Gathering, Gathering_Belong, Gathering_Witness, Location, Location_Belong, UserHome, Organization, Steward
 from django.shortcuts import redirect
 import datetime
 
@@ -49,7 +49,12 @@ def geo_view_handler(request, locid):
       sublocation_list |= Location.objects.filter(id=sl.id)
   sublocation_list = sublocation_list.order_by('name')
 
-  event_head = Gathering.datalist_template(date=True, recorded=True,model=True,record=True, location=True, map_link=True, participants=True, overview=True, gtype=False, orgs=True, recorded_link=True)
+  event_head = Gathering.datalist_template(
+    date=True, recorded=True,model=True,record=True, 
+    location=True, map_link=True, participants=True, 
+    overview=True, gtype=False, orgs=True, 
+    event_link=True, recorded_link=True,
+    steward=True)
   event_list = []
   plan_list = []
   #GATHERING
@@ -324,6 +329,7 @@ def geo_update_view(request):
     'witness': this_witness,
     'location': this_location,
     'gathering_types': Gathering.gathering_type.field.choices,
+    'stewards': Steward.objects.all()
   }
 
   return HttpResponse(template.render(context, request))
@@ -388,6 +394,15 @@ def geo_update_post_witness(request):
   
   witness.updated = datetime.datetime.today()
   witness.save()
+
+  form_steward = request.POST.get('steward')
+  if gathering.steward != form_steward:
+    if form_steward:
+      gathering.steward = Steward.objects.get(pk=form_steward)
+    else:
+      gathering.steward = None
+    gathering.save()
+    print(f"WGSU Gathering steward updated {gathering.steward} {form_steward}")
 
   print(f"GUPW {witness.__dict__}")
   return redirect('action:geo_view', locid)

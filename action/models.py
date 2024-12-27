@@ -953,6 +953,9 @@ class Steward(models.Model):
 
   alias = models.CharField(max_length=100)
 
+class Guide(Steward):
+  ...
+
 '''
 ___database cimate actions
 '''
@@ -981,9 +984,10 @@ class Gathering(models.Model):
   address = models.CharField(blank=True, max_length=64)
   time = models.CharField(blank=True, max_length=32)
 
-  steward = models.ForeignKey(Steward, blank=True, null=True, on_delete=models.SET_NULL)
+  steward = models.ForeignKey(Steward, blank=True, null=True, on_delete=models.SET_NULL, related_name="steward_of_gathering")
+  guide = models.ForeignKey(Guide, blank=True, null=True, on_delete=models.SET_NULL, related_name="guide_of_gathering")
 
-  #event_link_url = models.URLField(max_length=500, blank=True)
+  event_link_url = models.URLField(max_length=500, blank=True)
   contact_name = models.CharField(blank=True, max_length=64)
   contact_email = models.CharField(blank=True, max_length=64)
   contact_phone = models.CharField(blank=True, max_length=64)
@@ -992,7 +996,25 @@ class Gathering(models.Model):
   '''
   ___Uniform table data
   '''
-  def datalist_template(model = False, date = False, date_end = False, activity_type = False, overview = False, gtype = False, location = False, country = False, map_link = False, orgs = False, participants = False, note_address = False, note_time = False, recorded = False, recorded_link = False, record = False):
+  def datalist_template(
+      model = False, 
+      date = False, 
+      date_end = False, 
+      activity_type = False, 
+      overview = False, 
+      gtype = False, 
+      location = False, 
+      country = False, 
+      map_link = False, 
+      orgs = False, 
+      participants = False, 
+      note_address = False, 
+      note_time = False, 
+      recorded = False, 
+      event_link = False, 
+      recorded_link = False, 
+      record = False, 
+      steward=False):
     return locals()
   
   def datalist(event, isrecord, datalist_template):
@@ -1071,8 +1093,21 @@ class Gathering(models.Model):
         else: values[key] = recorded = Gathering_Witness.objects.filter(gathering=obj_event.regid).exists()
     except: pass
     try:
+      key = 'event_link'
+      #print(f"ELO1 REC {isrecord} OBJ_EVENT {obj_event}")
+      #if datalist_template[key]:
+      #  print(f"ELO2 TMPL {datalist_template[key]}")
+      #  print(f"ELO3 URL '{obj_event.event_link_url}'")
+      if datalist_template[key]: values[key] = event_link = obj_event.event_link_url
+      #print(f"ELO9 {obj_event}")
+    except: pass
+    try:
       key = 'recorded_link'
       if datalist_template[key]: values[key] = recorded_link = obj_record.proof_url
+    except: pass
+    try:
+      key = 'steward'
+      if datalist_template[key]: values[key] = steward = obj_event.steward
     except: pass
     
     if datalist_template['model']: values['model'] = model = event

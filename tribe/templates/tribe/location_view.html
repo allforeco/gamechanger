@@ -1,0 +1,34 @@
+{% extends "tribe/base_tribe.html" %}
+
+{% block title %}
+    <title>Location View - Gamechanger Tribe Tracker</title>
+{% endblock %}
+
+{% block content %}
+    {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+    {% if user.is_authenticated or logginbypass %}
+    {% endif %}
+
+    {# The return to the revent list link #}
+    <p><a href="{% url 'tribe:revent' %}">Back to the overview</a></p>
+
+    {# Revent context info #}
+    <h1>Location for {{ revent.name }}</h1>
+    <ul>
+        {% if location %}
+            <li>
+                {% if location.in_country %}
+                    <a href="{% url 'tribe:revent-place-update' revent.pk location.in_country.pk %}">{{ location.name }}</a>
+                {% else %}
+                    {{ location.name }}
+                {% endif %}
+                in <a href="{% url 'tribe:revent-country-update' revent.pk %}">{{ location.in_country.name }}</a>
+            </li>
+        {% else %}
+            <li>
+                No location yet.<br/>
+                <a href="{% url 'tribe:revent-country-update' revent.pk %}">Select country</a>
+            </li>
+        {% endif %}        
+    </ul>
+{% endblock %}

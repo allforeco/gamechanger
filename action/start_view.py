@@ -30,7 +30,12 @@ def start_view_handler(request):
     leaderboard_dict[country][index]+=1
 
   #GATHERING PLAN LOGIC
-  event_plan_head = Gathering.datalist_template(model=True, date=True, date_end=True, location=True, map_link=True, orgs=True, participants=True,recorded=True, overview=True)
+  event_plan_head = Gathering.datalist_template(
+    model=True, date=True, date_end=True, 
+    location=True, map_link=True, 
+    orgs=True, participants=True,
+    recorded=True, overview=True,
+    steward=True)
   gathering_plans = Gathering.objects.filter(end_date__range=[today, today+filter_weeks]).order_by("-start_date")
   event_plan_list = []
 
@@ -39,7 +44,13 @@ def start_view_handler(request):
     leaderboard_append(gp.location.country_location(), False)
 
   #EVENT WITNESSING LOGIC
-  event_record_head = Gathering.datalist_template(model=True, date=True, date_end=False, location=True,recorded_link=True, map_link=True, orgs=True, participants=True,recorded=True, overview=True)
+  event_record_head = Gathering.datalist_template(
+    model=True, date=True, date_end=False, 
+    location=True,event_link=True,
+    recorded_link=True, map_link=True, 
+    orgs=True, participants=True,
+    recorded=True, overview=True,
+    steward=True)
   gathering_witness = Gathering_Witness.objects.filter(updated__range=[today-filter_weeks, today]).order_by("-date")
   gathering_witness_list = []
   for gw in gathering_witness:

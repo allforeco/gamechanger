@@ -155,6 +155,8 @@ class ContactInfo(models.Model):
         TELEGRAM  = "TLGM", "Telegram group URL"
         DISCORD   = "DCRD", "Discord group URL"
         SLACK     = "SLAK", "Slack group URL"
+        GAMECHGER = "GCHG", "Gamechanger Action Tracker URL"
+        FFFMAP    = "FMAP", "FFF Map URL"
 
     info_type = models.CharField(max_length=4, choices=Medium)
     seq = models.FloatField(blank=True, null=True)

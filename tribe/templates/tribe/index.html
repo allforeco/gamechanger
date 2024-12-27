@@ -26,7 +26,7 @@
                 <tr>
                     <td> {# Name #}
                         <p>{{ revent.name }}</p>
-                        <div style='text-align:center; vertical-align:bottom; color:#000080'><br/><a href="{% url 'tribe:revent-update' revent.id %}">[Edit]</a></div>
+                        <!--div style='text-align:center; vertical-align:bottom; color:#000080'><br/><a href="{% url 'tribe:revent-update' revent.id %}">[Edit]</a></div-->
                     </td>
                     <td> {# Notes #}
                         <ul>
@@ -34,7 +34,7 @@
                                 <li>{{ note.1|date:'Y-m-d' }}: {{ note.2 }}</li>
                             {% endfor %}
                         </ul>
-                        <div style='text-align:center; vertical-align:bottom; color:#000080'><br/><a href="{% url 'tribe:reventnote-list' revent.id %}">[Edit]</a></div>
+                        <!--div style='text-align:center; vertical-align:bottom; color:#000080'><br/><a href="{% url 'tribe:reventnote-list' revent.id %}">[Edit]</a></div-->
                     </td>
                     <td> {# Roles #}
                         <ul>
@@ -42,12 +42,12 @@
                                 <li>{{ role.1 }}: <a href="% url 'tribe:role-list' revent.pk %">{{ role.3 }}</a></li>  
                             {% endfor %}
                         </ul>
-                        <div style='text-align:center; vertical-align:bottom; color:#000080'><br/><a href="{% url 'tribe:role-list' revent.id %}">[Edit]</a></div>
+                        <!--div style='text-align:center; vertical-align:bottom; color:#000080'><br/><a href="{% url 'tribe:role-list' revent.id %}">[Edit]</a></div-->
                     </td>
                     <td> {# Location, Country #}
                         {{ revent.in_location.name }}
                         <br/>{{ revent.in_country.name }}
-                        <div style='text-align:center; vertical-align:bottom; color:#000080'><br/><a href="{% url 'tribe:revent-update' revent.id %}">[Edit]</a></div>
+                        <!--div style='text-align:center; vertical-align:bottom; color:#000080'><br/><a href="{% url 'tribe:location-view' revent.id %}">[Edit]</a></div-->
                     </td>
                     <td> {# Contact #}
                         <ul>
@@ -59,7 +59,24 @@
                                 {% endif %}
                             {% endfor %}
                         </ul>
-                        <div style='text-align:center; vertical-align:bottom; color:#000080'><br/><a href="{% url 'tribe:contactinfo-list' revent.id %}">[Edit]</a></div>
+                        <!--div style='text-align:center; vertical-align:bottom; color:#000080'><a href="{% url 'tribe:contactinfo-list' revent.id %}">[Edit]</a></div-->
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <div style='text-align:center; vertical-align:bottom; color:#000080'><a href="{% url 'tribe:revent-update' revent.id %}">[Edit]</a></div>
+                    </td>
+                    <td>
+                        <div style='text-align:center; vertical-align:bottom; color:#000080'><a href="{% url 'tribe:reventnote-list' revent.id %}">[Edit]</a></div>
+                    </td>
+                    <td>
+                        <div style='text-align:center; vertical-align:bottom; color:#000080'><a href="{% url 'tribe:role-list' revent.id %}">[Edit]</a></div>
+                    </td>
+                    <td>
+                        <div style='text-align:center; vertical-align:bottom; color:#000080'><a href="{% url 'tribe:location-view' revent.id %}">[Edit]</a></div>
+                    </td>
+                    <td>
+                        <div style='text-align:center; vertical-align:bottom; color:#000080'><a href="{% url 'tribe:contactinfo-list' revent.id %}">[Edit]</a></div>
                     </td>
                 </tr>
             {% endfor %}
