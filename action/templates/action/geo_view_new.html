@@ -1,14 +1,14 @@
 {% extends "base_generic.html" %}
 
 {% block title %}
-      <title>Reports for {{ this_location.name }} - Gamechanger Action Tracker</title>
+      <title>Records for {{ this_location.name }} - Gamechanger Action Tracker</title>
 {% endblock %}
 
 {% block content %}
 {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
 
   <div style="width: 100%; float:right;">
-    <h1 style="float: left; margin: auto;">Reports for {{ this_location.name }}</h1>
+    <h1 style="float: left; margin: auto;">Records for {{ this_location.name }}</h1>
     {% if user.is_authenticated %}
     <form style="float: left; margin-left: 0.5em; margin-right: 0.5em;" action="" method="post">
       {% csrf_token %}
@@ -102,7 +102,7 @@
       <a target="_blank" href="https://fridaysforfuture.org/action-map/register-report-strikes/">form</a></p>
   {% endif %}
 
-  <h2>Reports</h2>
+  <h2>Records</h2>
   {% if witness_list %}
     <p>{{ witness_list|length }} events with a total of {{ total_participants }} 
     reported participants</p>

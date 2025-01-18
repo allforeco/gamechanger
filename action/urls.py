@@ -16,6 +16,7 @@ urlpatterns = [
   path('geo/<int:locid>/<str:date>', views.geo_date_view_handler, name='geo_date_view'),
   path('geo/invalid/', views.geo_invalid, name='geo_invalid'),
   path('geo/update/', views.geo_update_view, name='geo_update'),
+  path('geo/one_more/', views.geo_one_more_view, name='geo_one_more'),
   path('geo/update/post/', views.geo_update_post, name='geo_post'),
   path('geo/search/', views.geo_search, name='geo_search'),
   path('upload_reg', views.upload_reg),

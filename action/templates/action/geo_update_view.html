@@ -10,17 +10,22 @@
 <style>th{text-align: left;padding-left: 10px;}
 </style>
 {% if isnewevent %}
-  <h1>Register new Event</h1>
+  {% if gathering %}
+    <h1>Update (Recurring) Event</h1>
+  {% else %}
+    <h1>Register New (Recurring) Event</h1>
+  {% endif %}
   <form action="{% url 'action:geo_post' %}" method="POST">
     {% csrf_token %}
     <input type="hidden" name="isnewevent" value="{{isnewevent}}"/>
+    <input type="hidden" name="gathering" value="{{gathering}}"/>
     <table class="table-sort-mark">
       <tr>
         <th>Event Type *</th>
         <td>
           <select required name="gathering-type" class="i-can-add-my-own-attrs-now">
             {% for id, name in gathering_types %}
-              <option value="{{id}}">{{name}}</option>
+              <option value="{{id}}" {% if gathering.gathering_type == id %}selected{% endif %}>{{name}}</option>
             {% endfor %}
             </select>
         </td>
@@ -36,7 +41,7 @@
       <tr>
         <th>Date *</th>
         <td>
-          <input required type="date" name="date" value=""/>
+          <input required type="date" name="date" value="{{gathering.start_date|date:'Y-m-d'}}"/>
         </td>
       </tr>
       <tr>
@@ -54,7 +59,7 @@
       <tr>
         <th>Expected Participants *</th>
         <td>
-          <input required type="number" name="participants" value="" min="1"/>
+          <input required type="number" name="participants" value="{{gathering.expected_participants}}" min="1"/>
         </td>
       </tr>
       <tr>
@@ -63,6 +68,12 @@
           <select name="organization" data-minimum-input-length="3" id="id_organization" data-autocomplete-light-language="en" data-autocomplete-light-url="/action/organization-autocomplete/" data-autocomplete-light-function="select2">
             <option value="{{organization.id}}" selected>{{organization}}</option>
           </select>
+        </td>
+      </tr>
+      <tr>
+        <th>(Pre-)Event Link</th>
+        <td>
+          <input  type="url" name="event_link" value="{{gathering.event_link_url}}"/>
         </td>
       </tr>
       <tr>
@@ -79,14 +90,19 @@
   </form>
 {% else %}
   {% if gathering %}
-    <h1>Record of Event</h1>
+    {% if is_one_more %}
+      <h1>Add Event Record</h1>
+    {% else %}
+      <h1>Update Event Record</h1>
+    {% endif %}
     <form action="{% url 'action:geo_post' %}" method="POST">
       {% csrf_token %}
       <input type="hidden" name="isnewevent" value="{{isnewevent}}"/>
+      <input type="hidden" name="is_one_more" value="{{is_one_more}}"/>
       <input type="hidden" name="regid" value="{{gathering.regid}}"/>
       <input type="hidden" name="locid" value="{{location.id}}"/>
       <input type="hidden" name="witness" value="{{witness.pk}}"/>
-      {% if user.is_authenticated %}
+      {% if user.is_authenticated and not is_one_more %}
         <div style="display: inline">
           <input type="button" name="enable_delete" value="Delete this event from Gamechanger"
             onclick='
@@ -120,13 +136,13 @@
         <tr>
           <th>Date *</th>
           <td>
-            <input required type="date" name="date" value="{{witness.date|date:'Y-m-d'}}"/>
+            <input required type="date" name="date" value="{% if is_one_more %}{% else %}{{witness.date|date:'Y-m-d'}}{% endif %}"/>            
           </td>
         </tr>
         <tr>
           <th>Participants *</th>
           <td>
-            <input required type="number" name="participants" value="{{witness.participants}}" min="1"/>
+            <input required type="number" name="participants" value="{% if is_one_more %}{% else %}{{witness.participants}}{% endif %}" min="1"/>
           </td>
         </tr>
         <tr>
@@ -140,7 +156,7 @@
         <tr>
           <th>Media Link URL</th>
           <td>
-            <input type="url" name="proof_url" value="{{witness.proof_url}}" placeholder="(optional) Share a photo collection from the event!" size="60"/>
+            <input type="url" name="proof_url" value="{% if is_one_more %}{% else %}{{witness.proof_url}}{% endif %}" placeholder="(optional) Share a photo collection from the event!" size="60"/>
           </td>
         </tr>
         <tr>
@@ -167,16 +183,13 @@
       </table>
     </form>
   {% else %}
-    <p>Location {{location.name}} does not yet have any associated event details. 
-    You will need to register the event using the form link below.</p>
+    <p>Location {{location.name}} does not yet have any associated event details.</p>
   {% endif %}
 {% endif %}
 {% if gathering %}
   <sub>* Required</sub>
 {% endif %}
 
-<br />
-<br />
 <!-- Record/Register Toggle--
 <form action="{% url 'action:geo_update' %}" method="POST">
   {% csrf_token %}
@@ -190,11 +203,6 @@
   {% endif %}
 </form>
 !---->
-<br />
-<div>
-  Register new Event with a 
-  <a target="blank" href="https://docs.google.com/forms/d/e/1FAIpQLSfakAGKkwd5FCt_LFgorf_Kfsd2UPU6kq6CfaRJDPgkOcqG_Q/viewform">Google Form Registration ↩</a>
-</div>
 
 <script type="text/javascript">
   // For XHTML: <![CDATA[

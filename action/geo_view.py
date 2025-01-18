@@ -305,24 +305,37 @@ def geo_date_view_handler(request, locid, date):
 '''
 ???
 '''
-def geo_update_view(request):
+def geo_one_more_view(request):
+  return geo_update_view(request, is_one_more = True)
+'''
+???
+'''
+def geo_update_view(request, is_one_more = False):
   isnewevent = (request.POST.get('isnewevent') == 'True')
   regid = request.POST.get('regid')
-  wintess_id = request.POST.get('witness')
+  witness_id = request.POST.get('witness')
+  locid = request.POST.get('locid')
+  print(f"REGID={regid}")
+  print(f"POST={request.POST}")
   this_gathering = Gathering.objects.filter(regid=regid)
   if this_gathering:
     this_gathering = this_gathering.first()
-  this_witness = Gathering_Witness.objects.filter(id=wintess_id)
-  if this_witness:
-    this_witness = this_witness.first()
-  else:
+  if not witness_id:
     this_witness = None
+  else:
+    this_witness = Gathering_Witness.objects.filter(id=witness_id)
+    if this_witness:
+      this_witness = this_witness.first()
+    else:
+      this_witness = None
 
   locid = request.POST.get('locid')
   this_location = Location.objects.filter(id=locid).first()
 
   template = loader.get_template('action/geo_update_view.html')
+  print(f"GATHERING={this_gathering.__dict__}")
   context = { 
+    'is_one_more': is_one_more,
     'isnewevent': isnewevent,
     'isneweventtoggle': (not isnewevent),
     'gathering': this_gathering,
@@ -338,7 +351,7 @@ def geo_update_view(request):
 ???
 '''
 def geo_update_post(request):
-  isnewevent = False #(request.POST.get('isnewevent') == 'True')
+  isnewevent = (request.POST.get('isnewevent') == 'True')
   if (isnewevent):
     return geo_update_post_gathering(request)
   else:
@@ -350,7 +363,12 @@ def geo_update_post(request):
 def geo_update_post_witness(request):
   locid = request.POST.get('locid')
   regid = request.POST.get('regid')
-  witness_id = request.POST.get('witness')
+  is_one_more = request.POST.get('is_one_more')
+  if is_one_more in ["true", "True"]:
+    witness_id = None # This is a new witness
+  else:
+    witness_id = request.POST.get('witness')
+
   do_delete_event = request.POST.get('do_delete_event')
   if do_delete_event:
     if request.user.is_authenticated:
@@ -411,9 +429,15 @@ def geo_update_post_witness(request):
 ???
 '''
 def geo_update_post_gathering(request):
-  return ## FIXME missing regid! gathering = Gathering()
   locid = request.POST.get('locid')
-  gathering.location_id = locid
+  regid = request.POST.get('gathering')
+  print(f"REGID={regid} LOCID={locid}")
+  if regid:
+    gathering = Gathering.objects.filter(pk=regid).first()
+  else:
+    gathering = Gathering()
+    gathering.regid = Gathering.generate_regid()
+  gathering.location = Location.objects.filter(pk=locid).first()
   gathering.start_date = datetime.datetime.strptime(request.POST.get('date'), '%Y-%m-%d').replace(tzinfo=datetime.timezone.utc)
   gathering.end_date = datetime.datetime.strptime(request.POST.get('date'), '%Y-%m-%d').replace(tzinfo=datetime.timezone.utc) + datetime.timedelta(weeks=int(request.POST.get('weeks')))
   gathering.expected_participants = request.POST.get('participants')
@@ -423,11 +447,24 @@ def geo_update_post_gathering(request):
     gathering.organizations.add(organization)
   except:
     print(f"GUPO <Organization:None>")
-  
 
-  gathering.save()
+  #duration = models.DurationField(blank=True, null=True)
+  #address = models.CharField(blank=True, max_length=64)
+  #time = models.CharField(blank=True, max_length=32)
+
+#    steward = models.ForeignKey(Steward, blank=True, null=True, on_delete=models.SET_NULL, related_name="steward_of_gathering")
+#    guide = models.ForeignKey(Guide, blank=True, null=True, on_delete=models.SET_NULL, related_name="guide_of_gathering")
+
+  gathering.event_link_url = request.POST.get('event_link')
+#    contact_name = models.CharField(blank=True, max_length=64)
+#    contact_email = models.CharField(blank=True, max_length=64)
+#    contact_phone = models.CharField(blank=True, max_length=64)
+#    contact_notes = models.CharField(blank=True, max_length=64)
+
+
 
   print(f"GUPG {gathering.__dict__}")
+  gathering.save()
   return redirect('action:geo_view', locid)
 
 '''

@@ -42,7 +42,7 @@ from . parsers import geoParser, MediaParser
 from .models import Gathering, Gathering_Belong, Gathering_Witness, Location, UserHome, Organization, Country
 from .map_sync import eventmap_data_view, eventmap_data, coffer_data, to_fff
 from .tools_view import tools_view_handler, tools_view_post
-from .geo_view import geo_view_handler, geo_date_view_handler, geo_update_view, geo_update_post, geo_search, geo_invalid, translate_maplink, geo_view_handler_new, AF_mark_as_duplicate
+from .geo_view import geo_view_handler, geo_date_view_handler, geo_update_view, geo_update_post, geo_search, geo_invalid, translate_maplink, geo_view_handler_new, AF_mark_as_duplicate, geo_one_more_view
 from .start_view import start_view_handler
 from .overview_view import latest_records_view, help_view
 from .locations_view import locations_view

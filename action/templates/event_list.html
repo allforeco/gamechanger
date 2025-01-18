@@ -29,7 +29,7 @@
   }
 
   .record{
-    cursor: not-allowed;
+    overflow-x:scroll; /* FIXME remove this */
   }
 </style>
 {% block table %}
@@ -42,6 +42,7 @@
             <th class="th_date">
               Date{% if event_head.date_end %} - End Date {% endif %}
             </th>
+            <th></th>
           {% endif %}
 
           {% if event_head.activity_type %}
@@ -119,22 +120,44 @@
           {% if event_head.date %}
             <td class="td_date">
               {% if event_head.recorded %}
-                {% if event.record and event.model %}
-                  <form action="{% url 'action:geo_update' %}" method="POST">
-                    {% csrf_token %}
-                      <input type="hidden" value="False" name="isnewevent"/>
-                      <input type="hidden" value="{{event.model.gathering.regid}}" name="regid"/>
-                      <input type="hidden" value="{{event.model.gathering.location.id}}" name="locid"/>
-                      <input type="hidden" value="{{event.model.id}}" name="witness"/>
-                      <input type="submit" value="{% if event.date %}{{event.date|date:'Y-m-d'}}{% endif %}" class="{% if event.recorded %}recorded{% else %}notrecorded{% endif %}"/>
-                  </form>
-                {% endif %}
-                {% if not event.record %}
-                  <input type="submit" value="{% if event.date %}{{event.date|date:'Y-m-d'}}{% if event_head.date_end %} - {{event.date_end|date:'Y-m-d'}}{%endif%}{% endif %}" class="{% if event.recorded %}recorded{% else %}notrecorded{% endif %} record"/>
-                {% endif %}
+                <form action="{% url 'action:geo_update' %}" method="POST">
+                  {% csrf_token %}
+                  {% if event.record %}
+                    <input type="hidden" value="False" name="isnewevent"/>
+                    <input type="hidden" value="{{event.model.gathering.regid}}" name="regid"/>
+                    <input type="hidden" value="{{event.model.gathering.location.id}}" name="locid"/>
+                    <input type="hidden" value="{{event.model.pk}}" name="witness"/>
+                    <input type="submit" value="{% if event.date %}{{event.date|date:'Y-m-d'}}{% endif %}" class="{% if event.recorded %}recorded{% else %}notrecorded{% endif %}"/>
+                  {% else %}
+                    <input type="hidden" value="True" name="isnewevent"/>
+                    <input type="hidden" value="{{event.model.regid}}" name="regid"/>
+                    <input type="hidden" value="{{event.location.id}}" name="locid"/>
+                    <input type="hidden" value="" name="witness"/>
+                    <input type="submit" value="{% if event.date %}{{event.date|date:'Y-m-d'}}{% if event_head.date_end %} - {{event.date_end|date:'Y-m-d'}}{%endif%}{% endif %}" class="{% if event.recorded %}recorded{% else %}notrecorded{% endif %} record"/>
+                  {% endif %}
+                </form>
               {% else %}
                 {% if event.date %}{{event.date|date:'Y-m-d'}}{% if event_head.date_end %}{% if event.date_end%} - {{event.date_end|date:'Y-m-d'}}{% endif %}{%endif%}{% endif %}
               {% endif %}
+            </td>
+            <td>
+              <form action="{% url 'action:geo_one_more' %}" method="POST">
+                {% csrf_token %}
+                {% if event.record %}
+                  <input type="hidden" value="{{is_one_more}}" name="is_one_more"/>
+                  <input type="hidden" value="False" name="isnewevent"/>
+                  <input type="hidden" value="{{event.model.gathering.regid}}" name="regid"/>
+                  <input type="hidden" value="{{event.model.gathering.location.id}}" name="locid"/>
+                  <input type="hidden" value="{{event.model.pk}}" name="witness"/>
+                {% else %}
+                  <input type="hidden" value="{{is_one_more}}" name="is_one_more"/>
+                  <input type="hidden" value="False" name="isnewevent"/>
+                  <input type="hidden" value="{{event.model.regid}}" name="regid"/>
+                  <input type="hidden" value="{{event.location.id}}" name="locid"/>
+                  <input type="hidden" value="" name="witness"/>
+                {% endif %}
+                <input type="submit" value="+" class="recorded"/>
+              </form>
             </td>
           {% endif %}
 

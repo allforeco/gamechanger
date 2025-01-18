@@ -17,7 +17,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from action.static_lists import valid_location_ids
-import pycountry, datetime
+import pycountry, datetime, random, string
 #from .cookie_profile import CookieProfile
 
 
@@ -992,6 +992,10 @@ class Gathering(models.Model):
   contact_email = models.CharField(blank=True, max_length=64)
   contact_phone = models.CharField(blank=True, max_length=64)
   contact_notes = models.CharField(blank=True, max_length=64)
+
+  @staticmethod
+  def generate_regid():
+    return ''.join([random.choice(string.ascii_letters+string.digits) for n in range(8)])
 
   '''
   ___Uniform table data
