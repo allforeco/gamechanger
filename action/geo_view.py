@@ -316,7 +316,7 @@ def geo_update_view(request, is_one_more = False):
   witness_id = request.POST.get('witness')
   locid = request.POST.get('locid')
   print(f"REGID={regid}")
-  print(f"POST={request.POST}")
+  print(f"POST1={request.POST}")
   this_gathering = Gathering.objects.filter(regid=regid)
   if this_gathering:
     this_gathering = this_gathering.first()
@@ -334,6 +334,10 @@ def geo_update_view(request, is_one_more = False):
 
   template = loader.get_template('action/geo_update_view.html')
   print(f"GATHERING={this_gathering.__dict__}")
+  try:
+    initial_weeks = (this_gathering.end_date - this_gathering.start_date).days // 7
+  except:
+    initial_weeks = 0
   context = { 
     'is_one_more': is_one_more,
     'isnewevent': isnewevent,
@@ -342,7 +346,8 @@ def geo_update_view(request, is_one_more = False):
     'witness': this_witness,
     'location': this_location,
     'gathering_types': Gathering.gathering_type.field.choices,
-    'stewards': Steward.objects.all()
+    'stewards': Steward.objects.all(),
+    'initial_weeks': initial_weeks
   }
 
   return HttpResponse(template.render(context, request))
@@ -431,7 +436,7 @@ def geo_update_post_witness(request):
 def geo_update_post_gathering(request):
   locid = request.POST.get('locid')
   regid = request.POST.get('gathering')
-  print(f"REGID={regid} LOCID={locid}")
+  print(f'POST2={request.POST}')
   if regid:
     gathering = Gathering.objects.filter(pk=regid).first()
   else:
@@ -439,12 +444,14 @@ def geo_update_post_gathering(request):
     gathering.regid = Gathering.generate_regid()
   gathering.location = Location.objects.filter(pk=locid).first()
   gathering.start_date = datetime.datetime.strptime(request.POST.get('date'), '%Y-%m-%d').replace(tzinfo=datetime.timezone.utc)
-  gathering.end_date = datetime.datetime.strptime(request.POST.get('date'), '%Y-%m-%d').replace(tzinfo=datetime.timezone.utc) + datetime.timedelta(weeks=int(request.POST.get('weeks')))
+  weeks = int(request.POST.get('weeks'))
+  gathering.end_date = gathering.start_date + datetime.timedelta(weeks=weeks)
   gathering.expected_participants = request.POST.get('participants')
   gathering.gathering_type = request.POST.get('gathering-type')
   try:
-    organization = Organization.objects.get(id=request.POST.get('organization'))
-    gathering.organizations.add(organization)
+    orgid = request.POST.get('organization')
+    organization = Organization.objects.get(pk=orgid)
+    gathering.organizations.set([organization])
   except:
     print(f"GUPO <Organization:None>")
 

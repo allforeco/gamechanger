@@ -19,6 +19,7 @@
     {% csrf_token %}
     <input type="hidden" name="isnewevent" value="{{isnewevent}}"/>
     <input type="hidden" name="gathering" value="{{gathering}}"/>
+    <input type="hidden" name="computed_end_date" value="{{gathering.end_date|date:'Y-m-d'}}"/>
     <table class="table-sort-mark">
       <tr>
         <th>Event Type *</th>
@@ -39,21 +40,36 @@
         </td>
       </tr>
       <tr>
-        <th>Date *</th>
+        <th>Date (YYYY-MM-DD) *</th>
         <td>
-          <input required type="date" name="date" value="{{gathering.start_date|date:'Y-m-d'}}"/>
+          <input required type="date" name="date" value="{{gathering.start_date|date:'Y-m-d'}}" id="start_date" onchange="WeeksDisplayUpdate()"/>
+          ..
+          <input disabled type="date" name="end_date" value="{{gathering.end_date|date:'Y-m-d'}}" id="end_date"/>
         </td>
       </tr>
       <tr>
-        <th>Weeks *</th>
+        <th>Weeks Recurring*</th>
         <td>
-          <input required type="range" id="weeks" name="weeks" value="1" min="1" max="26" oninput="WeeksDisplayUpdate()" onchange="check_unsaved()"/>
-          <span style="float: right; margin: auto;" id="weeksdisplay">1</span>
+          <input required type="range" id="weeks" name="weeks" value="{{initial_weeks}}" min="0" max="26" oninput="WeeksDisplayUpdate()" onchange="check_unsaved()"/>
+          <span style="float: right; margin: auto;" id="weeksdisplay">{{initial_weeks}}</span>
         </td>
         <script>
           var weeks = document.getElementById("weeks");
           var weeksDisplay = document.getElementById("weeksdisplay");
-          function WeeksDisplayUpdate(){weeksDisplay.innerHTML = weeks.value;}
+          var start_date = document.getElementById("start_date");
+          var end_date = document.getElementById("end_date");
+          var computed_end_date = document.getElementById("computed_end_date");
+          Date.prototype.addDays = function(days) {
+            var date = new Date(this.valueOf());
+            date.setDate(date.getDate() + days);
+            return date;
+          }
+          function WeeksDisplayUpdate(){
+            weeksDisplay.innerHTML = weeks.value;
+            new_end_date = new Date(start_date.value).addDays(7 * weeks.value)
+            end_date.valueAsDate = new_end_date
+            computed_end_date.valueAsDate = new_end_date
+          }
         </script>
       </tr>
       <tr>
@@ -66,14 +82,14 @@
         <th>Organization</th>
         <td>
           <select name="organization" data-minimum-input-length="3" id="id_organization" data-autocomplete-light-language="en" data-autocomplete-light-url="/action/organization-autocomplete/" data-autocomplete-light-function="select2">
-            <option value="{{organization.id}}" selected>{{organization}}</option>
+            <option value="{{gathering.organizations.first.id}}" selected>{{gathering.organizations.first.name}}</option>
           </select>
         </td>
       </tr>
       <tr>
         <th>(Pre-)Event Link</th>
         <td>
-          <input  type="url" name="event_link" value="{{gathering.event_link_url}}"/>
+          <input  type="url" name="event_link" value="{{gathering.event_link_url}}" size="60"/>
         </td>
       </tr>
       <tr>
@@ -82,7 +98,7 @@
         </th>
         <td>
           {% if user.is_authenticated  == user.is_authenticated %}
-          <input type="submit" value="Submit Record"/>
+          <input type="submit" value="Save"/>
           {% endif %}
         </td>
       </tr>
@@ -134,7 +150,7 @@
           </td>
         </tr>
         <tr>
-          <th>Date *</th>
+          <th>Date (YYYY-MM-DD) *</th>
           <td>
             <input required type="date" name="date" value="{% if is_one_more %}{% else %}{{witness.date|date:'Y-m-d'}}{% endif %}"/>            
           </td>
@@ -149,7 +165,11 @@
           <th>Organization</th>
           <td>
             <select name="organization" data-minimum-input-length="3" id="id_organization" data-autocomplete-light-language="en" data-autocomplete-light-url="/action/organization-autocomplete/" data-autocomplete-light-function="select2">
-              <option value="{{witness.organization.id}}" selected>{{witness.organization}}</option>
+              {% if witness %}
+                <option value="{{witness.organization.id}}" selected>{{witness.organization.name}}</option>
+              {% else %}
+                <option value="{{gathering.organizations.first.id}}" selected>{{gathering.organizations.first.name}}</option>
+              {% endif %}
             </select>
           </td>
         </tr>
@@ -176,7 +196,7 @@
           </th>
           <td>
             {% if user.is_authenticated == user.is_authenticated %}
-            <input type="submit" value="Submit Record"/>
+            <input type="submit" value="Save"/>
             {% endif %}
           </td>
         </tr>
@@ -220,12 +240,6 @@
     }
   }
   function check_unsaved() {
-    if(document.getElementById("prev_participants").value == document.getElementById("participants").value &&
-      document.getElementById("prev_url").value == document.getElementById("url").value) {
-      show_unsaved(false);
-    } else {
-      show_unsaved(true);
-    }
   }
   // For XHTML: ]]>
 </script>
