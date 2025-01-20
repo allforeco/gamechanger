@@ -7,7 +7,10 @@
 {% block content %}
 {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
 
-<style>th{text-align: left;padding-left: 10px;}
+
+<style>
+  th{text-align: left;padding-left: 10px;}
+  .contact { background-color: beige; }
 </style>
 {% if isnewevent %}
   {% if gathering %}
@@ -21,7 +24,7 @@
     <input type="hidden" name="gathering" value="{{gathering}}"/>
     <input type="hidden" name="computed_end_date" value="{{gathering.end_date|date:'Y-m-d'}}"/>
     <table class="table-sort-mark">
-      <tr>
+      <tr title="What kind of event is this?">
         <th>Event Type *</th>
         <td>
           <select required name="gathering-type" class="i-can-add-my-own-attrs-now">
@@ -31,7 +34,7 @@
             </select>
         </td>
       </tr>
-      <tr>
+      <tr title="In which city/town/area is this event taking place?">
         <th>Location *</th>
         <td>
           <select required name="locid" data-minimum-input-length="3" data-autocomplete-light-language="en" data-autocomplete-light-url="/action/location-autocomplete/" data-autocomplete-light-function="select2">
@@ -39,7 +42,7 @@
           </select>
         </td>
       </tr>
-      <tr>
+      <tr title="When is the event taking place? When is the first event, if repeating several weeks?">
         <th>Date (YYYY-MM-DD) *</th>
         <td>
           <input required type="date" name="date" value="{{gathering.start_date|date:'Y-m-d'}}" id="start_date" onchange="WeeksDisplayUpdate()"/>
@@ -47,7 +50,7 @@
           <input disabled type="date" name="end_date" value="{{gathering.end_date|date:'Y-m-d'}}" id="end_date"/>
         </td>
       </tr>
-      <tr>
+      <tr title="How many times, once a week, will the event repeat?">
         <th>Weeks Recurring*</th>
         <td>
           <input required type="range" id="weeks" name="weeks" value="{{initial_weeks}}" min="0" max="26" oninput="WeeksDisplayUpdate()" onchange="check_unsaved()"/>
@@ -72,13 +75,31 @@
           }
         </script>
       </tr>
-      <tr>
+      <tr title="What time of day should people come to the event?">
+        <th>Time of day to meet each time</th>
+        <td>
+          <input type="time" id="time" name="time" value="{{gathering.time}}"/>
+        </td>
+      </tr>
+      <tr title="For at least how long time will the event go on (each time)?">
+        <th>Duration of meeting each time</th>
+        <td>
+          <input type="text" id="duration" name="duration" value="{{gathering.duration}}"/>
+        </td>
+      </tr>
+      <tr title="Where in the city/town/area should people come?">
+        <th>Place to meet</th>
+        <td>
+          <input type="text" id="address" name="address" value="{{gathering.address}}" size="60"/>
+        </td>
+      </tr>
+      <tr title="Guess how many people will turn up (each time)?">
         <th>Expected Participants *</th>
         <td>
           <input required type="number" name="participants" value="{{gathering.expected_participants}}" min="1"/>
         </td>
       </tr>
-      <tr>
+      <tr title="If there is an organization arranging this event, which one is it? If multiple, pick one.">
         <th>Organization</th>
         <td>
           <select name="organization" data-minimum-input-length="3" id="id_organization" data-autocomplete-light-language="en" data-autocomplete-light-url="/action/organization-autocomplete/" data-autocomplete-light-function="select2">
@@ -86,10 +107,50 @@
           </select>
         </td>
       </tr>
-      <tr>
+      <tr title="Is there a web page announcing this event? Provide the link here.">
         <th>(Pre-)Event Link</th>
         <td>
           <input  type="url" name="event_link" value="{{gathering.event_link_url}}" size="60"/>
+        </td>
+      </tr>
+      <tr title="Contact details are used by our staff to contact you.">
+        <th>Contact details</th>
+        <td class="contact">
+          Fill in your contact details below, at least email. Use a nickname if you wish.
+        </td>
+      </tr>
+      <tr title="What is your name (or nickname)? It's fine to leave blank or use an alias.">
+        <th>Contact Name</th>
+        <td class="contact">
+          <input type="text" name="contact_name" value="{{gathering.contact_name}}" size="60" class="contact"/>
+        </td>
+      </tr>
+      <tr title="What is your email address? This is the primary way our staff will contact you.">
+        <th>Contact Email *</th>
+        <td class="contact">
+          <input required type="text" name="contact_email" value="{{gathering.contact_email}}" size="60" class="contact"/>
+        </td>
+      </tr>
+      <tr title="What is your phone number? This is a backup way for our staff to contact you.">
+        <th>Contact Phone </th>
+        <td class="contact">
+          <input type="text" name="contact_email" value="{{gathering.contact_email}}" size="60" class="contact"/>
+        </td>
+      </tr>
+      <!--tr>
+        <th>Contact Notes </th>
+        <td class="contact">
+          <input type="text" name="contact_notes" value="{{gathering.contact_notes}}" size="60" class="contact"/>
+        </td>
+      </tr-->
+      <tr title="Do you want your email address to show up on public maps and lists?">
+        <th>Email visible on map</th>
+        <td class="contact">
+          <div class="contact">
+            <label><input checked type="radio" name="visibility"/> No</label>
+            <label><input type="radio" name="visibility"/>Yes</label>
+          </div>
+          If yes, using a separate email (not your personal or professional one) is recommended.
         </td>
       </tr>
       <tr>
@@ -100,6 +161,8 @@
           {% if user.is_authenticated  == user.is_authenticated %}
           <input type="submit" value="Save"/>
           {% endif %}
+          By clicking Save, you agree the event information will be publicly available.<br/>
+          Contact information will be kept to staff only, except email, depending on your choice.
         </td>
       </tr>
     </table>
@@ -198,6 +261,7 @@
             {% if user.is_authenticated == user.is_authenticated %}
             <input type="submit" value="Save"/>
             {% endif %}
+            By clicking Save, you agree the event information will be publicly available.
           </td>
         </tr>
       </table>
