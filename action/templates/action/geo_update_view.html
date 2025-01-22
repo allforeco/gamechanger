@@ -117,7 +117,7 @@
       <tr title="Contact details are used by our staff to contact you.">
         <th>Contact details</th>
         <td class="contact">
-          Fill in your contact details below, at least email. Use a nickname/alias if you wish.
+          Fill in contact details below, at least email. Use a nickname/alias if you wish.
         </td>
       </tr>
       <tr title="What is your name (or nickname)? It's fine to leave blank or use an alias.">
@@ -142,17 +142,6 @@
           {% endif %}
         </td>
       </tr>
-      <tr title="What is your phone number? This is a backup way for our staff to contact you.">
-        <th>Contact Phone </th>
-        <td class="contact">
-          {% if gathering.contact_phone|first in '@' %}
-            <input type="text" name="contact_phone" value='@*******' size="60" class="contact"/>
-            &nbsp;{{gathering.contact_phone|slice:"1:6"}}
-          {% else %}
-            <input type="text" name="contact_phone" value="{{gathering.contact_phone}}" size="60" class="contact"/>
-          {% endif %}
-          </td>
-      </tr>
       <!--tr>
         <th>Contact Notes </th>
         <td class="contact">
@@ -166,8 +155,19 @@
             <label><input checked type="radio" value="no" name="visibility" {% if not email_visible %}checked{% endif %}/>No</label>
             <label><input type="radio" value="yes" name="visibility" {% if email_visible %}checked{% endif %}/>Yes</label>
           </div>
-          If yes, using a separate email (not your personal or professional one) is recommended.
+          If yes, using a separate email (not a personal or professional one) is recommended.
         </td>
+      </tr>
+      <tr title="What is your phone number? This is a backup way for our staff to contact you.">
+        <th>Contact Phone </th>
+        <td class="contact">
+          {% if gathering.contact_phone|first in '@' %}
+            <input type="text" name="contact_phone" value='@*******' size="60" class="contact"/>
+            &nbsp;{{gathering.contact_phone|slice:"1:6"}}
+          {% else %}
+            <input type="text" name="contact_phone" value="{{gathering.contact_phone}}" size="60" class="contact"/>
+          {% endif %}
+          </td>
       </tr>
       <tr title="Who is your steward? Leave blank if unknown.">
         <th>Steward</th>
