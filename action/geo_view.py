@@ -22,6 +22,7 @@ from django.urls import reverse_lazy
 from django.contrib.auth.decorators import login_required, permission_required
 from django import forms
 from .models import Gathering, Gathering_Belong, Gathering_Witness, Location, Location_Belong, UserHome, Organization, Steward
+from .crypto import Crypto
 from django.shortcuts import redirect
 import datetime
 
@@ -338,6 +339,17 @@ def geo_update_view(request, is_one_more = False):
     initial_weeks = (this_gathering.end_date - this_gathering.start_date).days // 7
   except:
     initial_weeks = 0
+
+  if Crypto.is_encrypted(this_gathering.contact_name):
+    this_gathering.contact_name = Crypto.decrypt_if_possible(this_gathering.contact_name, request.COOKIES)
+  if Crypto.is_encrypted(this_gathering.contact_email):
+    this_gathering.contact_email = Crypto.decrypt_if_possible(this_gathering.contact_email, request.COOKIES)
+    email_visible = False
+  else:
+    email_visible = True
+  if Crypto.is_encrypted(this_gathering.contact_phone):
+    this_gathering.contact_phone = Crypto.decrypt_if_possible(this_gathering.contact_phone, request.COOKIES)
+
   context = { 
     'is_one_more': is_one_more,
     'isnewevent': isnewevent,
@@ -347,7 +359,8 @@ def geo_update_view(request, is_one_more = False):
     'location': this_location,
     'gathering_types': Gathering.gathering_type.field.choices,
     'stewards': Steward.objects.all(),
-    'initial_weeks': initial_weeks
+    'initial_weeks': initial_weeks,
+    'email_visible': email_visible,
   }
 
   return HttpResponse(template.render(context, request))
@@ -455,20 +468,38 @@ def geo_update_post_gathering(request):
   except:
     print(f"GUPO <Organization:None>")
 
-  #duration = models.DurationField(blank=True, null=True)
-  #address = models.CharField(blank=True, max_length=64)
-  #time = models.CharField(blank=True, max_length=32)
-
-#    steward = models.ForeignKey(Steward, blank=True, null=True, on_delete=models.SET_NULL, related_name="steward_of_gathering")
-#    guide = models.ForeignKey(Guide, blank=True, null=True, on_delete=models.SET_NULL, related_name="guide_of_gathering")
-
   gathering.event_link_url = request.POST.get('event_link')
-#    contact_name = models.CharField(blank=True, max_length=64)
-#    contact_email = models.CharField(blank=True, max_length=64)
-#    contact_phone = models.CharField(blank=True, max_length=64)
-#    contact_notes = models.CharField(blank=True, max_length=64)
 
+  #gathering.duration = request.POST.get('duration')
+  gathering.address = request.POST.get('address')
+  gathering.time = request.POST.get('time')
 
+  stwid = request.POST.get('steward')
+  if stwid:
+    gathering.steward = Steward.objects.get(pk=stwid)
+  else:
+    gathering.steward = None
+
+  cname = request.POST.get('contact_name')
+  if Crypto.is_cleartext(cname):
+    print(f"CNAME {cname}")
+    gathering.contact_name = Crypto.encrypt_with_markup(cname)
+    print(f"GACNA {cname}")
+    print(f"CLEAR {Crypto.decrypt_if_possible(cname,request.COOKIES)}")
+    print(f"DECRY {Crypto.decrypt_if_possible(gathering.contact_name,request.COOKIES)}")
+
+  cemail = request.POST.get('contact_email')
+  if cemail and Crypto.is_cleartext(cemail):
+    if request.POST.get('visibility') == 'yes':
+      print('VISIBILITY Yes')
+      gathering.contact_email = cemail
+    else:
+      print(f"VISIBILITY No {request.POST.get('visibility')}")
+      gathering.contact_email = Crypto.encrypt_with_markup(cemail)
+  
+  cphone = request.POST.get('contact_phone')
+  if Crypto.is_cleartext(cphone):
+    gathering.contact_phone = Crypto.encrypt_with_markup(cphone)
 
   print(f"GUPG {gathering.__dict__}")
   gathering.save()

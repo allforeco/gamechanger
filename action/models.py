@@ -988,10 +988,10 @@ class Gathering(models.Model):
   guide = models.ForeignKey(Guide, blank=True, null=True, on_delete=models.SET_NULL, related_name="guide_of_gathering")
 
   event_link_url = models.URLField(max_length=500, blank=True)
-  contact_name = models.CharField(blank=True, max_length=64)
-  contact_email = models.CharField(blank=True, max_length=64)
-  contact_phone = models.CharField(blank=True, max_length=64)
-  contact_notes = models.CharField(blank=True, max_length=64)
+  contact_name = models.CharField(blank=True, max_length=256)
+  contact_email = models.CharField(blank=True, max_length=256)
+  contact_phone = models.CharField(blank=True, max_length=256)
+  contact_notes = models.CharField(blank=True, max_length=256)
 
   @staticmethod
   def generate_regid():
@@ -1359,4 +1359,9 @@ class Gmaps_LookupString(models.Model):
     lookup_string = models.CharField(max_length=100)
     Gmaps_Location = models.ForeignKey(Gmaps_Locations, on_delete=models.CASCADE)
 
-  
+
+class PubKey(models.Model):
+  def __str__(self):
+    return f'<PubKey {self.pk}>'
+  pubkey_str = models.CharField(max_length=80, editable=False)
+  created_on = models.TimeField(auto_now_add=True, editable=False)

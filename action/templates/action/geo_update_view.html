@@ -51,10 +51,11 @@
         </td>
       </tr>
       <tr title="How many times, once a week, will the event repeat?">
-        <th>Weeks Recurring*</th>
+        <th>Weeks Recurring *</th>
         <td>
+          <span style="float: left; margin: auto; display:block; width: 20px;" id="weeksdisplay">{{initial_weeks}}</span>
+          &nbsp;&nbsp;&nbsp;&nbsp;
           <input required type="range" id="weeks" name="weeks" value="{{initial_weeks}}" min="0" max="26" oninput="WeeksDisplayUpdate()" onchange="check_unsaved()"/>
-          <span style="float: right; margin: auto;" id="weeksdisplay">{{initial_weeks}}</span>
         </td>
         <script>
           var weeks = document.getElementById("weeks");
@@ -81,12 +82,12 @@
           <input type="time" id="time" name="time" value="{{gathering.time}}"/>
         </td>
       </tr>
-      <tr title="For at least how long time will the event go on (each time)?">
+      <!--tr title="For at least how long time will the event go on (each time)?">
         <th>Duration of meeting each time</th>
         <td>
           <input type="text" id="duration" name="duration" value="{{gathering.duration}}"/>
         </td>
-      </tr>
+      </tr-->
       <tr title="Where in the city/town/area should people come?">
         <th>Place to meet</th>
         <td>
@@ -116,26 +117,41 @@
       <tr title="Contact details are used by our staff to contact you.">
         <th>Contact details</th>
         <td class="contact">
-          Fill in your contact details below, at least email. Use a nickname if you wish.
+          Fill in your contact details below, at least email. Use a nickname/alias if you wish.
         </td>
       </tr>
       <tr title="What is your name (or nickname)? It's fine to leave blank or use an alias.">
         <th>Contact Name</th>
         <td class="contact">
-          <input type="text" name="contact_name" value="{{gathering.contact_name}}" size="60" class="contact"/>
+          {% if gathering.contact_name|first in '@' %}
+            <input type="text" name="contact_name" value='@*******' size="60" class="contact"/>
+            &nbsp;{{gathering.contact_name|slice:"1:6"}}
+          {% else %}
+            <input type="text" name="contact_name" value="{{gathering.contact_name}}" size="60" class="contact"/>
+          {% endif %}
         </td>
       </tr>
       <tr title="What is your email address? This is the primary way our staff will contact you.">
         <th>Contact Email *</th>
         <td class="contact">
-          <input required type="text" name="contact_email" value="{{gathering.contact_email}}" size="60" class="contact"/>
+          {% if gathering.contact_email|first in '@' %}
+            <input type="text" name="contact_email" value='@*******' size="60" class="contact"/>
+            &nbsp;{{gathering.contact_email|slice:"1:6"}}
+          {% else %}
+            <input required type="text" name="contact_email" value="{{gathering.contact_email}}" size="60" class="contact"/>
+          {% endif %}
         </td>
       </tr>
       <tr title="What is your phone number? This is a backup way for our staff to contact you.">
         <th>Contact Phone </th>
         <td class="contact">
-          <input type="text" name="contact_email" value="{{gathering.contact_email}}" size="60" class="contact"/>
-        </td>
+          {% if gathering.contact_phone|first in '@' %}
+            <input type="text" name="contact_phone" value='@*******' size="60" class="contact"/>
+            &nbsp;{{gathering.contact_phone|slice:"1:6"}}
+          {% else %}
+            <input type="text" name="contact_phone" value="{{gathering.contact_phone}}" size="60" class="contact"/>
+          {% endif %}
+          </td>
       </tr>
       <!--tr>
         <th>Contact Notes </th>
@@ -147,12 +163,23 @@
         <th>Email visible on map</th>
         <td class="contact">
           <div class="contact">
-            <label><input checked type="radio" name="visibility"/> No</label>
-            <label><input type="radio" name="visibility"/>Yes</label>
+            <label><input checked type="radio" value="no" name="visibility" {% if not email_visible %}checked{% endif %}/>No</label>
+            <label><input type="radio" value="yes" name="visibility" {% if email_visible %}checked{% endif %}/>Yes</label>
           </div>
           If yes, using a separate email (not your personal or professional one) is recommended.
         </td>
       </tr>
+      <tr title="Who is your steward? Leave blank if unknown.">
+        <th>Steward</th>
+        <td>
+          <select name="steward"  placeholder="Steward for this event">
+            <option value="">None</option>
+            {% for stw in stewards %}
+              <option value="{{stw.pk}}" {% if stw.pk == gathering.steward.pk %}selected{% endif %}>{{stw.alias}}</option>
+            {% endfor %}
+          </select>
+        </td>
+    </tr>
       <tr>
         <th>
           Register
@@ -206,9 +233,6 @@
               {% else %}
               <li>Date: <span>{{gathering.start_date|date:'Y-m-d'}}</li>
               {% endif %}
-              {% if gathering.contact_email %}
-              <li>Contact: <span><a href="mailto:{{gathering.contact_email}}">✉️</a></li>
-              {% endif %}
             </ul>
           </td>
         </tr>
@@ -245,7 +269,7 @@
         <tr>
           <th>Steward</th>
           <td>
-            <select name="steward"  placeholder="(optional) Name of the steward fof this event">
+            <select name="steward"  placeholder="(optional) Name of the steward for this event">
               <option value="">None</option>
               {% for stw in stewards %}
                 <option value="{{stw.pk}}" {% if stw.pk == gathering.steward.pk %}selected{% endif %}>{{stw.alias}}</option>

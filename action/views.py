@@ -51,6 +51,7 @@ from .organizations_view import organizations_view, organization_view
 from .gathering_view import gathering_view
 from .user_createsubmitform_view import USGCreate, USGCreateSubmit, GatheringCreate, GatheringCreateSubmit, OrganizationcontactCreate, OrganizationcontactCreateSubmit, OrganizationCreate, OrganizationCreateSubmit, LocationCreate, LocationCreateSubmit
 from .cookie_profile import CookieProfile, loginCookieProfile
+from .crypto import Crypto
 
 import datetime
 
@@ -562,6 +563,36 @@ def join_us(request):
   userhome.save()
   context = {'error_message': f"Callsign '{screenname}' successfully created."}
   return HttpResponse(template.render(context, request))
+
+def crypto_view(request, error_message=None):
+  known_keys = Crypto.get_known_keys(request.COOKIES)
+  abs_base = None
+  unlock = request.GET.get('unlock', None)
+  if unlock:
+    [num, key] = unlock.split(':')
+  else:
+    token = os.environ.get('GAMECHANGER_CRYPTO_TOKEN')
+    if token and request.GET.get('regen', None) == token:
+      # Generate keypair
+      (num, key) = Crypto.gen_privkey_as_urlstr()
+      abs_base = request.build_absolute_uri('')
+    else:
+      num = ""
+      key = ""
+
+  context = {
+    'error_message': error_message,
+    'unlock': unlock,
+    'cookie_num': num,
+    'cookie_key': key,
+    'abs_base': abs_base,
+    'known_keys': ', '.join(known_keys),
+  }
+  template = loader.get_template('action/crypto.html')
+  response = HttpResponse(template.render(context, request))
+  if unlock:
+    response.set_cookie(f'gc_key_{num}', key)
+  return response
 
 def emergency_activate(request):
   if request.user.is_authenticated:

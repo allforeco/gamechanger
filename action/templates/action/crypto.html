@@ -1,0 +1,16 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+{% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+    <style></style>
+
+    {% if unlock %}
+        <h1>Secret data with key #{{cookie_num}} unlocked.</h1>
+
+    {% elif abs_base %} 
+        <h1>New secret key generated</h1>
+        <p>Copy this link now, it will never be displayed again</p>
+        <code>{{ abs_base }}?unlock={{cookie_num}}:{{cookie_key}}</code>
+    {% endif %}
+    <p>Already known keys: {{known_keys}}</p>
+{% endblock %}
