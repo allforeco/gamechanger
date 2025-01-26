@@ -1021,7 +1021,7 @@ class Gathering(models.Model):
       steward=False):
     return locals()
   
-  def datalist(event, isrecord, datalist_template):
+  def datalist(event, isrecord, datalist_template, green=None):
     values = {}
     obj_record = None
     obj_event = None
@@ -1116,7 +1116,8 @@ class Gathering(models.Model):
     
     if datalist_template['model']: values['model'] = model = event
     if datalist_template['record']: values['record'] = record = isrecord
-    
+    if green is not None: values['green'] = green
+
     #print(values)
     return values
 

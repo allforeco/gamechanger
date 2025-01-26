@@ -156,7 +156,7 @@
                   <input type="hidden" value="{{event.location.id}}" name="locid"/>
                   <input type="hidden" value="" name="witness"/>
                 {% endif %}
-                <input type="submit" value="+" class="recorded"/>
+                <input type="submit" value="+" class="{% if event.green %}recorded{% else %}notrecorded{% endif %}"/>
               </form>
             </td>
           {% endif %}
