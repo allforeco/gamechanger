@@ -61,7 +61,7 @@
   {% if event_list %}
     <form action="{% url 'action:geo_update' %}" method="POST">
       {% csrf_token %}
-      <input type="hidden" value="True" name="isnewevent"/>
+      <input type="hidden" value="True" name="is_gathering"/>
       <input type="hidden" value="{{this_location.id}}" name="locid"/>
       <input type="submit" value="Register New (Recurring) Event" style="background-color:#A5A51D !important"/>
     </form>

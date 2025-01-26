@@ -63,44 +63,16 @@ def geo_view_handler(request, locid):
   #for sl in sublocation_list:
   #  gathering_list |= Gathering.objects.filter(location=sl)
   
-  witness_list = Gathering_Witness.objects.none()
   for gathering in gathering_list:
-    witness_list |= Gathering_Witness.objects.filter(gathering=gathering)
-    #for gw in gwl:
-    #  gwr = gw.set_gathering_to_root()
-    #  witness_list |= gwr
-  
-  #event_list = []
-  for witness in witness_list:
-    gw = witness
-    gw.gathering = Gathering.objects.get(regid=witness.set_gathering_to_root())
-    event_list.append(Gathering.datalist(event=gw, isrecord=True, datalist_template=event_head))
-    if len(event_list) > 0:
-      dup = False
-      for event in event_list:
-        if event['date'] == witness.date and event['overview'] == witness.gathering.regid:
-          dup=True
-      
-      if not dup:
+    witnesses_here = Gathering_Witness.objects.filter(gathering=gathering)
+    if witnesses_here.count() == 0:
+      event_list.append(Gathering.datalist(event=gathering, isrecord=False, datalist_template=event_head))
+    else:
+      for witness in witnesses_here:
         event_list.append(Gathering.datalist(event=witness, isrecord=True, datalist_template=event_head))
 
-  for gathering in gathering_list:
-    if len(event_list) > 0:
-      dup = False
-      for event in event_list:
-        if event['overview'] == gathering.regid:
-          dup=True
-      
-      if not dup:
-        event_list.append(Gathering.datalist(event=gathering, isrecord=False, datalist_template=event_head))
-
-  #print("EVL",event_list[0])
   event_list.sort(key=lambda e: e['date'], reverse=True)
-  
-  event_list_upcomming = []
-  event_list_past = []
-
-  total_participants = sum([w.participants for w in witness_list if w.participants])
+  total_participants = sum([w['participants'] for w in event_list if 'participants' in w and w['participants']])
   template = loader.get_template('action/geo_view.html')
   try:
     favorite_location = UserHome.objects.get(callsign=request.user.username).favorite_locations.filter(name=this_location.name).exists()
@@ -115,70 +87,7 @@ def geo_view_handler(request, locid):
     'event_list': event_list,
     'total_participants': total_participants,
     'favorite_location': favorite_location,
-    'root_gathering': witness_list[0].gathering if witness_list else [],
-    'gathering_types': Gathering.gathering_type.field.choices,
-  }
-
-  if request.POST.get('favorite'):
-    #print(f"FAVV {request.POST.get('favorite')}")
-    handle_favorite(request, this_location.id)
-
-  if request.user.is_authenticated:
-    #print(f"FAVU User {request.user.username}")
-    try:
-      userhome = UserHome.objects.get(callsign=request.user.username)
-      gathering = Gathering.objects.filter(location=locid).first()
-      context['favorite_location'] = str(gathering.location.id in [loc.id for loc in userhome.favorite_locations.all()])
-      #print(f"FAVQ {context['favorite_location']} {gathering.location.id} {userhome.favorite_locations.all()}")
-    except:
-      #print(f"FAVF No userhome object for user {request.user.username}")
-      userhome = None
-
-  return HttpResponse(template.render(context, request))
-
-def OLD_geo_view_handler(request, locid):
-  #print(f"TOWH {locid}")
-  if not Location.Duplicate_is_prime(Location.objects.filter(id=locid).first()):
-    return redirect('action:geo_view',Location.Duplicate_get_prime(Location.objects.filter(id=locid).first()).id)
-  this_location = Location.objects.filter(id=locid).first()
-  if not (this_location):
-    return redirect('action:geo_invalid')
-
-  parent_location = this_location.in_location
-  sublocation_list_duplicates = Location.objects.filter(in_location=this_location).order_by('name')
-  sublocation_list = Location.objects.none()
-  for sl in sublocation_list_duplicates:
-    if Location.Duplicate_is_prime(sl):
-      sublocation_list |= Location.objects.filter(id=sl.id)
-  sublocation_list = sublocation_list.order_by('name')
-
-  gathering_list = Gathering.objects.filter(location=this_location)
-  witness_dict = {}
-  #print(f"TOWH {this_location} {parent_location} {len(sublocation_list)} {len(gathering_list)}")
-  for gathering in gathering_list:
-    raw_witness_list = list(Gathering_Witness.objects.filter(gathering=gathering))
-    #print(f"TOWI {gathering} {len(raw_witness_list)} {raw_witness_list}")
-    for w in raw_witness_list:
-      belong_regid = w.set_gathering_to_root()
-      witness_dict[(belong_regid,w.date)] = w
-      #print(f"TOWD {(belong.gathering.regid,w.date)} = {w}")
-  witness_list = list(witness_dict.values())
-  witness_list.sort(key=lambda e: e.date, reverse=True)
-  total_participants = sum([w.participants for w in witness_list if w.participants])
-  template = loader.get_template('action/geo_view.html')
-  try:
-    favorite_location = UserHome.objects.get(callsign=request.user.username).favorite_locations.filter(name=this_location.name).exists()
-  except:
-    favorite_location = False
-  
-  context = {
-    'this_location': this_location,
-    'parent_location': parent_location,
-    'sublocation_list': sublocation_list,
-    'witness_list': witness_list,
-    'total_participants': total_participants,
-    'favorite_location': favorite_location,
-    'root_gathering': witness_list[0].gathering if witness_list else [],
+    'root_gathering': [],#FIXME witness_list[0].gathering if witness_list else [],
     'gathering_types': Gathering.gathering_type.field.choices,
   }
 
@@ -312,7 +221,7 @@ def geo_one_more_view(request):
 ???
 '''
 def geo_update_view(request, is_one_more = False):
-  isnewevent = (request.POST.get('isnewevent') == 'True')
+  is_gathering = (request.POST.get('is_gathering') == 'True')
   regid = request.POST.get('regid')
   witness_id = request.POST.get('witness')
   locid = request.POST.get('locid')
@@ -321,6 +230,8 @@ def geo_update_view(request, is_one_more = False):
   this_gathering = Gathering.objects.filter(regid=regid)
   if this_gathering:
     this_gathering = this_gathering.first()
+  else:
+    this_gathering = None
   if not witness_id:
     this_witness = None
   else:
@@ -330,38 +241,35 @@ def geo_update_view(request, is_one_more = False):
     else:
       this_witness = None
 
-  locid = request.POST.get('locid')
   this_location = Location.objects.filter(id=locid).first()
 
   template = loader.get_template('action/geo_update_view.html')
-  print(f"GATHERING={this_gathering.__dict__}")
   try:
     initial_weeks = (this_gathering.end_date - this_gathering.start_date).days // 7
   except:
     initial_weeks = 0
 
-  if Crypto.is_encrypted(this_gathering.contact_name):
+  if this_gathering and Crypto.is_encrypted(this_gathering.contact_name):
     this_gathering.contact_name = Crypto.decrypt_if_possible(this_gathering.contact_name, request.COOKIES)
-  if Crypto.is_encrypted(this_gathering.contact_email):
+  if this_gathering and Crypto.is_encrypted(this_gathering.contact_email):
     this_gathering.contact_email = Crypto.decrypt_if_possible(this_gathering.contact_email, request.COOKIES)
     email_visible = False
   else:
     email_visible = True
-  if Crypto.is_encrypted(this_gathering.contact_phone):
+  if this_gathering and Crypto.is_encrypted(this_gathering.contact_phone):
     this_gathering.contact_phone = Crypto.decrypt_if_possible(this_gathering.contact_phone, request.COOKIES)
 
   context = { 
     'is_one_more': is_one_more,
-    'isnewevent': isnewevent,
-    'isneweventtoggle': (not isnewevent),
-    'gathering': this_gathering,
-    'witness': this_witness,
+    'is_gathering': is_gathering,
     'location': this_location,
     'gathering_types': Gathering.gathering_type.field.choices,
     'stewards': Steward.objects.all(),
     'initial_weeks': initial_weeks,
     'email_visible': email_visible,
   }
+  if this_gathering: context['gathering'] = this_gathering
+  if this_witness: context['witness'] = this_witness
 
   return HttpResponse(template.render(context, request))
 
@@ -369,8 +277,8 @@ def geo_update_view(request, is_one_more = False):
 ???
 '''
 def geo_update_post(request):
-  isnewevent = (request.POST.get('isnewevent') == 'True')
-  if (isnewevent):
+  is_gathering = (request.POST.get('is_gathering') == 'True')
+  if (is_gathering):
     return geo_update_post_gathering(request)
   else:
     return geo_update_post_witness(request)
@@ -452,9 +360,11 @@ def geo_update_post_gathering(request):
   print(f'POST2={request.POST}')
   if regid:
     gathering = Gathering.objects.filter(pk=regid).first()
+    print(f'GUPD Found gathering {gathering}')
   else:
     gathering = Gathering()
     gathering.regid = Gathering.generate_regid()
+    print(f'GUPD New gathering {gathering}')
   gathering.location = Location.objects.filter(pk=locid).first()
   gathering.start_date = datetime.datetime.strptime(request.POST.get('date'), '%Y-%m-%d').replace(tzinfo=datetime.timezone.utc)
   weeks = int(request.POST.get('weeks'))

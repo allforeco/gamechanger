@@ -315,7 +315,7 @@ class Crypto():
 
     @staticmethod
     def is_encrypted(strval):
-        return strval and strval.startswith(Crypto.ENC_MARKER)
+        return bool(isinstance(strval, str) and strval.startswith(Crypto.ENC_MARKER))
 
     @staticmethod
     def is_cleartext(strval):

@@ -121,7 +121,7 @@
               <span hidden="true">{{witness.date|date:'Y-m-d' }}</span>
               <form action="{% url 'action:geo_update' %}" method="POST">
                 {% csrf_token %}
-                <input type="hidden" value="False" name="isnewevent"/>
+                <input type="hidden" value="False" name="is_gathering"/>
                 <input type="hidden" value="{{witness.gathering.regid}}" name="regid"/>
                 <input type="hidden" value="{{this_location.id}}" name="locid"/>
                 <input type="hidden" value="{{witness.id}}" name="witness"/>
