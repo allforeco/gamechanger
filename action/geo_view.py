@@ -24,7 +24,7 @@ from django import forms
 from .models import Gathering, Gathering_Belong, Gathering_Witness, Location, Location_Belong, UserHome, Organization, Steward
 from .crypto import Crypto
 from django.shortcuts import redirect
-import datetime, itertools
+import datetime
 
 '''
 ===Handle location viewing
@@ -62,24 +62,13 @@ def geo_view_handler(request, locid):
   gathering_list = Gathering.objects.filter(location=this_location)
   #for sl in sublocation_list:
   #  gathering_list |= Gathering.objects.filter(location=sl)
-  
+
   for gathering in gathering_list:
-    witnesses_here = Gathering_Witness.objects.filter(gathering=gathering)
-    if witnesses_here.count() == 0:
-      event_list.append(Gathering.datalist(event=gathering, isrecord=False, datalist_template=event_head))
+    witnesses_here = Gathering_Witness.get_witnesses(gathering, event_head)
+    if witnesses_here:
+      event_list += witnesses_here
     else:
-      witnesses_here = list(witnesses_here)
-      witnesses_here.sort(key=lambda e: e.date)
-      base_date = gathering.start_date
-      offset_dates = [w.date-base_date for w in witnesses_here]
-      print(f'DOFS Gathering base_date {base_date} offsets {offset_dates}')
-      within_week_offsets = [b-a <= datetime.timedelta(days=7) for a,b in itertools.pairwise(offset_dates)]
-      print(f'DOFS GreenPlus {within_week_offsets}')
-      # Check last event, is it within the gathering date range?
-      within_week_offsets += [bool(witnesses_here[-1].date + datetime.timedelta(days=7) > gathering.end_date)]
-      print(f'DOFS GreenPlus {within_week_offsets}')
-      for (witness, green) in zip(witnesses_here, within_week_offsets):
-        event_list.append(Gathering.datalist(event=witness, isrecord=True, datalist_template=event_head, green=green))
+      event_list.append(Gathering.datalist(event=gathering, isrecord=False, datalist_template=event_head))
 
   event_list.sort(key=lambda e: e['date'], reverse=True)
   total_participants = sum([w['participants'] for w in event_list if 'participants' in w and w['participants']])

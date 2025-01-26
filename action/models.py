@@ -17,7 +17,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from action.static_lists import valid_location_ids
-import pycountry, datetime, random, string
+import pycountry, datetime, random, string, itertools
 #from .cookie_profile import CookieProfile
 
 
@@ -1276,6 +1276,27 @@ class Gathering_Witness(models.Model):
   creation_time = models.DateTimeField(auto_now_add=True, editable=False)
   updated = models.DateTimeField(auto_now_add=True, null=True, editable=False)
   organization = models.ForeignKey(Organization, on_delete=models.SET_NULL, blank=True, null=True, editable=False)
+
+  @staticmethod
+  def get_witnesses(gathering, event_head):
+    witnesses = []
+    witnesses_here = Gathering_Witness.objects.filter(gathering=gathering)
+    if witnesses_here.count() == 0:
+      return []
+    witnesses_here = list(witnesses_here)
+    witnesses_here.sort(key=lambda e: e.date)
+    base_date = gathering.start_date
+    offset_dates = [w.date-base_date for w in witnesses_here]
+    #print(f'DOFS Gathering base_date {base_date} offsets {offset_dates}')
+    within_week_offsets = [b-a <= datetime.timedelta(days=7) for a,b in itertools.pairwise(offset_dates)]
+    #print(f'DOFS GreenPlus {within_week_offsets}')
+    # Check last event, is it within the gathering date range?
+    within_week_offsets += [bool(witnesses_here[-1].date + datetime.timedelta(days=7) > gathering.end_date)]
+    #print(f'DOFS GreenPlus {within_week_offsets}')
+    for (witness, green) in zip(witnesses_here, within_week_offsets):
+      witnesses.append(Gathering.datalist(event=witness, isrecord=True, datalist_template=event_head, green=green))
+    witnesses.reverse()
+    return witnesses
 
   '''
   ___parse map pin color by map strike type

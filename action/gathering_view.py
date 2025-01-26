@@ -18,15 +18,12 @@ def gathering_view(request, regid):
     location=True, map_link=True, 
     orgs=True, recorded=True)
   event_main = [Gathering.datalist(gathering, False, event_main_head)]
-  gathering_witness_list = Gathering_Witness.objects.filter(gathering=gathering).order_by('-date')
-  event_record_list = []
   event_record_head = Gathering.datalist_template(
     model=True, date=True, 
     event_link=True, recorded_link=True, 
     location=False, participants=True,
     recorded=True)
-  for gw in gathering_witness_list:
-    event_record_list.append(Gathering.datalist(gw, True, event_record_head))
+  event_record_list = Gathering_Witness.get_witnesses(gathering, event_record_head)
 
   organization = None
   organization_view = None

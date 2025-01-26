@@ -53,7 +53,7 @@
 
           {% if event_head.overview %}
             <th class="th_overview">
-              Overview
+              Over-<br/>view
             </th>
           {% endif %}
 
@@ -78,19 +78,19 @@
 
           {% if event_head.participants %}
             <th class="th_participants">
-              Participants
+              Parti-<br/>cipants
             </th>
           {% endif %}
 
           {% if event_head.event_link %}
             <th class="th_event_link">
-              Event Link
+              Announce<br/>Link
             </th>
           {% endif %}
 
           {% if event_head.recorded_link %}
             <th class="th_recorded_link">
-              Media Record Link
+              Record<br/>Link
             </th>
           {% endif %}
 
@@ -170,7 +170,7 @@
           {% if event_head.overview %}
             <td class="td_overview">
               {% if event.overview %}
-                <a href="{% url 'action:gathering_view' event.overview %}"><img alt="Link" src="/static/overview.png"/></a>
+                <a href="{% url 'action:gathering_view' event.overview %}"><img alt="&#129698;" src="/static/overview.png"/></a>
                 <!--{% if event.record %} (Record) {% endif %}-->
                 <!--{% if not event.record %} (Event) {% endif %}-->
               {% endif %}
