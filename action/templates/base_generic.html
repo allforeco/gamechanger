@@ -9,11 +9,11 @@
     <link rel="shortcut icon" type="image/png" href="{% static 'favicon.ico' %}"/>
     <link rel="stylesheet" type="text/css" href="{% static 'style.css' %}"/>
     <style>
-      .maincontent { background-color: #ACE6A4; padding: 15px; border: 3px solid #9ADC9E; }/* #ACE6A4 #8FE159 */
-	    .linkbanner {padding: 8px; margin: 5px 0px; color: white; background-color: #2FAB57; border: 3px solid #25A04F; overflow: hidden;}/* #2FAB57 */
-        .linkbanner a {color: white; margin-right: 0.5em;}
-	    .menu_left { float: left; color: white; } /*display: inline-block; text-align: center; padding: 14px 16px; text-decoration: none; */
-	    .menu_right { float: right; color: white; } /*display: inline-block; text-align: center; padding: 14px 16px; text-decoration: none; */
+      .maincontent { background-color: #F8FFF8; padding: 15px; border: 3px solid #9ADC9E; }/* #ACE6A4 #8FE159 */
+	    .linkbanner { vertical-align: middle; padding: 8px; margin: 5px 0px; color: black; background-color: #E0FFE0; border: 3px solid #25A04F; overflow: hidden;}/* #2FAB57 */
+        .linkbanner a {color: black; margin-right: 0.5em;}
+	    .menu_left { vertical-align: middle; float: left; color: white; } /*display: inline-block; text-align: center; padding: 14px 16px; text-decoration: none; */
+	    .menu_right { vertical-align: middle; float: right; color: white; } /*display: inline-block; text-align: center; padding: 14px 16px; text-decoration: none; */
 	    a:active {font-weight: bold;}
     
       .hide{
@@ -53,7 +53,7 @@
       }
 
       input:active{
-        background-color: #2FAB57;
+        background-color: #E0FFE0;
         border-top: 2px solid #25A04F;
         border-left: 2px solid #25A04F;
         border-bottom: 2px solid #9ADC9E;
@@ -229,10 +229,10 @@
         </span>
         <span id="link_external" style="border-left: 3px solid #25A04F; padding-left: 1em; margin-left: 0.5em">
           <!--<a href="https://fridaysforfuture.org" target="_blank"><img src="" alt="Fridays For Future"> <sup><sup><img style="width: 16px;" src='/static/icon-external.png'/></sup></sup></a>-->
-          <a href="https://map.fridaysforfuture.org" target="_blank"><img src="" alt="Map"> <sup><sup><img style="width: 16px;" src='/static/icon-external.png'/></sup></sup></a>
+          <a href="https://map.fridaysforfuture.org" target="_blank"><img src="" alt="Map"> <img style="width: 16px;" src='/static/icon-external.png'/></a>
           <!--a href="https://docs.google.com/forms/d/e/1FAIpQLSfakAGKkwd5FCt_LFgorf_Kfsd2UPU6kq6CfaRJDPgkOcqG_Q/viewform" target="_blank"><img src="" alt=""/> <sup><sup><img style="width: 16px;" src='/static/icon-external.png'/></sup></sup></a-->
           <!--<a href="{% url 'action:latest_records' %}">Records</a>-->
-          <a href="https://actionnetwork.org/groups/map-count-reporting-manual" target="_blank">User Manual <sup><sup><img style="width: 16px;" src='/static/icon-external.png'/></sup></sup></a>
+          <a href="https://actionnetwork.org/groups/map-count-reporting-manual" target="_blank">User Manual <img style="width: 16px;" src='/static/icon-external.png'/></a>
         </span>
       </div>
 

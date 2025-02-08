@@ -31,7 +31,7 @@ else:
     DEBUG = False
 DEBUG = True
 
-ALLOWED_HOSTS = ['www.gamechanger.eco', 'gamechanger.eco', '127.0.0.1', 'localhost']
+ALLOWED_HOSTS = ['www.gamechanger.eco', 'gamechanger.eco', 'staging.gamechanger.eco', '127.0.0.1', 'localhost']
 
 
 # Application definition
