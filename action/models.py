@@ -1280,22 +1280,22 @@ class Gathering_Witness(models.Model):
   @staticmethod
   def get_witnesses(gathering, event_head):
     witnesses = []
-    witnesses_here = Gathering_Witness.objects.filter(gathering=gathering)
-    if witnesses_here.count() == 0:
-      return []
-    witnesses_here = list(witnesses_here)
-    witnesses_here.sort(key=lambda e: e.date)
-    base_date = gathering.start_date
-    offset_dates = [w.date-base_date for w in witnesses_here]
-    #print(f'DOFS Gathering base_date {base_date} offsets {offset_dates}')
-    within_week_offsets = [b-a <= datetime.timedelta(days=7) for a,b in itertools.pairwise(offset_dates)]
-    #print(f'DOFS GreenPlus {within_week_offsets}')
-    # Check last event, is it within the gathering date range?
-    within_week_offsets += [bool(witnesses_here[-1].date + datetime.timedelta(days=7) > gathering.end_date)]
-    #print(f'DOFS GreenPlus {within_week_offsets}')
-    for (witness, green) in zip(witnesses_here, within_week_offsets):
-      witnesses.append(Gathering.datalist(event=witness, isrecord=True, datalist_template=event_head, green=green))
-    witnesses.reverse()
+    witnesses_here = list(Gathering_Witness.objects.filter(gathering=gathering))
+    witness_by_date = {e.date:e for e in witnesses_here}
+    the_date = gathering.start_date
+    for w in witnesses_here:
+      witnesses.append(Gathering.datalist(w, True, event_head, green=True))
+    while the_date <= (gathering.end_date or gathering.start_date):
+      if the_date not in witness_by_date.keys():
+        record = Gathering.datalist(Gathering_Witness(
+          gathering = gathering,
+          date = the_date,
+          participants = 0,
+          proof_url = None,
+          organization = gathering.organizations.first(),
+        ), True, event_head, green=False)
+        witnesses.append(record)
+      the_date += datetime.timedelta(days=7)
     return witnesses
 
   '''

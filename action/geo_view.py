@@ -224,6 +224,8 @@ def geo_update_view(request, is_one_more = False):
   regid = request.POST.get('regid')
   witness_id = request.POST.get('witness')
   locid = request.POST.get('locid')
+  ghost_date = request.POST.get('ghost_date')
+  print(f"ghost_date={ghost_date}")
   print(f"REGID={regid}")
   print(f"POST1={request.POST}")
   this_gathering = Gathering.objects.filter(regid=regid)
@@ -231,7 +233,7 @@ def geo_update_view(request, is_one_more = False):
     this_gathering = this_gathering.first()
   else:
     this_gathering = None
-  if not witness_id:
+  if not witness_id or witness_id == 'None':
     this_witness = None
   else:
     this_witness = Gathering_Witness.objects.filter(id=witness_id)
@@ -242,7 +244,6 @@ def geo_update_view(request, is_one_more = False):
 
   this_location = Location.objects.filter(id=locid).first()
 
-  template = loader.get_template('action/geo_update_view.html')
   try:
     initial_weeks = (this_gathering.end_date - this_gathering.start_date).days // 7
   except:
@@ -266,10 +267,12 @@ def geo_update_view(request, is_one_more = False):
     'stewards': Steward.objects.all(),
     'initial_weeks': initial_weeks,
     'email_visible': email_visible,
+    'ghost_date': ghost_date,
   }
   if this_gathering: context['gathering'] = this_gathering
   if this_witness: context['witness'] = this_witness
 
+  template = loader.get_template('action/geo_update_view.html')
   return HttpResponse(template.render(context, request))
 
 '''

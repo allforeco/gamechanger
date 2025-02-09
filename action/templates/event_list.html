@@ -127,10 +127,11 @@
                     <input type="hidden" value="{{event.model.gathering.regid}}" name="regid"/>
                     <input type="hidden" value="{{event.model.gathering.location.id}}" name="locid"/>
                     <input type="hidden" value="{{event.model.pk}}" name="witness"/>
-                    <input type="submit" value="{% if event.date %}{{event.date|date:'Y-m-d'}}{% endif %}" class="{% if event.recorded %}recorded{% else %}notrecorded{% endif %}"/>
+                    <input type="hidden" value="{{event.date|date:'Y-m-d'}}" name="ghost_date"/>
+                    <input type="submit" value="{% if event.date %}{{event.date|date:'Y-m-d'}}{% endif %}" class="{% if event.green %}recorded{% else %}notrecorded{% endif %}"/>
                   {% else %}
                     <input type="hidden" value="True" name="is_gathering"/>
-                    <input type="hidden" value="{{event.model.regid}}" name="regid"/>
+                    <input type="hidden" value="{{event.regid}}" name="regid"/>
                     <input type="hidden" value="{{event.location.id}}" name="locid"/>
                     <input type="hidden" value="" name="witness"/>
                     <input type="submit" value="{% if event.date %}{{event.date|date:'Y-m-d'}}{% if event_head.date_end %} - {{event.date_end|date:'Y-m-d'}}{%endif%}{% endif %}" class="{% if event.recorded %}recorded{% else %}notrecorded{% endif %} record"/>
@@ -146,13 +147,13 @@
                 {% if event.record %}
                   <input type="hidden" value="{{is_one_more}}" name="is_one_more"/>
                   <input type="hidden" value="False" name="is_gathering"/>
-                  <input type="hidden" value="{{event.model.gathering.regid}}" name="regid"/>
-                  <input type="hidden" value="{{event.model.gathering.location.id}}" name="locid"/>
-                  <input type="hidden" value="{{event.model.pk}}" name="witness"/>
+                  <input type="hidden" value="{{event.gathering.regid}}" name="regid"/>
+                  <input type="hidden" value="{{event.gathering.location.id}}" name="locid"/>
+                  <input type="hidden" value="{{event.pk}}" name="witness"/>
                 {% else %}
                   <input type="hidden" value="{{is_one_more}}" name="is_one_more"/>
                   <input type="hidden" value="False" name="is_gathering"/>
-                  <input type="hidden" value="{{event.model.regid}}" name="regid"/>
+                  <input type="hidden" value="{{event.regid}}" name="regid"/>
                   <input type="hidden" value="{{event.location.id}}" name="locid"/>
                   <input type="hidden" value="" name="witness"/>
                 {% endif %}

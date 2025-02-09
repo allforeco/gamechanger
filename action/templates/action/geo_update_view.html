@@ -242,7 +242,7 @@
           {% endif %}
           <th>Date (YYYY-MM-DD) *</th>
           <td>
-            <input required type="date" name="date" value="{% if is_one_more %}{% else %}{{witness.date|date:'Y-m-d'}}{% endif %}"/>            
+            <input required type="date" name="date" value="{% if ghost_date %}{{ghost_date}}{% else %}{% if is_one_more %}{% else %}{{witness.date|date:'Y-m-d'}}{% endif %}{% endif %}"/>
           </td>
         </tr>
         <tr>
