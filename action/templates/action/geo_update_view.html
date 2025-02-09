@@ -275,7 +275,12 @@
             <select name="steward"  placeholder="(optional) Name of the steward for this event">
               <option value="">None</option>
               {% for stw in stewards %}
-                <option value="{{stw.pk}}" {% if stw.pk == gathering.steward.pk %}selected{% endif %}>{{stw.alias}}</option>
+                <option value="{{stw.pk}}" 
+                  {% if witness.steward %}
+                    {% if stw.pk == witness.steward.pk %}selected{% endif %}
+                  {% else %}
+                    {% if stw.pk == gathering.steward.pk %}selected{% endif %}
+                  {% endif %}>{{stw.alias}}</option>
               {% endfor %}
             </select>
           </td>

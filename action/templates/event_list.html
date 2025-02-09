@@ -147,9 +147,9 @@
                 {% if event.record %}
                   <input type="hidden" value="{{is_one_more}}" name="is_one_more"/>
                   <input type="hidden" value="False" name="is_gathering"/>
-                  <input type="hidden" value="{{event.gathering.regid}}" name="regid"/>
-                  <input type="hidden" value="{{event.gathering.location.id}}" name="locid"/>
-                  <input type="hidden" value="{{event.pk}}" name="witness"/>
+                  <input type="hidden" value="{{event.model.gathering.regid}}" name="regid"/>
+                  <input type="hidden" value="{{event.model.gathering.location.id}}" name="locid"/>
+                  <input type="hidden" value="{{event.model.pk}}" name="witness"/>
                 {% else %}
                   <input type="hidden" value="{{is_one_more}}" name="is_one_more"/>
                   <input type="hidden" value="False" name="is_gathering"/>
@@ -268,8 +268,10 @@
 
           {% if event_head.steward %}
           <td clqss="td_gtype">
-            {% if event.steward %}
-              {{event.steward}}
+            {% if event.model.steward %}
+              <i>{{event.model.steward}}</i>
+            {% elif event.model.gathering.steward %}
+              {{event.model.gathering.steward}}
             {% endif %}
           </td>
         {% endif %}

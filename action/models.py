@@ -1276,6 +1276,7 @@ class Gathering_Witness(models.Model):
   creation_time = models.DateTimeField(auto_now_add=True, editable=False)
   updated = models.DateTimeField(auto_now_add=True, null=True, editable=False)
   organization = models.ForeignKey(Organization, on_delete=models.SET_NULL, blank=True, null=True, editable=False)
+  steward = models.ForeignKey(Steward, blank=True, null=True, on_delete=models.SET_NULL, related_name="steward_of_gwitness")
 
   @staticmethod
   def get_witnesses(gathering, event_head):

@@ -337,18 +337,20 @@ def geo_update_post_witness(request):
     witness.organization = org
   except Exception as ex:
     witness.organization = None
-  
-  witness.updated = datetime.datetime.today()
-  witness.save()
 
   form_steward = request.POST.get('steward')
-  if gathering.steward != form_steward:
-    if form_steward:
-      gathering.steward = Steward.objects.get(pk=form_steward)
+  print(f"GS {gathering.steward.pk} WS {witness.steward.pk if witness.steward else None} FS {form_steward}")
+  if form_steward:
+    if gathering.steward and gathering.steward.pk == int(form_steward):
+      witness.steward = None
     else:
-      gathering.steward = None
-    gathering.save()
-    print(f"WGSU Gathering steward updated {gathering.steward} {form_steward}")
+      witness.steward = Steward.objects.get(pk=form_steward)
+  else:
+    witness.steward = None
+  print(f"WGSU Witness steward updated GS {gathering.steward} WS {witness.steward} FS {form_steward}")
+
+  witness.updated = datetime.datetime.today().replace(tzinfo=datetime.timezone.utc)
+  witness.save()
 
   print(f"GUPW {witness.__dict__}")
   return redirect('action:geo_view', locid)
