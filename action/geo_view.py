@@ -224,10 +224,13 @@ def geo_update_view(request, is_one_more = False):
   regid = request.POST.get('regid')
   witness_id = request.POST.get('witness')
   locid = request.POST.get('locid')
+  orgid = request.POST.get('orgid')
   ghost_date = request.POST.get('ghost_date')
+  next_url = request.POST.get('next_url')
   print(f"ghost_date={ghost_date}")
   print(f"REGID={regid}")
   print(f"POST1={request.POST}")
+  print(f"next_url={next_url}")
   this_gathering = Gathering.objects.filter(regid=regid)
   if this_gathering:
     this_gathering = this_gathering.first()
@@ -242,7 +245,16 @@ def geo_update_view(request, is_one_more = False):
     else:
       this_witness = None
 
-  this_location = Location.objects.filter(id=locid).first()
+  this_location = Location.objects.filter(id=locid)
+  if this_location:
+    this_location = this_location.first()
+  try:
+    print(f"Orgid {orgid}")
+    print(f"Orgid {int(orgid)}")
+    this_organization = Organization.objects.filter(id=int(orgid)).first()
+  except:
+    print(f"Orgid parsing exception")
+    this_organization = None
 
   try:
     initial_weeks = (this_gathering.end_date - this_gathering.start_date).days // 7
@@ -263,11 +275,13 @@ def geo_update_view(request, is_one_more = False):
     'is_one_more': is_one_more,
     'is_gathering': is_gathering,
     'location': this_location,
+    'organization': this_organization,
     'gathering_types': Gathering.gathering_type.field.choices,
     'stewards': Steward.objects.all(),
     'initial_weeks': initial_weeks,
     'email_visible': email_visible,
     'ghost_date': ghost_date,
+    'next_url': next_url,
   }
   if this_gathering: context['gathering'] = this_gathering
   if this_witness: context['witness'] = this_witness
@@ -339,7 +353,7 @@ def geo_update_post_witness(request):
     witness.organization = None
 
   form_steward = request.POST.get('steward')
-  print(f"GS {gathering.steward.pk} WS {witness.steward.pk if witness.steward else None} FS {form_steward}")
+  print(f"GS {gathering.steward.pk if gathering.steward else None} WS {witness.steward.pk if witness.steward else None} FS {form_steward}")
   if form_steward:
     if gathering.steward and gathering.steward.pk == int(form_steward):
       witness.steward = None
@@ -353,6 +367,10 @@ def geo_update_post_witness(request):
   witness.save()
 
   print(f"GUPW {witness.__dict__}")
+  next_url = request.POST.get('next_url')
+  if next_url:
+    print(f"next_url {next_url}")
+    return redirect(next_url)
   return redirect('action:geo_view', locid)
 
 '''
@@ -375,12 +393,6 @@ def geo_update_post_gathering(request):
   gathering.end_date = gathering.start_date + datetime.timedelta(weeks=weeks)
   gathering.expected_participants = request.POST.get('participants')
   gathering.gathering_type = request.POST.get('gathering-type')
-  try:
-    orgid = request.POST.get('organization')
-    organization = Organization.objects.get(pk=orgid)
-    gathering.organizations.set([organization])
-  except:
-    print(f"GUPO <Organization:None>")
 
   gathering.event_link_url = request.POST.get('event_link')
 
@@ -417,6 +429,26 @@ def geo_update_post_gathering(request):
 
   print(f"GUPG {gathering.__dict__}")
   gathering.save()
+
+  # Must be done after gathering.save()
+  try:
+    orgid = request.POST.get('organization')
+    print(f"GUP0 {orgid}")
+    orgid = int(orgid)
+    print(f"GUP1 {orgid}")
+    organization = Organization.objects.get(pk=orgid)
+    print(f"GUP2 {organization}")
+    gathering.organizations.set([organization])
+    print(f"GUP3 {gathering}")
+    gathering.save()
+    print(f"GUP4 Gathering saved")
+  except Exception as e:
+    print(f"GUPO <Organization:None> {e}")
+
+  next_url = request.POST.get('next_url')
+  if next_url:
+    print(f"next_url {next_url}")
+    return redirect(next_url)
   return redirect('action:geo_view', locid)
 
 '''

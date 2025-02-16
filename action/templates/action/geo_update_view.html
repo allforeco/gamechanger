@@ -104,7 +104,11 @@
         <th>Organization</th>
         <td>
           <select name="organization" data-minimum-input-length="3" id="id_organization" data-autocomplete-light-language="en" data-autocomplete-light-url="/action/organization-autocomplete/" data-autocomplete-light-function="select2">
-            <option value="{{gathering.organizations.first.id}}" selected>{{gathering.organizations.first.name}}</option>
+            {% if organization %}
+              <option value="{{organization.id}}" selected>{{organization.name}}</option>
+            {% else %}
+              <option value="{{gathering.organizations.first.id}}" selected>{{gathering.organizations.first.name}}</option>
+            {% endif %}
           </select>
         </td>
       </tr>
@@ -227,6 +231,7 @@
           <input type="hidden" name="regid" value="{{gathering.regid}}"/>
           <input type="hidden" name="locid" value="{{location.id}}"/>
           <input type="hidden" name="witness" value="{{witness.pk}}"/>
+          <input type="hidden" name="next_url" value="{{next_url}}"/>
           {% if user.is_authenticated and not is_one_more %}
             <div style="display: inline">
               <input type="button" name="enable_delete" value="Delete this event from Gamechanger"

@@ -41,11 +41,13 @@ def organization_view(request, orgid):
     return HttpResponse(template.render(context, request))
   contact_list = OrganizationContact.objects.filter(organization=organization)
   gathering_list = Gathering.objects.filter(organizations__in=[organization])
-  gathering_witness_list = Gathering_Witness.objects.filter(organization=organization).order_by('-date')[:100]
+  #gathering_witness_list = Gathering_Witness.objects.filter(organization=organization).order_by('-date')[:100]
+  gathering_witness_list = Gathering_Witness.objects.filter(organization=organization).order_by('-date')
+  print(f"GathWitL {gathering_witness_list}")
 
   event_head = Gathering.datalist_template(
     date=True, location=True, gtype=False, 
-    activity_type=True, participants=True, 
+    participants=True, 
     event_link=True, recorded_link=True, 
     map_link=True, overview=True, 
     recorded=True, record=True, model=True,
@@ -53,12 +55,13 @@ def organization_view(request, orgid):
   event_list = []
 
   for gw in gathering_witness_list:
-    event_list.append(Gathering.datalist(gw, True, event_head))
+    event_list.append(Gathering.datalist(gw, True, event_head, green=True if gw.participants else False))
+  for gathering in gathering_list:
+    witnesses_here = Gathering_Witness.get_witnesses(gathering, event_head, already_listed=gathering_witness_list)
+    event_list += witnesses_here
 
-  for g in gathering_list:
-    event_list.append(Gathering.datalist(g, False, event_head))
-  
   event_list.sort(key=lambda e: e['date'], reverse=True)
+
 
   context = {
     'organization':organization,

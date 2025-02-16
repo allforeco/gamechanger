@@ -564,6 +564,12 @@ def join_us(request):
   context = {'error_message': f"Callsign '{screenname}' successfully created."}
   return HttpResponse(template.render(context, request))
 
+# Generate a new key by navigating to
+# https://staging.gamechanger.eco/action/crypto?regen=xxx
+# https://www.gamechanger.eco/action/crypto?regen=xxx
+# Unlock a key by navigating to
+# https://staging.gamechanger.eco/action/crypto?unlock=xxx
+# https://www.gamechanger.eco/action/crypto?unlock=xxx
 def crypto_view(request, error_message=None):
   known_keys = Crypto.get_known_keys(request.COOKIES)
   abs_base = None
@@ -591,7 +597,13 @@ def crypto_view(request, error_message=None):
   template = loader.get_template('action/crypto.html')
   response = HttpResponse(template.render(context, request))
   if unlock:
-    response.set_cookie(f'gc_key_{num}', key)
+    response.set_cookie(
+      f'gc_key_{num}', key,
+      max_age = datetime.timedelta(days=100),
+      secure=True,
+      httponly=True,
+      samesite='Strict',
+    )
   return response
 
 def emergency_activate(request):

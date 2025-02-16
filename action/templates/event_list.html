@@ -42,7 +42,6 @@
             <th class="th_date">
               Date{% if event_head.date_end %} - End Date {% endif %}
             </th>
-            <th>Rec</th>
           {% endif %}
 
           {% if event_head.activity_type %}
@@ -111,6 +110,11 @@
               Notes
             </th>
           {% endif %}
+
+          {% if event_head.date %}
+            <th class="th_date">Rec</th>
+          {% endif %}
+
         </tr>
     </thead>
     <span hidden>{{event_head}}</span>
@@ -128,37 +132,21 @@
                     <input type="hidden" value="{{event.model.gathering.location.id}}" name="locid"/>
                     <input type="hidden" value="{{event.model.pk}}" name="witness"/>
                     <input type="hidden" value="{{event.date|date:'Y-m-d'}}" name="ghost_date"/>
+                    <input type="hidden" value="{{request.path}}" name="next_url">
                     <input type="submit" value="{% if event.date %}{{event.date|date:'Y-m-d'}}{% endif %}" class="{% if event.green %}recorded{% else %}notrecorded{% endif %}"/>
                   {% else %}
+                    GAT
                     <input type="hidden" value="True" name="is_gathering"/>
                     <input type="hidden" value="{{event.regid}}" name="regid"/>
                     <input type="hidden" value="{{event.location.id}}" name="locid"/>
                     <input type="hidden" value="" name="witness"/>
+                    <input type="hidden" value="{{request.path}}" name="next_url">
                     <input type="submit" value="{% if event.date %}{{event.date|date:'Y-m-d'}}{% if event_head.date_end %} - {{event.date_end|date:'Y-m-d'}}{%endif%}{% endif %}" class="{% if event.recorded %}recorded{% else %}notrecorded{% endif %} record"/>
                   {% endif %}
                 </form>
               {% else %}
                 {% if event.date %}{{event.date|date:'Y-m-d'}}{% if event_head.date_end %}{% if event.date_end%} - {{event.date_end|date:'Y-m-d'}}{% endif %}{%endif%}{% endif %}
               {% endif %}
-            </td>
-            <td>
-              <form action="{% url 'action:geo_one_more' %}" method="POST">
-                {% csrf_token %}
-                {% if event.record %}
-                  <input type="hidden" value="{{is_one_more}}" name="is_one_more"/>
-                  <input type="hidden" value="False" name="is_gathering"/>
-                  <input type="hidden" value="{{event.model.gathering.regid}}" name="regid"/>
-                  <input type="hidden" value="{{event.model.gathering.location.id}}" name="locid"/>
-                  <input type="hidden" value="{{event.model.pk}}" name="witness"/>
-                {% else %}
-                  <input type="hidden" value="{{is_one_more}}" name="is_one_more"/>
-                  <input type="hidden" value="False" name="is_gathering"/>
-                  <input type="hidden" value="{{event.regid}}" name="regid"/>
-                  <input type="hidden" value="{{event.location.id}}" name="locid"/>
-                  <input type="hidden" value="" name="witness"/>
-                {% endif %}
-                <input type="submit" value="+" class="{% if event.green %}recorded{% else %}notrecorded{% endif %}"/>
-              </form>
             </td>
           {% endif %}
 
@@ -274,7 +262,32 @@
               {{event.model.gathering.steward}}
             {% endif %}
           </td>
-        {% endif %}
+          {% endif %}
+
+          {% if event_head.date %}
+            <td class="td_date">
+              <form action="{% url 'action:geo_one_more' %}" method="POST">
+                {% csrf_token %}
+                {% if event.record %}
+                  <input type="hidden" value="{{is_one_more}}" name="is_one_more"/>
+                  <input type="hidden" value="False" name="is_gathering"/>
+                  <input type="hidden" value="{{event.model.gathering.regid}}" name="regid"/>
+                  <input type="hidden" value="{{event.model.gathering.location.id}}" name="locid"/>
+                  <input type="hidden" value="{{next_url}}" name="next_url">
+                  <input type="hidden" value="{{event.model.pk}}" name="witness"/>
+                {% else %}
+                  GAT+1
+                  <input type="hidden" value="{{is_one_more}}" name="is_one_more"/>
+                  <input type="hidden" value="False" name="is_gathering"/>
+                  <input type="hidden" value="{{event.regid}}" name="regid"/>
+                  <input type="hidden" value="{{event.location.id}}" name="locid"/>
+                  <input type="hidden" value="{{next_url}}" name="next_url">
+                  <input type="hidden" value="" name="witness"/>
+                {% endif %}
+                <input type="submit" value="+" class="{% if event.green %}recorded{% else %}notrecorded{% endif %}"/>
+              </form>
+            </td>
+          {% endif %}
         </tr>
       {% endfor %}
     </tbody>

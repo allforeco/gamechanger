@@ -34,7 +34,16 @@
           </table>
         {%endif%}
 
-        <h2>Activity</h2>
+        <h2>Activity</h2>        
+
+        <form action="{% url 'action:geo_update' %}" method="POST">
+          {% csrf_token %}
+          <input type="hidden" value="True" name="is_gathering"/>
+          <input type="hidden" value="{{organization.id}}" name="orgid"/>
+          <input type="submit" value="Register New (Recurring) Event" style="background-color:#A5A51D !important"/>
+        </form>
+        <br/>
+    
         {% include 'event_list.html' %}
         {% endif %}
         

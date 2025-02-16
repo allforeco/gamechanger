@@ -1279,15 +1279,22 @@ class Gathering_Witness(models.Model):
   steward = models.ForeignKey(Steward, blank=True, null=True, on_delete=models.SET_NULL, related_name="steward_of_gwitness")
 
   @staticmethod
-  def get_witnesses(gathering, event_head):
+  def get_witnesses(gathering, event_head, already_listed=[]):
     witnesses = []
+    #print(f"Already listed {already_listed}")
     witnesses_here = list(Gathering_Witness.objects.filter(gathering=gathering))
-    witness_by_date = {e.date:e for e in witnesses_here}
+    #print(f"Witnesses here {witnesses_here}")
+    witness_by_date = {e.date:e for e in witnesses_here if e}
+    for e in already_listed:
+      witness_by_date[e.date] = e
+    #print(f"Comp {witness_by_date}")
     the_date = gathering.start_date
     for w in witnesses_here:
-      witnesses.append(Gathering.datalist(w, True, event_head, green=True))
+      if w not in already_listed:
+        witnesses.append(Gathering.datalist(w, True, event_head, green=True))
     while the_date <= (gathering.end_date or gathering.start_date):
       if the_date not in witness_by_date.keys():
+        #print(f"The_date {the_date} {witness_by_date.keys()}")
         record = Gathering.datalist(Gathering_Witness(
           gathering = gathering,
           date = the_date,
@@ -1297,6 +1304,7 @@ class Gathering_Witness(models.Model):
         ), True, event_head, green=False)
         witnesses.append(record)
       the_date += datetime.timedelta(days=7)
+    #print(f"Witnesses {witnesses}")
     return witnesses
 
   '''
