@@ -7,57 +7,14 @@
 {% block content %}
 {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
 
-  <!--
-    <div style="width: 15.75em; padding: 0.25em; background-color: #ffffff; border: 1px solid #eeeeee;">
-      <h3 style="margin-top: 0.25em; margin-bottom: 0.25em;">Weeks: <span id="weeksinput">{{filter_weeks}}</span></h3>
-      <form action="{% url 'action:start' %}" method="POST">
-        {% csrf_token%}
-        <input style="margin-bottom: -0.20em;" type="range"  id="weeksoutput" name="filter_weeks" value="{{filter_weeks}}" min="1" max="4" oninput="document.getElementById('weeksinput').innerHTML = document.getElementById('weeksoutput').value"/>
-        <input type="submit" value="Filter"/>
-      </form>
-    </div>
-  -->
-
   <div>
-    <h2 style="margin-bottom: 0.25em;">Events</h2>
-    {% with event_list=plan_list event_head=event_plan_head %}
-      {% include 'event_list.html' %}
-    {% endwith %}
-  </div>
-
-  <div>
-    <h2 style="margin-bottom: 0.25em;">Latest Records</h2>
+    <h2 style="margin-bottom: 0.25em;">{{filter_weeks}} Weeks' Latest Records</h2>
+    {% include 'event_list.html' %}
+    <!--
     {% with event_list=witness_list event_head=event_record_head %}
       {% include 'event_list.html' %}
     {% endwith %}
-  </div>
-
-  <div>
-    <h2 style="margin-bottom: 0.25em;">Activity Leaderboard</h2>
-    <table>
-      <thead>
-        <th sort="str-false">Country</th>
-        <th sort="int-true">Activity</th>
-        <th sort="int-false">Events</th>
-        <th sort="int-false">Records</th>
-      </thead>
-      {% for item in leaderboard_list %}
-      <tr>
-        <td>
-          <a href="{ url 'action:geo_view' item.0.id %}" >{{item.0.name}}</a>
-        </td>
-        <td>
-          <span>{{item.1}}</span>
-        </td>
-        <td>
-          <span>{{item.2}}</span>
-        </td>
-        <td>
-          <span>{{item.3}}</span>
-        </td>
-      </tr>
-      {% endfor %}
-    </table>
+    -->
   </div>
 
 {% endblock %}

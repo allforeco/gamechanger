@@ -57,7 +57,6 @@ def geo_view_handler(request, locid):
     event_link=True, recorded_link=True,
     steward=True)
   event_list = []
-  plan_list = []
   #GATHERING
   gathering_list = Gathering.objects.filter(location=this_location)
   #for sl in sublocation_list:
