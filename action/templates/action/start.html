@@ -8,7 +8,7 @@
 {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
 
   <div>
-    <h2 style="margin-bottom: 0.25em;">{{filter_weeks}} Weeks' Latest Records</h2>
+    <h2 style="margin-bottom: 0.25em;">Registered or Recorded Events Last {{filter_weeks}} Weeks</h2>
     {% include 'event_list.html' %}
     <!--
     {% with event_list=witness_list event_head=event_record_head %}
