@@ -23,11 +23,12 @@ def start_view_handler(request):
   #EVENT WITNESSING LOGIC
   event_record_head = Gathering.datalist_template(
     model=True, date=True, date_end=False, 
-    location=True,event_link=True,
+    location=True,event_link=True, gtype=True,
     recorded_link=True, map_link=True, 
     orgs=True, participants=True,
+    coordinator=True, steward=True, guide=True,
     recorded=True,
-    record=True, steward=True)
+    record=True, )
   gathering_witness_list = Gathering_Witness.objects.filter(date__range=[today-filter_weeks, today]).order_by("-date")
 
   for gw in gathering_witness_list:

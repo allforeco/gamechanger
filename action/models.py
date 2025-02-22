@@ -953,7 +953,10 @@ class Steward(models.Model):
 
   alias = models.CharField(max_length=100)
 
-class Guide(Steward):
+class Guide(Steward): # not used at this time. All roles are taken from Stewards class
+  ...
+
+class Coordinator(Steward): # not used at this time. All roles are taken from Stewards class
   ...
 
 '''
@@ -984,8 +987,9 @@ class Gathering(models.Model):
   address = models.CharField(blank=True, max_length=64)
   time = models.CharField(blank=True, max_length=32)
 
+  coordinator = models.ForeignKey(Steward, blank=True, null=True, on_delete=models.SET_NULL, related_name="coordinator_of_gathering")
   steward = models.ForeignKey(Steward, blank=True, null=True, on_delete=models.SET_NULL, related_name="steward_of_gathering")
-  guide = models.ForeignKey(Guide, blank=True, null=True, on_delete=models.SET_NULL, related_name="guide_of_gathering")
+  guide = models.ForeignKey(Steward, blank=True, null=True, on_delete=models.SET_NULL, related_name="guide_of_gathering")
 
   event_link_url = models.URLField(max_length=500, blank=True)
   contact_name = models.CharField(blank=True, max_length=256)
@@ -1017,8 +1021,10 @@ class Gathering(models.Model):
       recorded = False, 
       event_link = False, 
       recorded_link = False, 
-      record = False, 
-      steward=False):
+      record = False,
+      coordinator=False, 
+      steward=False,
+      guide=False):
     return locals()
   
   def datalist(event, isrecord, datalist_template, green=None):
@@ -1110,8 +1116,16 @@ class Gathering(models.Model):
       if datalist_template[key]: values[key] = recorded_link = obj_record.proof_url
     except: pass
     try:
+      key = 'coordinator'
+      if datalist_template[key]: values[key] = steward = obj_event.coordinator
+    except: pass
+    try:
       key = 'steward'
       if datalist_template[key]: values[key] = steward = obj_event.steward
+    except: pass
+    try:
+      key = 'guide'
+      if datalist_template[key]: values[key] = steward = obj_event.guide
     except: pass
     
     if datalist_template['model']: values['model'] = model = event
@@ -1276,7 +1290,9 @@ class Gathering_Witness(models.Model):
   creation_time = models.DateTimeField(auto_now_add=True, editable=False)
   updated = models.DateTimeField(auto_now_add=True, null=True, editable=False)
   organization = models.ForeignKey(Organization, on_delete=models.SET_NULL, blank=True, null=True, editable=False)
+  coordinator = models.ForeignKey(Steward, blank=True, null=True, on_delete=models.SET_NULL, related_name="coordinator_of_gwitness")
   steward = models.ForeignKey(Steward, blank=True, null=True, on_delete=models.SET_NULL, related_name="steward_of_gwitness")
+  guide = models.ForeignKey(Steward, blank=True, null=True, on_delete=models.SET_NULL, related_name="guide_of_gwitness")
 
   @staticmethod
   def get_witnesses(gathering, event_head, already_listed=[]):

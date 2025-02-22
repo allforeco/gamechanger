@@ -21,7 +21,7 @@ from django.urls import reverse_lazy
 #from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth.decorators import login_required, permission_required
 from django import forms
-from .models import Gathering, Gathering_Belong, Gathering_Witness, Location, Location_Belong, UserHome, Organization, Steward
+from .models import Gathering, Gathering_Belong, Gathering_Witness, Location, Location_Belong, UserHome, Organization, Coordinator, Steward, Guide
 from .crypto import Crypto
 from django.shortcuts import redirect
 import datetime
@@ -53,9 +53,9 @@ def geo_view_handler(request, locid):
   event_head = Gathering.datalist_template(
     date=True, recorded=True,model=True,record=True, 
     location=True, map_link=True, participants=True, 
-    gtype=False, orgs=True, 
+    gtype=True, orgs=True, 
     event_link=True, recorded_link=True,
-    steward=True)
+    coordinator=True, steward=True, guide=True)
   event_list = []
   #GATHERING
   gathering_list = Gathering.objects.filter(location=this_location)
@@ -351,6 +351,17 @@ def geo_update_post_witness(request):
   except Exception as ex:
     witness.organization = None
 
+  form_coordinator = request.POST.get('coordinator')
+  print(f"GS {gathering.coordinator.pk if gathering.coordinator else None} WS {witness.coordinator.pk if witness.coordinator else None} FS {form_coordinator}")
+  if form_coordinator:
+    if gathering.coordinator and gathering.coordinator.pk == int(form_coordinator):
+      witness.coordinator = None
+    else:
+      witness.coordinator = Steward.objects.get(pk=form_coordinator)
+  else:
+    witness.coordinator = None
+  print(f"WGCU Witness coordinator updated GS {gathering.coordinator} WS {witness.coordinator} FS {form_coordinator}")
+
   form_steward = request.POST.get('steward')
   print(f"GS {gathering.steward.pk if gathering.steward else None} WS {witness.steward.pk if witness.steward else None} FS {form_steward}")
   if form_steward:
@@ -361,6 +372,17 @@ def geo_update_post_witness(request):
   else:
     witness.steward = None
   print(f"WGSU Witness steward updated GS {gathering.steward} WS {witness.steward} FS {form_steward}")
+
+  form_guide = request.POST.get('guide')
+  print(f"GS {gathering.guide.pk if gathering.guide else None} WS {witness.guide.pk if witness.guide else None} FS {form_guide}")
+  if form_guide:
+    if gathering.guide and gathering.guide.pk == int(form_guide):
+      witness.guide = None
+    else:
+      witness.guide = Steward.objects.get(pk=form_guide)
+  else:
+    witness.guide = None
+  print(f"WGGU Witness guide updated GS {gathering.guide} WS {witness.guide} FS {form_guide}")
 
   witness.updated = datetime.datetime.today().replace(tzinfo=datetime.timezone.utc)
   witness.save()
@@ -399,11 +421,23 @@ def geo_update_post_gathering(request):
   gathering.address = request.POST.get('address')
   gathering.time = request.POST.get('time')
 
+  crdid = request.POST.get('coordinator')
+  if crdid:
+    gathering.coordinator = Steward.objects.get(pk=crdid)
+  else:
+    gathering.coordinator = None
+
   stwid = request.POST.get('steward')
   if stwid:
     gathering.steward = Steward.objects.get(pk=stwid)
   else:
     gathering.steward = None
+
+  gdeid = request.POST.get('guide')
+  if gdeid:
+    gathering.guide = Steward.objects.get(pk=gdeid)
+  else:
+    gathering.guide = None
 
   cname = request.POST.get('contact_name')
   if Crypto.is_cleartext(cname):

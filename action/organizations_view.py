@@ -46,12 +46,12 @@ def organization_view(request, orgid):
   print(f"GathWitL {gathering_witness_list}")
 
   event_head = Gathering.datalist_template(
-    date=True, location=True, gtype=False, 
+    date=True, location=True, gtype=True, 
     participants=True, 
     event_link=True, recorded_link=True, 
     map_link=True,
     recorded=True, record=True, model=True,
-    steward=True)
+    coordinator=True, steward=True, guide=True)
   event_list = []
 
   for gw in gathering_witness_list:

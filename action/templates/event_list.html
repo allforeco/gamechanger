@@ -69,12 +69,6 @@
             </th>
           {% endif %}
 
-          {% if event_head.gtype %}
-            <th class="th_gtype">
-              Action Type
-            </th>
-          {% endif %}
-
           {% if event_head.map_link %}
             <th class="th_map_link">
               Map
@@ -100,15 +94,33 @@
             </th>
           {% endif %}
 
+          {% if event_head.coordinator %}
+            <th class="th_coordinator">
+              Group<br/>Coordinator
+            </th>
+          {% endif %}
+
           {% if event_head.steward %}
             <th class="th_steward">
               Steward
             </th>
           {% endif %}
 
+          {% if event_head.guide %}
+            <th class="th_guide">
+              Guide
+            </th>
+          {% endif %}
+
           {% if event_head.note_address or event_head.note_time %}
             <th class="th_gtype">
               Notes
+            </th>
+          {% endif %}
+
+          {% if event_head.gtype %}
+            <th class="th_gtype">
+              Action<br/>Type
             </th>
           {% endif %}
 
@@ -183,14 +195,6 @@
             </td>
           {% endif %}
 
-          {% if event_head.gtype %}
-            <td class="td_gtype">
-              {% if event.gtype %}
-                {{event.gtype}}
-              {% endif %}
-            </td>
-          {% endif %}
-
           {% if event_head.map_link %}
             <td class="td_map_link">
               {% if event.map_link %}
@@ -255,14 +259,42 @@
             </td>
           {% endif %}
 
+          {% if event_head.coordinator %}
+            <td clqss="td_coordinator">
+              {% if event.model.coordinator %}
+                <i>{{event.model.coordinator}}</i>
+              {% elif event.model.gathering.coordinator %}
+                {{event.model.gathering.coordinator}}
+              {% endif %}
+            </td>
+          {% endif %}
+
           {% if event_head.steward %}
-          <td clqss="td_gtype">
-            {% if event.model.steward %}
-              <i>{{event.model.steward}}</i>
-            {% elif event.model.gathering.steward %}
-              {{event.model.gathering.steward}}
-            {% endif %}
-          </td>
+            <td clqss="td_gtype">
+              {% if event.model.steward %}
+                <i>{{event.model.steward}}</i>
+              {% elif event.model.gathering.steward %}
+                {{event.model.gathering.steward}}
+              {% endif %}
+            </td>
+          {% endif %}
+
+          {% if event_head.guide %}
+            <td clqss="td_gtype">
+              {% if event.model.guide %}
+                <i>{{event.model.guide}}</i>
+              {% elif event.model.gathering.guide %}
+                {{event.model.gathering.guide}}
+              {% endif %}
+            </td>
+          {% endif %}
+
+          {% if event_head.gtype %}
+            <td class="td_gtype">
+              {% if event.gtype %}
+                {{event.gtype}}
+              {% endif %}
+            </td>
           {% endif %}
 
           {% if event_head.date %}

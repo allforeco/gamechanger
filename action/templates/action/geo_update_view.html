@@ -10,7 +10,7 @@
 
 <style>
   th{text-align: left;padding-left: 10px;}
-  .contact { background-color: beige; }
+  .contact { background-color: #FFEEEE; }
 </style>
 {% if is_gathering %}
   {% if gathering %}
@@ -173,7 +173,18 @@
           {% endif %}
           </td>
       </tr>
-      <tr title="Who is your steward? Leave blank if unknown.">
+      <tr title="Who is the event coordinator? Leave blank if unknown.">
+        <th>Coordinator</th>
+        <td>
+          <select name="coordinator"  placeholder="Coordinator for this event">
+            <option value="">None</option>
+            {% for crd in stewards %}
+              <option value="{{crd.pk}}" {% if crd.pk == gathering.coordinator.pk %}selected{% endif %}>{{crd.alias}}</option>
+            {% endfor %}
+          </select>
+        </td>
+      </tr>
+      <tr title="Who is your event steward? Leave blank if unknown.">
         <th>Steward</th>
         <td>
           <select name="steward"  placeholder="Steward for this event">
@@ -183,7 +194,18 @@
             {% endfor %}
           </select>
         </td>
-    </tr>
+      </tr>
+      <tr title="Who is your event guide? Leave blank if unknown.">
+        <th>Guide</th>
+        <td>
+          <select name="guide"  placeholder="Guide for this event">
+            <option value="">None</option>
+            {% for gde in stewards %}
+              <option value="{{gde.pk}}" {% if gde.pk == gathering.guide.pk %}selected{% endif %}>{{gde.alias}}</option>
+            {% endfor %}
+          </select>
+        </td>
+      </tr>
       <tr>
         <th>
           Register
@@ -275,9 +297,25 @@
           </td>
         </tr>
         <tr>
+          <th>Coordinator</th>
+          <td>
+            <select name="coordinator" placeholder="(optional) Name of the coordinator for this event">
+              <option value="">None</option>
+              {% for crd in stewards %}
+                <option value="{{crd.pk}}" 
+                  {% if witness.coordinator %}
+                    {% if crd.pk == witness.coordinator.pk %}selected{% endif %}
+                  {% else %}
+                    {% if crd.pk == gathering.coordinator.pk %}selected{% endif %}
+                  {% endif %}>{{crd.alias}}</option>
+              {% endfor %}
+            </select>
+          </td>
+        </tr>
+        <tr>
           <th>Steward</th>
           <td>
-            <select name="steward"  placeholder="(optional) Name of the steward for this event">
+            <select name="steward" placeholder="(optional) Name of the steward for this event">
               <option value="">None</option>
               {% for stw in stewards %}
                 <option value="{{stw.pk}}" 
@@ -286,6 +324,22 @@
                   {% else %}
                     {% if stw.pk == gathering.steward.pk %}selected{% endif %}
                   {% endif %}>{{stw.alias}}</option>
+              {% endfor %}
+            </select>
+          </td>
+        </tr>
+        <tr>
+          <th>Guide</th>
+          <td>
+            <select name="guide" placeholder="(optional) Name of the guide for this event">
+              <option value="">None</option>
+              {% for gde in stewards %}
+                <option value="{{gde.pk}}" 
+                  {% if witness.guide %}
+                    {% if gde.pk == witness.guide.pk %}selected{% endif %}
+                  {% else %}
+                    {% if gde.pk == gathering.guide.pk %}selected{% endif %}
+                  {% endif %}>{{gde.alias}}</option>
               {% endfor %}
             </select>
           </td>
