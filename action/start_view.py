@@ -26,7 +26,7 @@ def start_view_handler(request):
     location=True,event_link=True,
     recorded_link=True, map_link=True, 
     orgs=True, participants=True,
-    recorded=True, overview=True,
+    recorded=True,
     record=True, steward=True)
   gathering_witness_list = Gathering_Witness.objects.filter(date__range=[today-filter_weeks, today]).order_by("-date")
 

@@ -14,6 +14,7 @@
 
   th{
     padding:0.5em;
+    background-color: #CCCCCC;
   }
 
   td{
@@ -40,7 +41,19 @@
         <tr>
           {% if event_head.date %}
             <th class="th_date">
-              Date{% if event_head.date_end %} - End Date {% endif %}
+              Registered<br/>Event Date
+            </th>
+          {% endif %}
+
+          {% if event_head.participants %}
+            <th class="th_participants">
+              RAS<br/>(# people<br/>recorded)
+            </th>
+          {% endif %}
+
+          {% if event_head.orgs %}
+            <th class="th_organization">
+              Group
             </th>
           {% endif %}
 
@@ -62,40 +75,28 @@
             </th>
           {% endif %}
 
-          {% if event_head.location %}
-            <th class="th_location">
-              {% if event_head.country %}Country; {% endif %}
-              Location
-            </th>
-          {% endif %}
-
           {% if event_head.map_link %}
             <th class="th_map_link">
               Map
             </th>
           {% endif %}
 
-          {% if event_head.participants %}
-            <th class="th_participants">
-              Parti-<br/>cipants
+          {% if event_head.recorded_link %}
+            <th class="th_recorded_link">
+              Record<br/>URL
             </th>
           {% endif %}
 
           {% if event_head.event_link %}
             <th class="th_event_link">
-              Announce<br/>Link
+              Announce<br/>Event URL<br/>(Social Media<br/>or Website)
             </th>
           {% endif %}
 
-          {% if event_head.recorded_link %}
-            <th class="th_recorded_link">
-              Record<br/>Link
-            </th>
-          {% endif %}
-
-          {% if event_head.orgs %}
-            <th class="th_organization">
-              Organization
+          {% if event_head.location %}
+            <th class="th_location">
+              {% if event_head.country %}Country; {% endif %}
+              Location
             </th>
           {% endif %}
 
@@ -120,9 +121,9 @@
     <span hidden>{{event_head}}</span>
     <tbody>
       {% for event in event_list %}
-        <tr>
+        <tr class="tr_{% if event.green %}recorded{% else %}notrecorded{% endif %}">
           {% if event_head.date %}
-            <td class="td_date">
+            <td class="td_date_{% if event.green %}recorded{% else %}notrecorded{% endif %}">
               {% if event_head.recorded %}
                 <form action="{% url 'action:geo_update' %}" method="POST">
                   {% csrf_token %}
@@ -146,6 +147,22 @@
                 </form>
               {% else %}
                 {% if event.date %}{{event.date|date:'Y-m-d'}}{% if event_head.date_end %}{% if event.date_end%} - {{event.date_end|date:'Y-m-d'}}{% endif %}{%endif%}{% endif %}
+              {% endif %}
+            </td>
+          {% endif %}
+
+          {% if event_head.participants %}
+            <td class="td_participants">
+              {% if event.participants %}
+                {{event.participants}}
+              {% endif %}
+            </td>
+          {% endif %}
+
+          {% if event_head.orgs %}
+            <td class="td_organization">
+              {% if event.orgs %}
+                <a href="{% url 'action:organization_view' event.orgs.id %}">{{event.orgs}}</a>
               {% endif %}
             </td>
           {% endif %}
@@ -174,46 +191,10 @@
             </td>
           {% endif %}
 
-          {% if event_head.location %}
-            <td class="td_location">
-              {% if event_head.country %}
-                  <a href={% url 'action:geo_view' event.country.id %}>{{event.country}}</a>{% if event.location %}; {% endif %}
-                {% endif %}
-                {% if event.location %}
-                  <a href={% url 'action:geo_view' event.location.id %}>{{event.location}}</a>
-                {% endif %}
-            </td>
-          {% endif %}
-
           {% if event_head.map_link %}
             <td class="td_map_link">
               {% if event.map_link %}
                 <a href={{event.map_link}} target="_blank"><img alt="Link" src="/static/icon_globe{% if event.location.lon < -30 %}US{% elif event.location.lon > 60 %}AU{% elif event.location.lon > -30 and event.location.lon < 60 %}EU{% endif %}.png"/></a>
-              {% endif %}
-            </td>
-          {% endif %}
-
-          {% if event_head.participants %}
-            <td class="td_participants">
-              {% if event.participants %}
-                {{event.participants}}
-              {% endif %}
-            </td>
-          {% endif %}
-
-          {% if event_head.event_link %}
-            <td class="td_recorded_link">
-              {% if event.event_link %}
-                <a href={{event.event_link}}>
-                  <img alt="Link" 
-                    {% if "facebook.com" in event.event_link or "scontent" in event.recorded_link %}src="/static/icon_fb30.png"
-                    {% elif "instagram.com" in event.event_link %}src="/static/icon_insta30.png"
-                    {% elif "twitter.com" in event.event_link %}src="/static/icon_twitter30.png"
-                    {% elif "youtube.com" in event.event_link %}src="/static/icon_yt30.png"
-                    {% else %}src="/static/icon_pic.png"
-                    {% endif %}
-                  />
-                </a>
               {% endif %}
             </td>
           {% endif %}
@@ -235,11 +216,31 @@
             </td>
           {% endif %}
 
-          {% if event_head.orgs %}
-            <td class="td_organization">
-              {% if event.orgs %}
-                <a href="{% url 'action:organization_view' event.orgs.id %}">{{event.orgs}}</a>
+          {% if event_head.event_link %}
+            <td class="td_recorded_link">
+              {% if event.event_link %}
+                <a href={{event.event_link}}>
+                  <img alt="Link" 
+                    {% if "facebook.com" in event.event_link or "scontent" in event.recorded_link %}src="/static/icon_fb30.png"
+                    {% elif "instagram.com" in event.event_link %}src="/static/icon_insta30.png"
+                    {% elif "twitter.com" in event.event_link %}src="/static/icon_twitter30.png"
+                    {% elif "youtube.com" in event.event_link %}src="/static/icon_yt30.png"
+                    {% else %}src="/static/icon_pic.png"
+                    {% endif %}
+                  />
+                </a>
               {% endif %}
+            </td>
+          {% endif %}
+
+          {% if event_head.location %}
+            <td class="td_location">
+              {% if event_head.country %}
+                  <a href={% url 'action:geo_view' event.country.id %}>{{event.country}}</a>{% if event.location %}; {% endif %}
+                {% endif %}
+                {% if event.location %}
+                  <a href={% url 'action:geo_view' event.location.id %}>{{event.location}}</a>
+                {% endif %}
             </td>
           {% endif %}
 

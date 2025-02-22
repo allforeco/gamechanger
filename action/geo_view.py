@@ -53,7 +53,7 @@ def geo_view_handler(request, locid):
   event_head = Gathering.datalist_template(
     date=True, recorded=True,model=True,record=True, 
     location=True, map_link=True, participants=True, 
-    overview=True, gtype=False, orgs=True, 
+    gtype=False, orgs=True, 
     event_link=True, recorded_link=True,
     steward=True)
   event_list = []

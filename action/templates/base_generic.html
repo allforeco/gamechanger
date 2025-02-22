@@ -69,8 +69,10 @@
           background-color: #e0ffe0;
         }
         
-      tr:nth-child(even) {background: rgb(240, 240, 240)}
-        tr:nth-child(odd) {background: #FFF}
+      tr:nth-child(even)[class="tr_recorded"] {background: #DDFFDD}
+        tr:nth-child(odd)[class="tr_recorded"] {background: #DDFADD}
+      tr:nth-child(even)[class="tr_notrecorded"]{background: #FFFFDD}
+        tr:nth-child(odd)[class="tr_notrecorded"] {background: #FFFADD}
 
       td, th{
         padding-left: 4px;

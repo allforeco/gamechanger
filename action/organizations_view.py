@@ -49,7 +49,7 @@ def organization_view(request, orgid):
     date=True, location=True, gtype=False, 
     participants=True, 
     event_link=True, recorded_link=True, 
-    map_link=True, overview=True, 
+    map_link=True,
     recorded=True, record=True, model=True,
     steward=True)
   event_list = []

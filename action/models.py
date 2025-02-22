@@ -1288,10 +1288,10 @@ class Gathering_Witness(models.Model):
     for e in already_listed:
       witness_by_date[e.date] = e
     #print(f"Comp {witness_by_date}")
-    the_date = gathering.start_date
     for w in witnesses_here:
       if w not in already_listed:
         witnesses.append(Gathering.datalist(w, True, event_head, green=True))
+    the_date = gathering.start_date
     while the_date <= (gathering.end_date or gathering.start_date):
       if the_date not in witness_by_date.keys():
         #print(f"The_date {the_date} {witness_by_date.keys()}")
@@ -1304,6 +1304,9 @@ class Gathering_Witness(models.Model):
         ), True, event_head, green=False)
         witnesses.append(record)
       the_date += datetime.timedelta(days=7)
+      if (gathering.end_date or gathering.start_date) < datetime.date.today() - datetime.timedelta(weeks=4):
+        break
+
     #print(f"Witnesses {witnesses}")
     return witnesses
 
