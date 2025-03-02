@@ -58,25 +58,26 @@ def geo_view_handler(request, locid):
     coordinator=True, steward=True, guide=True)
   event_list = []
   #GATHERING
-  gathering_list = Gathering.objects.filter(location=this_location)
+  gathering_list = Gathering.objects.filter(location=this_location).order_by('-start_date')
   #for sl in sublocation_list:
   #  gathering_list |= Gathering.objects.filter(location=sl)
 
-  for gathering in gathering_list:
-    witnesses_here = Gathering_Witness.get_witnesses(gathering, event_head)
-    if witnesses_here:
-      event_list += witnesses_here
-    else:
-      event_list.append(Gathering.datalist(event=gathering, isrecord=False, datalist_template=event_head))
-
+  event_list = Gathering_Witness.get_witnesses(gathering_list, event_head)
   event_list.sort(key=lambda e: e['date'], reverse=True)
+
+  for index, e in enumerate(event_list):
+    if not e.get('future', False):
+      if index:
+        e['separator'] = True
+      break
+
   total_participants = sum([w['participants'] for w in event_list if 'participants' in w and w['participants']])
   template = loader.get_template('action/geo_view.html')
   try:
     favorite_location = UserHome.objects.get(callsign=request.user.username).favorite_locations.filter(name=this_location.name).exists()
   except:
     favorite_location = False
-  
+
   context = {
     'this_location': this_location,
     'parent_location': parent_location,

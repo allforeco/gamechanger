@@ -23,7 +23,7 @@ def gathering_view(request, regid):
     event_link=True, recorded_link=True, 
     location=False, participants=True,
     recorded=True)
-  event_record_list = Gathering_Witness.get_witnesses(gathering, event_record_head)
+  event_record_list = Gathering_Witness.get_witnesses([gathering], event_record_head)
 
   organization = None
   organization_view = None

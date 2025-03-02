@@ -29,9 +29,27 @@
     background-color:#A5A51D !important;
   }
 
+  .recorded_future{
+    background-color:#5DB68A !important;
+  }
+
+  .notrecorded_future{
+    background-color:#B5B55D !important;
+  }
+
   .record{
     overflow-x:scroll; /* FIXME remove this */
   }
+
+  td.future {
+    color: lightgray;
+  }
+
+  .separator {
+    background-color: white;
+    border: 1px solid black;
+  }
+
 </style>
 {% block table %}
 {% if event_head %}
@@ -133,9 +151,12 @@
     <span hidden>{{event_head}}</span>
     <tbody>
       {% for event in event_list %}
-        <tr class="tr_{% if event.green %}recorded{% else %}notrecorded{% endif %}">
+        {% if event.separator %}
+          <tr><td colspan="100" class="separator"></td></tr>
+        {% endif %}
+        <tr class="tr_{% if event.green %}recorded{% else %}notrecorded{% endif %}{% if event.future %}_future{% endif %}">
           {% if event_head.date %}
-            <td class="td_date_{% if event.green %}recorded{% else %}notrecorded{% endif %}">
+            <td class="td_date_{% if event.green %}recorded{% else %}notrecorded{% endif %}{% if event.future %}_future{% endif %}">
               {% if event_head.recorded %}
                 <form action="{% url 'action:geo_update' %}" method="POST">
                   {% csrf_token %}
@@ -146,7 +167,7 @@
                     <input type="hidden" value="{{event.model.pk}}" name="witness"/>
                     <input type="hidden" value="{{event.date|date:'Y-m-d'}}" name="ghost_date"/>
                     <input type="hidden" value="{{request.path}}" name="next_url">
-                    <input type="submit" value="{% if event.date %}{{event.date|date:'Y-m-d'}}{% endif %}" class="{% if event.green %}recorded{% else %}notrecorded{% endif %}"/>
+                    <input type="submit" value="{% if event.date %}{{event.date|date:'Y-m-d'}}{% endif %}" class="{% if event.green %}recorded{% else %}notrecorded{% endif %}{% if event.future %}_future{% endif %}"/>
                   {% else %}
                     GAT
                     <input type="hidden" value="True" name="is_gathering"/>
@@ -154,7 +175,7 @@
                     <input type="hidden" value="{{event.location.id}}" name="locid"/>
                     <input type="hidden" value="" name="witness"/>
                     <input type="hidden" value="{{request.path}}" name="next_url">
-                    <input type="submit" value="{% if event.date %}{{event.date|date:'Y-m-d'}}{% if event_head.date_end %} - {{event.date_end|date:'Y-m-d'}}{%endif%}{% endif %}" class="{% if event.recorded %}recorded{% else %}notrecorded{% endif %} record"/>
+                    <input type="submit" value="{% if event.date %}{{event.date|date:'Y-m-d'}}{% if event_head.date_end %} - {{event.date_end|date:'Y-m-d'}}{%endif%}{% endif %}" class="{% if event.recorded %}recorded{% else %}notrecorded{% endif %}{% if event.future %}_future{% endif %} record"/>
                   {% endif %}
                 </form>
               {% else %}
@@ -164,15 +185,22 @@
           {% endif %}
 
           {% if event_head.participants %}
-            <td class="td_participants">
-              {% if event.participants %}
+            {% if event.participants %}
+              <td class="td_participants {% if event.future %}future{% endif %}">
                 {{event.participants}}
-              {% endif %}
+              </td>
+            {% else %}
+              <td class="future">
+                {% if event.model.gathering.expected_participants %}
+                  {{event.model.gathering.expected_participants}}
+                {% endif %}
+              </td>
+            {% endif %}
             </td>
           {% endif %}
 
           {% if event_head.orgs %}
-            <td class="td_organization">
+            <td class="td_organization {% if event.future %}future{% endif %}">
               {% if event.orgs %}
                 <a href="{% url 'action:organization_view' event.orgs.id %}">{{event.orgs}}</a>
               {% endif %}
@@ -180,7 +208,7 @@
           {% endif %}
 
           {% if event_head.activity_type %}
-            <td class="td_activity_type">
+            <td class="td_activity_type {% if event.future %}future{% endif %}">
               {{event.activity_type}}
             </td>
           {% endif %}
@@ -238,7 +266,7 @@
           {% endif %}
 
           {% if event_head.location %}
-            <td class="td_location">
+            <td class="td_location {% if event.future %}future{% endif %}">
               {% if event_head.country %}
                   <a href={% url 'action:geo_view' event.country.id %}>{{event.country}}</a>{% if event.location %}; {% endif %}
                 {% endif %}
@@ -260,7 +288,7 @@
           {% endif %}
 
           {% if event_head.coordinator %}
-            <td clqss="td_coordinator">
+            <td class="td_coordinator">
               {% if event.model.coordinator %}
                 <i>{{event.model.coordinator}}</i>
               {% elif event.model.gathering.coordinator %}
@@ -270,7 +298,7 @@
           {% endif %}
 
           {% if event_head.steward %}
-            <td clqss="td_gtype">
+            <td class="td_gtype">
               {% if event.model.steward %}
                 <i>{{event.model.steward}}</i>
               {% elif event.model.gathering.steward %}
@@ -280,7 +308,7 @@
           {% endif %}
 
           {% if event_head.guide %}
-            <td clqss="td_gtype">
+            <td class="td_gtype">
               {% if event.model.guide %}
                 <i>{{event.model.guide}}</i>
               {% elif event.model.gathering.guide %}
@@ -317,7 +345,7 @@
                   <input type="hidden" value="{{next_url}}" name="next_url">
                   <input type="hidden" value="" name="witness"/>
                 {% endif %}
-                <input type="submit" value="+" class="{% if event.green %}recorded{% else %}notrecorded{% endif %}"/>
+                <input type="submit" value="+" class="{% if event.green %}recorded{% else %}notrecorded{% endif %}{% if event.future %}_future{% endif %}"/>
               </form>
             </td>
           {% endif %}

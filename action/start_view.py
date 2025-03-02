@@ -30,12 +30,11 @@ def start_view_handler(request):
     recorded=True,
     record=True, )
   gathering_witness_list = Gathering_Witness.objects.filter(date__range=[today-filter_weeks, today]).order_by("-date")
-
   for gw in gathering_witness_list:
     event_list.append(Gathering.datalist(gw, True, event_record_head, green=True if gw.participants else False))
-  for gathering in gathering_list:
-    witnesses_here = Gathering_Witness.get_witnesses(gathering, event_record_head, already_listed=gathering_witness_list)
-    event_list += [e for e in witnesses_here if e['date'] >= today-filter_weeks and e['date'] <= today]
+
+  witnesses_here = Gathering_Witness.get_witnesses(gathering_list, event_record_head, already_listed=gathering_witness_list)
+  event_list += [e for e in witnesses_here if e['date'] >= today-filter_weeks and e['date'] <= today]
 
   event_list.sort(key=lambda e: e['date'], reverse=True)
 

@@ -71,7 +71,8 @@
   {% with event_list=event_list %}
     {% include 'event_list.html' %}
   {% endwith %}
-{% endblock %}
+
+  {% endblock %}
 
 {% block adminpanel %}
     <form action="{% url 'action:af_mark_as_duplicate' %}" method="post">

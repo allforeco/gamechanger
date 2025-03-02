@@ -56,9 +56,8 @@ def organization_view(request, orgid):
 
   for gw in gathering_witness_list:
     event_list.append(Gathering.datalist(gw, True, event_head, green=True if gw.participants else False))
-  for gathering in gathering_list:
-    witnesses_here = Gathering_Witness.get_witnesses(gathering, event_head, already_listed=gathering_witness_list)
-    event_list += witnesses_here
+  witnesses_here = Gathering_Witness.get_witnesses(gathering_list, event_head, already_listed=gathering_witness_list)
+  event_list += witnesses_here
 
   event_list.sort(key=lambda e: e['date'], reverse=True)
 
