@@ -1297,11 +1297,17 @@ class Gathering_Witness(models.Model):
 
   @staticmethod
   def get_witnesses(gatherings, event_head, already_listed=[]):
+    def weekly_forward_range(start_date, end_date):
+      weeks = ((end_date - start_date).days+6)//7
+      return [start_date + n * datetime.timedelta(days=7) for n in range(0, weeks)]
+    def weekly_backward_range(start_date, end_date):
+      weeks = ((start_date - end_date).days+6)//7
+      return [start_date + n * datetime.timedelta(days=7) for n in range(0, -weeks, -1)]
+
     today = datetime.date.today()
     ghost_max_future_date = today + datetime.timedelta(weeks=4)
-    ghost_min_past_date   = today - datetime.timedelta(weeks=4)
+    ghost_min_past_date   = today - datetime.timedelta(weeks=52*2)
     ghost_max_count = 20
-    remaining_ghosts = ghost_max_count
     witnesses = []
     #print(f"Already listed {already_listed}")
     witnesses_here = list(Gathering_Witness.objects.filter(gathering__regid__in=[g.regid for g in gatherings]))
@@ -1317,26 +1323,34 @@ class Gathering_Witness(models.Model):
     # Add ghosts (registered, but not recorded events)
 
     for gathering in gatherings:
-      the_date = gathering.start_date
-      while the_date <= (gathering.end_date or gathering.start_date):
+      remaining_ghosts = ghost_max_count
+      days_past_that_weekday = (today.weekday() - gathering.start_date.weekday())%7
+      ghost_dates = [gathering.start_date]
+      if gathering.end_date > today:
+        ghost_dates += weekly_forward_range(
+          today + datetime.timedelta(days = 7 - days_past_that_weekday),
+          min(gathering.end_date, ghost_max_future_date)
+      )
+      if gathering.start_date < today:
+        ghost_dates += weekly_backward_range(
+          min(today - datetime.timedelta(days = days_past_that_weekday), gathering.end_date),
+          max(gathering.start_date, ghost_min_past_date)
+      )
+      
+      for the_date in ghost_dates:
         if the_date not in witness_by_date.keys():
           #print(f"The_date {the_date} {witness_by_date.keys()}")
-          record = Gathering.datalist(Gathering_Witness(
-            gathering = gathering,
-            date = the_date,
-            participants = 0,
-            proof_url = None,
-            organization = gathering.organizations.first(),
-          ), True, event_head, green=False, future=(True if the_date > today else False))
-          witnesses.append(record)
-          remaining_ghosts -= 1
+          if remaining_ghosts > 0:
+            record = Gathering.datalist(Gathering_Witness(
+              gathering = gathering,
+              date = the_date,
+              participants = 0,
+              proof_url = None,
+              organization = gathering.organizations.first(),
+            ), True, event_head, green=False, future=(True if the_date > today else False))
+            witnesses.append(record)
+            remaining_ghosts -= 1
         the_date += datetime.timedelta(days=7)
-        if (gathering.end_date or gathering.start_date) < ghost_min_past_date:
-          break
-        if (gathering.end_date or gathering.start_date) > ghost_max_future_date:
-          break
-        if remaining_ghosts <= 0:
-          break
     #print(f"Witnesses {witnesses}")
     return witnesses
 
