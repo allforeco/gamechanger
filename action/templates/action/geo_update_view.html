@@ -127,7 +127,7 @@
       <tr title="What is your name (or nickname)? It's fine to leave blank or use an alias.">
         <th>Contact Name</th>
         <td class="contact">
-          {% if gathering.contact_name|first in '@' %}
+          {% if gathering.contact_name and gathering.contact_name|first in '@' %}
             <input type="text" name="contact_name" value='@*******' size="60" class="contact"/>
             &nbsp;{{gathering.contact_name|slice:"1:6"}}
           {% else %}
@@ -138,7 +138,7 @@
       <tr title="What is your email address? This is the primary way our staff will contact you.">
         <th>Contact Email *</th>
         <td class="contact">
-          {% if gathering.contact_email|first in '@' %}
+          {% if gathering.contact_email and gathering.contact_email|first in '@' %}
             <input type="text" name="contact_email" value='@*******' size="60" class="contact"/>
             &nbsp;{{gathering.contact_email|slice:"1:6"}}
           {% else %}
@@ -165,7 +165,7 @@
       <tr title="What is your phone number? This is a backup way for our staff to contact you.">
         <th>Contact Phone </th>
         <td class="contact">
-          {% if gathering.contact_phone|first in '@' %}
+          {% if gathering.contact_phone and gathering.contact_phone|first in '@' %}
             <input type="text" name="contact_phone" value='@*******' size="60" class="contact"/>
             &nbsp;{{gathering.contact_phone|slice:"1:6"}}
           {% else %}
