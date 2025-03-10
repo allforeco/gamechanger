@@ -3,6 +3,7 @@ from django.http import HttpResponse
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.forms import *
+from django.contrib.postgres.search import TrigramSimilarity
 
 from .bigredbutton import BigRedButton
 from .parsers import geoParser
@@ -17,9 +18,13 @@ publicuse = True
 
 def default_CreateSubmit_Response(request, form, title, url, feedback = None):
   template = loader.get_template('action/form_CreateSubmit.html')
-  context = {'form': form, 'createsubmit_title': title, 'formaction_url': url, 'feedback': feedback}
+  context = {
+    'form': form, 
+    'createsubmit_title': title, 
+    'formaction_url': url, 
+    'feedback': feedback, 
+  }
   return HttpResponse(template.render(context, request))
-
 
 '''
 ___formclass gathering
@@ -107,10 +112,37 @@ def OrganizationCreateSubmit(request):
   logginbypass = publicuse
   if not (request.user.is_authenticated or (logginbypass and not BigRedButton.is_emergency())): return redirect('action:premission_denied')
   
-  return default_CreateSubmit_Response(request, OrganizationCreateForm(), "Organization", "create_organization")
-  #template = loader.get_template('action/form_CreateSubmit.html')
-  #context = {'form': OrganizationCreateForm(), 'createsubmit_title': "Organization", 'formaction_url': "create_organization"}
-  #return HttpResponse(template.render(context, request))
+  try:
+    data = request.POST
+    print(f'OrgCreateSubmit {data}')
+    feedback = "Group creation Error"
+    name = data.get('name')
+    if name:
+      organization = Organization()
+      organization.name = name
+      organization.verified = False
+      organization.save()
+      print(f'OrgCreated "{name}"')
+      feedback = f"Group '{name}' created"
+
+  except Exception as e:
+    print(f'OrgCreate Exception {e}')
+    #redirect('action:organization_submit')
+
+  template = loader.get_template('action/form_CreateSubmit.html')
+  context = {
+    'form': OrganizationCreateForm(), 
+    'createsubmit_title': "Group", 
+    'search_formaction_url': "create_organization", 
+    'submit_formaction_url': "submit_organization", 
+    'feedback': feedback, 
+    'similar_ones': [],
+    'total_similar_count': 0,
+    'org_name': name,
+    'already_exists': False,
+    'created': True,
+  }
+  return HttpResponse(template.render(context, request))
 
 '''
 ___Organization create by form
@@ -120,20 +152,54 @@ def OrganizationCreate(request):
   logginbypass = publicuse
   if not (request.user.is_authenticated or (logginbypass and not BigRedButton.is_emergency())): return redirect('action:premission_denied')
   data = request.POST
-  print(data)
+  print(f'OrgCreate {data}')
 
   try:
-    name = data['name']
-  except:
-    return default_CreateSubmit_Response(request, OrganizationCreateForm(), "Organization", "create_organization", "Organization creation Error")
+    orgs = []
+    feedback = ""
+    count_similar_orgs = 0
+    already_exists = False
+
+    name = data.get('name')
+    if name:
+      if Organization.objects.filter(name__iexact=name).count():
+        already_exists = True
+      else:
+        #orgs = Organization.objects.filter(name__trigram_similar=name).filter(similarity__gt=0.1).order_by('-similarity')
+        similarity_threshold = .3
+        count_similar_orgs = Organization.objects.annotate(
+          similarity=TrigramSimilarity('name', name),
+        ).filter(similarity__gt=similarity_threshold).count()
+        while similarity_threshold < 1:
+          orgs = Organization.objects.annotate(
+            similarity=TrigramSimilarity('name', name),
+          ).filter(similarity__gt=similarity_threshold).order_by('-similarity')
+          if orgs.count() < 20:
+            break
+          similarity_threshold += .1
+        similarity_threshold -= .1
+        orgs = Organization.objects.annotate(
+          similarity=TrigramSimilarity('name', name),
+        ).filter(similarity__gt=similarity_threshold).order_by('-similarity')[:10]
+        print(f"Found {count_similar_orgs} similarly named orgs, here are the top {orgs.count()}: {orgs}")
+  except Exception as e:
+    print(f'OrgCreate Exception {e}')
+    feedback = "Group creation Error"
     #redirect('action:organization_submit')
 
-  organization = Organization()
-  organization.name = name
-  organization.verified = False
-  organization.save()
-  return default_CreateSubmit_Response(request, OrganizationCreateForm(), "Organization", "create_organization", "Organization successfully created")
-  #return redirect('action:organizationcontact_submit')
+  template = loader.get_template('action/form_CreateSubmit.html')
+  context = {
+    'form': OrganizationCreateForm(), 
+    'createsubmit_title': "Group", 
+    'search_formaction_url': "create_organization", 
+    'submit_formaction_url': "submit_organization", 
+    'feedback': feedback, 
+    'similar_ones': orgs,
+    'total_similar_count': count_similar_orgs,
+    'org_name': name,
+    'already_exists': already_exists,
+  }
+  return HttpResponse(template.render(context, request))
 
 '''
 ___formclass for contact

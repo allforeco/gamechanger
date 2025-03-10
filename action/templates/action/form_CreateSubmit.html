@@ -7,16 +7,43 @@
   <script src="https://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/css/select2.min.css" rel="stylesheet" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/js/select2.full.js"></script>
-  <h1>Submit {{createsubmit_title}}</h1>
+  <h1>Create {{createsubmit_title}}</h1>
 
-  <form action="{{formaction_url}}" method="post">
+  <form action="{{search_formaction_url}}" method="post">
     {% csrf_token %}
-    <table>
-      {{ form }}
-    </table>
-    <input type="submit" value="Submit">
-  </form>
-  {% if feedback != None %}
+    {% if not created %}
+      <table>
+        {{ form }}
+      </table>
+      <input type="submit" value="Search for similarly named groups">
+      {% if already_exists %}
+        <p>The database already contains '{{ org_name }}'.</p>
+      {% else %}
+        {% if similar_ones %}
+          {% if total_similar_count %}
+            <ul>
+              <p>There are {{ total_similar_count }} similarly named groups already. 
+                Here are the most similar ones:</p>
+              {% for similar in similar_ones %}
+                <li><code style="background-color:beige">{{ similar }}</code>&nbsp;</li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p>There are no similarly named groups in the database.</p>
+          {% endif %}
+        {% endif %}
+      </form>
+      {% if org_name %}
+        <form action="{{submit_formaction_url}}" method="post">
+          {% csrf_token %}
+          <p></p>
+          <input type="hidden" value="{{org_name}}" name="name"/>
+          <input type="submit" value="Create '{{org_name}}'{% if total_similar_count %} anyway{% endif %}"/>
+        </form>
+      {% endif %}
+    {% endif %}
+  {% endif %}
+  {% if feedback %}
     <p>{{feedback}}</p>
   {% endif %}
 {% endblock %}

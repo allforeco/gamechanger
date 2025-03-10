@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.postgres', # for trigram searches, requires enabling the pg_trgm extension in Postgres: CREATE EXTENSION pg_trgm;
     #'django_cron',
     'jquery',
     'dal', # django-autocomplete-light

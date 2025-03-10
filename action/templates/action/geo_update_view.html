@@ -100,8 +100,8 @@
           <input required type="number" name="participants" value="{{gathering.expected_participants}}" min="1"/>
         </td>
       </tr>
-      <tr title="If there is an organization arranging this event, which one is it? If multiple, pick one.">
-        <th>Organization</th>
+      <tr title="If there is a group arranging this event, which one is it? If multiple, pick one.">
+        <th>Group</th>
         <td>
           <select name="organization" data-minimum-input-length="3" id="id_organization" data-autocomplete-light-language="en" data-autocomplete-light-url="/action/organization-autocomplete/" data-autocomplete-light-function="select2">
             {% if organization %}
@@ -110,6 +110,7 @@
               <option value="{{gathering.organizations.first.id}}" selected>{{gathering.organizations.first.name}}</option>
             {% endif %}
           </select>
+          &nbsp;<small><a href="{% url 'action:organization_create' %}">Other group...</a></small>
         </td>
       </tr>
       <tr title="Is there a web page announcing this event? Provide the link here.">
@@ -279,7 +280,7 @@
           </td>
         </tr>
         <tr>
-          <th>Organization</th>
+          <th>Group</th>
           <td>
             <select name="organization" data-minimum-input-length="3" id="id_organization" data-autocomplete-light-language="en" data-autocomplete-light-url="/action/organization-autocomplete/" data-autocomplete-light-function="select2">
               {% if witness %}
@@ -288,6 +289,7 @@
                 <option value="{{gathering.organizations.first.id}}" selected>{{gathering.organizations.first.name}}</option>
               {% endif %}
             </select>
+            &nbsp;<small><a href="{% url 'action:organization_create' %}">Other group...</a></small>
           </td>
         </tr>
         <tr>
