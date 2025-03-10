@@ -53,9 +53,14 @@
       <tr title="How many times, once a week, will the event repeat?">
         <th>Weeks Recurring *</th>
         <td>
-          <span style="float: left; margin: auto; display:block; width: 20px;" id="weeksdisplay">{{initial_weeks}}</span>
-          &nbsp;&nbsp;&nbsp;&nbsp;
-          <input required type="range" id="weeks" name="weeks" value="{{initial_weeks}}" min="0" max="26" oninput="WeeksDisplayUpdate()" onchange="check_unsaved()"/>
+          {% if initial_weeks > 26 %}
+            <span style="float: left; margin: auto; display:block; width: 20px;" id="weeksdisplay">{{initial_weeks}}</span>
+            <input type="hidden" id="weeks" name="weeks" value="{{initial_weeks}}"/>
+          {% else %}
+            <span style="float: left; margin: auto; display:block; width: 20px;" id="weeksdisplay">{{initial_weeks}}</span>
+            &nbsp;&nbsp;&nbsp;&nbsp;
+            <input required type="range" id="weeks" name="weeks" value="{{initial_weeks}}" min="0" max="26" oninput="WeeksDisplayUpdate()" onchange="check_unsaved()"/>
+          {% endif %}
         </td>
         <script>
           var weeks = document.getElementById("weeks");
@@ -110,7 +115,7 @@
               <option value="{{gathering.organizations.first.id}}" selected>{{gathering.organizations.first.name}}</option>
             {% endif %}
           </select>
-          &nbsp;<small><a href="{% url 'action:organization_create' %}">Other group...</a></small>
+          &nbsp;<small><a href="{% url 'action:organization_create' %}">Register brand new group...</a></small>
         </td>
       </tr>
       <tr title="Is there a web page announcing this event? Provide the link here.">
@@ -289,7 +294,7 @@
                 <option value="{{gathering.organizations.first.id}}" selected>{{gathering.organizations.first.name}}</option>
               {% endif %}
             </select>
-            &nbsp;<small><a href="{% url 'action:organization_create' %}">Other group...</a></small>
+            &nbsp;<small><a href="{% url 'action:organization_create' %}">Register brand new group...</a></small>
           </td>
         </tr>
         <tr>
