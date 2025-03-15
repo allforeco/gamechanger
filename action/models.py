@@ -1312,9 +1312,9 @@ class Gathering_Witness(models.Model):
     #print(f"Already listed {already_listed}")
     witnesses_here = list(Gathering_Witness.objects.filter(gathering__regid__in=[g.regid for g in gatherings]))
     #print(f"Witnesses here {witnesses_here}")
-    witness_by_date = {e.date:e for e in witnesses_here if e}
+    witness_by_date = {(e.gathering.regid,e.date):e for e in witnesses_here if e}
     for e in already_listed:
-      witness_by_date[e.date] = e
+      witness_by_date[(e.gathering.regid,e.date)] = e
     #print(f"Comp {witness_by_date}")
     # Inlcude all actually reported recorded events
     for w in witnesses_here:
@@ -1338,7 +1338,7 @@ class Gathering_Witness(models.Model):
       )
       
       for the_date in ghost_dates:
-        if the_date not in witness_by_date.keys():
+        if (gathering.regid,the_date) not in witness_by_date.keys():
           #print(f"The_date {the_date} {witness_by_date.keys()}")
           if remaining_ghosts > 0:
             record = Gathering.datalist(Gathering_Witness(

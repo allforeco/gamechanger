@@ -7,14 +7,23 @@
 {% block content %}
 {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
 
-  <div>
-    <h2 style="margin-bottom: 0.25em;">Registered or Recorded Events Last {{filter_weeks}} Weeks</h2>
+{% if event_list %}
+<form action="{% url 'action:geo_update' %}" method="POST">
+  {% csrf_token %}
+  <input type="hidden" value="True" name="is_gathering"/>
+  <input type="submit" value="Register New (Recurring) Event" style="background-color:#A5A51D !important"/>
+</form>
+<br/>
+{% endif %}
+
+<div>
+  <h2 style="margin-bottom: 0.25em;">Registered or Recorded Events Last {{filter_weeks}} Weeks</h2>
+  {% include 'event_list.html' %}
+  <!--
+  {% with event_list=witness_list event_head=event_record_head %}
     {% include 'event_list.html' %}
-    <!--
-    {% with event_list=witness_list event_head=event_record_head %}
-      {% include 'event_list.html' %}
-    {% endwith %}
-    -->
-  </div>
+  {% endwith %}
+  -->
+</div>
 
 {% endblock %}
