@@ -50,7 +50,7 @@
     <div class="gathering">
       <table class="table-sort-mark">
         <tr>
-          <th sort="dat-true">Start date</th>
+          <th sort="dat-true">Start date</th>  
           <th sort="dat-false">End date</th>
           <th sort="str-false">Time</th>
           <th sort="str-false">Address</th>
@@ -137,21 +137,7 @@
               {% endif %}
             </td>
             <td style="text-align: center;">
-              {% if witness.proof_url %}
-                <a target="_blank" href="{{ witness.proof_url }}">
-                  {% if "facebook.com" in witness.proof_url or "scontent" in witness.proof_url %}
-                    <img src="/static/icon_fb30.png"/>
-                  {% elif "instagram.com" in witness.proof_url %}
-                    <img src="/static/icon_insta30.png"/>
-                  {% elif "twitter.com" in witness.proof_url %}
-                    <img src="/static/icon_twitter30.png"/>
-                  {% elif "youtube.com" in witness.proof_url %}
-                    <img src="/static/icon_yt30.png"/>
-                  {% else %}
-                    <img src="/static/icon_pic.png"/>
-                  {% endif %}
-                  <sup><sup><img style="width: 16px;" src="/static/icon-external.png"/></sup></sup></a>
-              {% endif %}
+              {% include "sm_link_icon.html" with link=witness.proof_url %}
             </td>
             <td>
               {% if witness.organization %}

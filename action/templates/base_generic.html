@@ -150,22 +150,30 @@
             if (th.attributes[0].name == "sort"){
               let data = th.attributes[0].value.split('-');
 
-              th.children[0].innerHTML = "<img style='width: 16px;' src='/static/icon-arrow-bi.png'/>";
+              /*th.children[0].innerHTML = "<img style='width: 16px;' src='/static/icon-arrow-bi.png'/>";*/
+              th.style.backgroundColor = "#d4d4d4"
               if (th.cellIndex == colid){
                 th.onclick = function(){ sort_table(tableid, colid, sortby, !greater);}
-                if (greater)
-                {th.children[0].innerHTML = "<img style='width: 16px;' src='/static/icon-arrow-down.png'/>";} else 
-                {th.children[0].innerHTML = "<img style='width: 16px;' src='/static/icon-arrow-up.png'/>";}
+                if (greater) {
+                  /*th.children[0].innerHTML = "<img style='width: 16px;' src='/static/icon-arrow-down.png'/>";*/
+                  th.style.backgroundColor = "#f0f0ff"
+                } else {
+                  /*th.children[0].innerHTML = "<img style='width: 16px;' src='/static/icon-arrow-up.png'/>";*/
+                  th.style.backgroundColor = "#f0f0f0"
+                }
               }
             }
           }
         }
 
         let rows = table.rows;
+        const defelem = document.createElement("p");
         for (var i = 0; i < rows.length; i++){
           for (var j = 1; j < (rows.length - i - 1); j++){
-            let a = rows[j].children[colid].children[0].innerHTML;
-            let b = rows[j+1].children[colid].children[0].innerHTML;
+            /*let a = rows[j].children[colid].children[0].innerHTML;
+            let b = rows[j+1].children[colid].children[0].innerHTML;*/
+            let a = (rows[j].children[colid] || defelem).getAttribute("sortby") || "";
+            let b = (rows[j+1].children[colid] || defelem).getAttribute("sortby") || "";
             let bubble;
             switch(sortby){
               case 'int':
@@ -204,8 +212,13 @@
               if (th.attributes[0].name == "sort"){
                 let data = th.attributes[0].value.split('-');
                 th.onclick = function(){ sort_table(tables[i].id, th.cellIndex, data[0], (data[1] == 'true'));}
-                th.innerHTML += "<span><img style='width: 16px;' src='/static/icon-arrow-bi.png'/></span>";
-                if (data[1] == 'true'){th.children[0].innerHTML = "<img style='width: 16px;' src='/static/icon-arrow-up.png'/>";}
+                /*th.innerHTML += "<span><img style='width: 16px;' src='/static/icon-arrow-bi.png'/></span>";*/
+                if (data[1] == 'true'){
+                  /*th.children[0].innerHTML = "<img style='width: 16px;' src='/static/icon-arrow-up.png'/>";*/
+                  th.style.backgroundColor = "#f0f0f0"
+                } else {
+                  th.style.backgroundColor = "#d4d4d4"
+                }
               }
             }
           }

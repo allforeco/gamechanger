@@ -54,30 +54,30 @@
 {% block table %}
 {% if event_head %}
 <div class="table_wrap">
-  <table>
+  <table class="table-sort-mark">
     <thead>
         <tr>
           {% if event_head.date %}
-            <th class="th_date">
+            <th sort="dat-true" class="th_date">
               Registered<br/>Event Date
             </th>
             <th class="th_date">Rec</th>
           {% endif %}
 
           {% if event_head.participants %}
-            <th class="th_participants">
+            <th sort="int-false" class="th_participants">
               RAS<br/>(# people<br/>recorded)
             </th>
           {% endif %}
 
           {% if event_head.orgs %}
-            <th class="th_organization">
+            <th sort="str-false" class="th_organization">
               Group
             </th>
           {% endif %}
 
           {% if event_head.activity_type %}
-            <th class="th_activity_type">
+            <th sort="str-false" class="th_activity_type">
               Activity Type
             </th>
           {% endif %}
@@ -102,43 +102,43 @@
 
           {% if event_head.event_link %}
             <th class="th_event_link">
-              Announce<br/>Event URL<br/>(Social Media<br/>or Website)
+              Register Link<br/>(Social Media<br/>or Website)
             </th>
           {% endif %}
 
           {% if event_head.location %}
-            <th class="th_location">
+            <th sort="str-false" class="th_location">
               {% if event_head.country %}Country; {% endif %}
               Location
             </th>
           {% endif %}
 
           {% if event_head.coordinator %}
-            <th class="th_coordinator">
+            <th sort="str-false" class="th_coordinator">
               Group<br/>Coordinator
             </th>
           {% endif %}
 
           {% if event_head.steward %}
-            <th class="th_steward">
+            <th sort="str-false" class="th_steward">
               Steward
             </th>
           {% endif %}
 
           {% if event_head.guide %}
-            <th class="th_guide">
+            <th sort="str-false" class="th_guide">
               Guide
             </th>
           {% endif %}
 
           {% if event_head.note_address or event_head.note_time %}
-            <th class="th_gtype">
+            <th sort="str-false" class="th_gtype">
               Notes
             </th>
           {% endif %}
 
           {% if event_head.gtype %}
-            <th class="th_gtype">
+            <th sort="str-false" class="th_gtype">
               Action<br/>Type
             </th>
           {% endif %}
@@ -152,7 +152,7 @@
         {% endif %}
         <tr class="tr_{% if event.green %}recorded{% else %}notrecorded{% endif %}{% if event.future %}_future{% endif %}">
           {% if event_head.date %}
-            <td class="td_date_{% if event.green %}recorded{% else %}notrecorded{% endif %}{% if event.future %}_future{% endif %}">
+            <td sortby="{{event.date|date:'Y-m-d'}}" class="td_date_{% if event.green %}recorded{% else %}notrecorded{% endif %}{% if event.future %}_future{% endif %}">
               {% if event_head.recorded %}
                 <form action="{% url 'action:geo_update' %}" method="POST">
                   {% csrf_token %}
@@ -178,7 +178,7 @@
                 {% if event.date %}{{event.date|date:'Y-m-d'}}{% if event_head.date_end %}{% if event.date_end%} - {{event.date_end|date:'Y-m-d'}}{% endif %}{%endif%}{% endif %}
               {% endif %}
             </td>            
-            <td class="td_date">
+            <td sortby="{{event.date|date:'Y-m-d'}}" class="td_date">
               <form action="{% url 'action:geo_one_more' %}" method="POST">
                 {% csrf_token %}
                 {% if event.record %}
@@ -204,21 +204,20 @@
 
           {% if event_head.participants %}
             {% if event.participants %}
-              <td class="td_participants {% if event.future %}future{% endif %}">
+              <td sortby="{{event.participants}}" class="td_participants {% if event.future %}future{% endif %}">
                 {{event.participants}}
               </td>
             {% else %}
-              <td class="future">
+              <td sortby="{{event.model.gathering.expected_participants}}" class="future">
                 {% if event.model.gathering.expected_participants %}
                   {{event.model.gathering.expected_participants}}
                 {% endif %}
               </td>
             {% endif %}
-            </td>
           {% endif %}
 
           {% if event_head.orgs %}
-            <td class="td_organization {% if event.future %}future{% endif %}">
+            <td sortby="{{event.orgs}}" class="td_organization {% if event.future %}future{% endif %}">
               {% if event.orgs %}
                 <a href="{% url 'action:organization_view' event.orgs.id %}">{{event.orgs}}</a>
               {% endif %}
@@ -226,7 +225,7 @@
           {% endif %}
 
           {% if event_head.activity_type %}
-            <td class="td_activity_type {% if event.future %}future{% endif %}">
+            <td sortby="{{event.activity_type}}" class="td_activity_type {% if event.future %}future{% endif %}">
               {{event.activity_type}}
             </td>
           {% endif %}
@@ -284,13 +283,13 @@
           {% endif %}
 
           {% if event_head.location %}
-            <td class="td_location {% if event.future %}future{% endif %}">
+            <td sortby="{{event.country}}-{{event.location}}" class="td_location {% if event.future %}future{% endif %}">
               {% if event_head.country %}
-                  <a href={% url 'action:geo_view' event.country.id %}>{{event.country}}</a>{% if event.location %}; {% endif %}
-                {% endif %}
-                {% if event.location %}
-                  <a href={% url 'action:geo_view' event.location.id %}>{{event.location}}</a>
-                {% endif %}
+                <a href={% url 'action:geo_view' event.country.id %}>{{event.country}}</a>{% if event.location %}; {% endif %}
+              {% endif %}
+              {% if event.location %}
+                <a href={% url 'action:geo_view' event.location.id %}>{{event.location}}</a>
+              {% endif %}
             </td>
           {% endif %}
 
@@ -306,7 +305,7 @@
           {% endif %}
 
           {% if event_head.coordinator %}
-            <td class="td_coordinator">
+            <td sortby="{{event.model.coordinator}}-{{event.model.gathering.coordinator}}" class="td_coordinator">
               {% if event.model.coordinator %}
                 <i>{{event.model.coordinator}}</i>
               {% elif event.model.gathering.coordinator %}
@@ -316,7 +315,7 @@
           {% endif %}
 
           {% if event_head.steward %}
-            <td class="td_gtype">
+            <td sortby="{{event.model.steward}}-{{event.model.gathering.steward}}" class="td_gtype">
               {% if event.model.steward %}
                 <i>{{event.model.steward}}</i>
               {% elif event.model.gathering.steward %}
@@ -326,7 +325,7 @@
           {% endif %}
 
           {% if event_head.guide %}
-            <td class="td_gtype">
+            <td sortby="{{event.model.guide}}-{{event.model.gathering.guide}}" class="td_gtype">
               {% if event.model.guide %}
                 <i>{{event.model.guide}}</i>
               {% elif event.model.gathering.guide %}
@@ -336,7 +335,7 @@
           {% endif %}
 
           {% if event_head.gtype %}
-            <td class="td_gtype">
+            <td sortby="{{event.gtype}}" class="td_gtype">
               {% if event.gtype %}
                 {{event.gtype}}
               {% endif %}
