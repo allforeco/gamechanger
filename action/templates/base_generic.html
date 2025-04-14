@@ -132,7 +132,7 @@
       function sortby_string(a, b, greater){
         a.toString();
         b.toString();
-        if (a < b){
+        if (a.toLowerCase() < b.toLowerCase()){
           return greater;
         } else {
           return !greater;

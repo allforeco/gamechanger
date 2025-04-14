@@ -283,7 +283,7 @@
           {% endif %}
 
           {% if event_head.location %}
-            <td sortby="{{event.country}}-{{event.location}}" class="td_location {% if event.future %}future{% endif %}">
+            <td sortby="{{event.country}}{{event.location}}" class="td_location {% if event.future %}future{% endif %}">
               {% if event_head.country %}
                 <a href={% url 'action:geo_view' event.country.id %}>{{event.country}}</a>{% if event.location %}; {% endif %}
               {% endif %}
@@ -305,33 +305,45 @@
           {% endif %}
 
           {% if event_head.coordinator %}
-            <td sortby="{{event.model.coordinator}}-{{event.model.gathering.coordinator}}" class="td_coordinator">
-              {% if event.model.coordinator %}
+            {% if event.model.coordinator %}
+              <td sortby="{{event.model.coordinator}}" class="td_coordinator">
                 <i>{{event.model.coordinator}}</i>
-              {% elif event.model.gathering.coordinator %}
+              </td>
+            {% elif event.model.gathering.coordinator %}
+              <td sortby="{{event.model.gathering.coordinator}}" class="td_coordinator">
                 {{event.model.gathering.coordinator}}
-              {% endif %}
-            </td>
+              </td>
+            {% else %}
+              <td sortby="❌" class="td_coordinator"></td>
+            {% endif %}
           {% endif %}
 
           {% if event_head.steward %}
-            <td sortby="{{event.model.steward}}-{{event.model.gathering.steward}}" class="td_gtype">
-              {% if event.model.steward %}
+            {% if event.model.steward %}
+              <td sortby="{{event.model.steward}}" class="td_gtype">
                 <i>{{event.model.steward}}</i>
-              {% elif event.model.gathering.steward %}
+              </td>
+            {% elif event.model.gathering.steward %}
+              <td sortby="{{event.model.gathering.steward}}" class="td_gtype">
                 {{event.model.gathering.steward}}
-              {% endif %}
-            </td>
+              </td>
+            {% else %}
+              <td sortby="❌" class="td_coordinator"></td>
+            {% endif %}
           {% endif %}
 
           {% if event_head.guide %}
-            <td sortby="{{event.model.guide}}-{{event.model.gathering.guide}}" class="td_gtype">
-              {% if event.model.guide %}
+            {% if event.model.guide %}
+              <td sortby="{{event.model.guide}}" class="td_gtype">
                 <i>{{event.model.guide}}</i>
-              {% elif event.model.gathering.guide %}
+              </td>
+            {% elif event.model.gathering.guide %}
+              <td sortby="{{event.model.gathering.guide}}" class="td_gtype">
                 {{event.model.gathering.guide}}
-              {% endif %}
-            </td>
+              </td>
+            {% else %}
+              <td sortby="❌" class="td_coordinator"></td>
+            {% endif %}
           {% endif %}
 
           {% if event_head.gtype %}
