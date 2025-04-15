@@ -1,0 +1,4 @@
+# https://learndjango.com/tutorials/add-robotstxt-django-website
+User-Agent: *
+Disallow: /action/
+Disallow: /static/

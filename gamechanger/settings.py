@@ -38,7 +38,7 @@ ALLOWED_HOSTS = ['www.gamechanger.eco', 'gamechanger.eco', 'staging.gamechanger.
 
 INSTALLED_APPS = [
     'action.apps.ActionConfig',
-    'klapp.apps.KlappConfig',
+    #'klapp.apps.KlappConfig',
     'tribe.apps.TribeConfig',
     #'twiff2.apps.Twiff2Config',
     'django.contrib.admin',
@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'jquery',
     'dal', # django-autocomplete-light
     'dal_select2', # django-autocomplete-light
+    'simplepages',
 ]
 
 MIDDLEWARE = [
