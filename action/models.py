@@ -329,7 +329,7 @@ class Location(models.Model):
       "Skopje, Macedonia (FYROM)",
       "Gol ghar, Park Rd, Raja Ji Salai, Chajju Bagh, Patna, Bihar 800001, India",
     ]:
-      print(f"Name '{loc_name}' => '{split_location_name(loc_name)}'")
+      print(f"Name '{loc_name}' => '{Location.split_location_name(loc_name)}'")
 
   '''
   ???something google maps parser

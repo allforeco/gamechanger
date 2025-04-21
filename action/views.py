@@ -622,9 +622,9 @@ def emergency_deactivate(request):
 
 '''
 '''
-def premission_denied(request):
+def permission_denied(request):
   context = {}
-  template = loader.get_template('action/premission_denied.html')
+  template = loader.get_template('action/permission_denied.html')
   return HttpResponse(template.render(context, request))
 
 '''

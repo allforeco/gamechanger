@@ -40,6 +40,7 @@
           <select required name="locid" data-minimum-input-length="3" data-autocomplete-light-language="en" data-autocomplete-light-url="/action/location-autocomplete/" data-autocomplete-light-function="select2">
             <option value="{{location.id}}" selected>{{location.name}}</option>
           </select>
+          &nbsp;<small><a href="{% url 'action:location_create' %}">Register brand new location...</a></small>
         </td>
       </tr>
       <tr title="When is the event taking place? When is the first event, if repeating several weeks?">

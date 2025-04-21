@@ -43,7 +43,7 @@ ___view for contact form
 '''
 def GatheringCreateSubmit(request):
   logginbypass = publicuse
-  if not (request.user.is_authenticated or (logginbypass and not BigRedButton.is_emergency())): return redirect('action:premission_denied')
+  if not (request.user.is_authenticated or (logginbypass and not BigRedButton.is_emergency())): return redirect('action:permission_denied')
 
   return default_CreateSubmit_Response(request, GatheringCreateForm(), "Gathering", "create_gathering")
   #template = loader.get_template('action/form_CreateSubmit.html')
@@ -56,7 +56,7 @@ ___redirect loop
 '''
 def GatheringCreate(request):
   logginbypass = publicuse
-  if not (request.user.is_authenticated or (logginbypass and not BigRedButton.is_emergency())): return redirect('action:premission_denied')
+  if not (request.user.is_authenticated or (logginbypass and not BigRedButton.is_emergency())): return redirect('action:permission_denied')
   data = request.POST
 
   try:
@@ -110,7 +110,7 @@ ___organization form view
 '''
 def OrganizationCreateSubmit(request):
   logginbypass = publicuse
-  if not (request.user.is_authenticated or (logginbypass and not BigRedButton.is_emergency())): return redirect('action:premission_denied')
+  if not (request.user.is_authenticated or (logginbypass and not BigRedButton.is_emergency())): return redirect('action:permission_denied')
   
   try:
     data = request.POST
@@ -150,7 +150,7 @@ ___contact redirect
 '''
 def OrganizationCreate(request):
   logginbypass = publicuse
-  if not (request.user.is_authenticated or (logginbypass and not BigRedButton.is_emergency())): return redirect('action:premission_denied')
+  if not (request.user.is_authenticated or (logginbypass and not BigRedButton.is_emergency())): return redirect('action:permission_denied')
   data = request.POST
   print(f'OrgCreate {data}')
 
@@ -162,9 +162,9 @@ def OrganizationCreate(request):
 
     name = data.get('name')
     if name:
-      if Organization.objects.filter(name__iexact=name).count():
-        already_exists = True
-      else:
+      #if Organization.objects.filter(name__iexact=name).count():
+      #  already_exists = False#True
+      #else:
         #orgs = Organization.objects.filter(name__trigram_similar=name).filter(similarity__gt=0.1).order_by('-similarity')
         similarity_threshold = .3
         count_similar_orgs = Organization.objects.annotate(
@@ -214,7 +214,7 @@ ___form view for contact
 '''
 def OrganizationcontactCreateSubmit(request):
   logginbypass = publicuse
-  if not (request.user.is_authenticated or (logginbypass and not BigRedButton.is_emergency())): return redirect('action:premission_denied')
+  if not (request.user.is_authenticated or (logginbypass and not BigRedButton.is_emergency())): return redirect('action:permission_denied')
   
   return default_CreateSubmit_Response(request, OrganizationcontactCreateForm(), "Organization Contact", "create_organizationcontact")
   #template = loader.get_template('action/form_CreateSubmit.html')
@@ -227,7 +227,7 @@ ___redirect loop
 '''
 def OrganizationcontactCreate(request):
   logginbypass = publicuse
-  if not (request.user.is_authenticated or (logginbypass and not BigRedButton.is_emergency())): return redirect('action:premission_denied')
+  if not (request.user.is_authenticated or (logginbypass and not BigRedButton.is_emergency())): return redirect('action:permission_denied')
   data = request.POST
   print(data)
 
@@ -253,6 +253,12 @@ def OrganizationcontactCreate(request):
   #return redirect('action:organizationcontact_submit')
 
 
+
+class LocationCreateForm(ModelForm):
+  class Meta():
+    model = Location
+    fields = ['name']
+
 '''
 ___formclass location
 '''
@@ -268,7 +274,7 @@ class LocationParseForm(Form):
 def LocationCreateSubmit(request):
   #publicuse = False
   logginbypass = publicuse
-  if not (request.user.is_authenticated or (logginbypass and not BigRedButton.is_emergency())): return redirect('action:premission_denied')
+  if not (request.user.is_authenticated or (logginbypass and not BigRedButton.is_emergency())): return redirect('action:permission_denied')
   
   return default_CreateSubmit_Response(request, LocationParseForm(), "Location", "create_location")
   #template = loader.get_template('action/form_CreateSubmit.html')
@@ -277,26 +283,16 @@ def LocationCreateSubmit(request):
 
 def LocationMapCreateSubmit(request):
   logginbypass = publicuse
-  if not (request.user.is_authenticated or (logginbypass and not BigRedButton.is_emergency())): return redirect('action:premission_denied')
+  if not (request.user.is_authenticated or (logginbypass and not BigRedButton.is_emergency())): return redirect('action:permission_denied')
   
   return default_CreateSubmit_Response(request, LocationParseForm(), "Location", "create_location", "Location successfully created")
   #template = loader.get_template('action/form_CreateSubmit_location.html')
   #context = {"google_maps_key": geoParser.gkey}
   #return HttpResponse(template.render(context, request))
 
-def LocationCreate(request):
-  #publicuse = False
-  logginbypass = publicuse
-  if not (request.user.is_authenticated or (logginbypass and not BigRedButton.is_emergency())): return redirect('action:premission_denied')
-  
-  return default_CreateSubmit_Response(request, LocationParseForm(), "Location", "create_location")
-  #template = loader.get_template('action/form_CreateSubmit.html')
-  #context = {'form': LocationParseForm(), 'createsubmit_title': "Location", 'formaction_url': "create_location"}
-  #return HttpResponse(template.render(context, request))
-
 def LocationMapCreateSubmit(request):
   logginbypass = publicuse
-  if not (request.user.is_authenticated or (logginbypass and not BigRedButton.is_emergency())): return redirect('action:premission_denied')
+  if not (request.user.is_authenticated or (logginbypass and not BigRedButton.is_emergency())): return redirect('action:permission_denied')
   template = loader.get_template('action/form_CreateSubmit_location.html')
   context = {"google_maps_key": geoParser.gkey}
   return HttpResponse(template.render(context, request))
@@ -325,9 +321,145 @@ def LocationCreate(request):
         print(">", end='')
       print(d)
 
+  data = request.POST
+  print(f'LocCreate {data}')
+
+  try:
+    locs = []
+    feedback = ""
+    formatted_address = ""
+    gloc_lat = None
+    gloc_lon = None
+    gloc_path = ""
+    gloc_postcode = None
+    count_similar_locs = 0
+    would_create_names = []
+    already_exists = False
+
+    name = data.get('name')
+    search_name = data.get('search_name', "")
+    create_names = data.get('create_names')
+
+    if name:
+      similarity_threshold = .3
+      count_similar_locs = Location.objects.annotate(
+        similarity=TrigramSimilarity('name', name),
+      ).filter(similarity__gt=similarity_threshold).count()
+      while similarity_threshold < 1:
+        locs = Location.objects.annotate(
+          similarity=TrigramSimilarity('name', name),
+        ).filter(similarity__gt=similarity_threshold).order_by('-similarity')
+        if locs.count() < 20:
+          break
+        similarity_threshold += .1
+      similarity_threshold -= .1
+      locs = Location.objects.annotate(
+        similarity=TrigramSimilarity('name', name),
+      ).filter(similarity__gt=similarity_threshold).order_by('-similarity')[:10]
+      print(f"Found {count_similar_locs} similarly named locs, here are the top {locs.count()}: {locs}")
+  except Exception as e:
+    print(f'LocCreate Exception {e}')
+    feedback = "Location creation Error"
+    #redirect('action:organization_submit')
+
+  try:
+    if search_name:
+      name = search_name
+    if name:
+      google_metadata = geoParser.gmaps.geocode(name)
+      print(len(google_metadata), google_metadata)
+
+      if len(google_metadata) < 1:
+        feedback = 'Google Maps does not recognize this place name.'
+      elif len(google_metadata) == 1:
+        formatted_address = google_metadata[0]['formatted_address']
+        gloc_path = ", ".join([ac['long_name'] for ac in google_metadata[0]['address_components']])
+        gloc_lat = google_metadata[0]['geometry']['location']['lat']
+        gloc_lon = google_metadata[0]['geometry']['location']['lng']
+        gloc_postcode = None
+        try:
+          gloc_postcode = [pc for pc in google_metadata[0]['address_components'] if 'postal_code' in pc['types']][0]['long_name']
+          postcode_offset = formatted_address.find(gloc_postcode)
+          if postcode_offset >= 0:
+            # Remove postcode from formatted_address
+            formatted_address = formatted_address[:postcode_offset]+formatted_address[postcode_offset+len(gloc_postcode)+1:]
+        except Exception as e:
+          pass # Did not find any postcode to remove
+      else: # more than 1
+        feedback = 'Google Maps recognizes multiple places by this name, please be more specific.'
+  except Exception as e:
+    print(f'LocCreate Exception2 {e}')
+    feedback = "Location creation Error"
+
+  if formatted_address:
+    address_parts = [part.strip() for part in formatted_address.split(",")]
+    # 1st part: country
+    country_name = address_parts.pop()
+    country_objs = Country.objects.filter(name__iexact=country_name)
+    if country_objs.count() != 1:
+      feedback = f"Country {country_name} is not in the database. Contact an admin to have it added."
+      print(feedback)
+    else:
+      country_loc = Location.objects.filter(name__iexact=country_name, in_location__isnull=True)
+      if country_loc.count() != 1:
+        feedback = f"Location {country_name} is not in the database. Contact an admin to have it added."
+        print(feedback)
+      else:
+        parent_loc = country_loc.first()
+        parent_name = country_name
+        while address_parts:
+          part_name = address_parts.pop()
+          next_loc = Location.objects.filter(name__iexact=part_name, in_location=parent_loc)
+          if next_loc.count() == 0:
+            if create_names: # go ahead and create
+              if part_name in create_names:
+                print(f'Creating {part_name} in {parent_name}')
+                new_loc = Location(
+                  name = part_name,
+                  in_country = country_objs.first(),
+                  in_location = parent_loc,
+                  zip_code = gloc_postcode,
+                  lat = gloc_lat,
+                  lon = gloc_lon,
+                )
+                new_loc.save()
+                feedback = f"{part_name} created in {parent_name}."
+              else:
+                feedback = f"{part_name} not authorized for creation, aborted"
+                print(feedback)
+            else: # just figure out what needs to be created
+              print(f'Would create {part_name} in {parent_name}')
+              would_create_names += [part_name]
+            parent_loc = None
+          else:
+            print(f'Found existing {part_name} in {parent_name}')
+            parent_loc = next_loc.first()
+          parent_name = part_name
+
+  template = loader.get_template('action/location_create.html')
+  context = {
+    'form': LocationCreateForm(), 
+    'createsubmit_title': "Location", 
+    'search_formaction_url': "create_location", 
+    'submit_formaction_url': "submit_location", 
+    'search_name': name,
+    'feedback': feedback, 
+    'similar_ones': locs,
+    'total_similar_count': count_similar_locs,
+    'loc_name': name,
+    'gloc_name': formatted_address,
+    'gloc_path': gloc_path,
+    'gloc_lat': gloc_lat,
+    'gloc_lon': gloc_lon,
+    'create_names': ", ".join(would_create_names),
+    'already_exists': already_exists,
+  }
+  return HttpResponse(template.render(context, request))
+
+
   #publicuse = False
   logginbypass = publicuse
-  if not (request.user.is_authenticated or (logginbypass and not BigRedButton.is_emergency())): return redirect('action:premission_denied')
+  if not (request.user.is_authenticated or (logginbypass and not BigRedButton.is_emergency())): return redirect('action:permission_denied')
   data = request.POST
   #print(data)
   address = data['address']
@@ -526,7 +658,7 @@ class USGformgathering(Form):
 
 def USGCreateSubmit(request):
   logginbypass = publicuse
-  if not (request.user.is_authenticated or (logginbypass and not BigRedButton.is_emergency())): return redirect('action:premission_denied')
+  if not (request.user.is_authenticated or (logginbypass and not BigRedButton.is_emergency())): return redirect('action:permission_denied')
 
   template = loader.get_template('action/form_USG_CreateSubmit.html')
   context = {
@@ -538,7 +670,7 @@ def USGCreateSubmit(request):
 
 def USGCreate(request):
   logginbypass = publicuse
-  if not (request.user.is_authenticated or (logginbypass and not BigRedButton.is_emergency())): return redirect('action:premission_denied')
+  if not (request.user.is_authenticated or (logginbypass and not BigRedButton.is_emergency())): return redirect('action:permission_denied')
   data = request.POST
   try:
     user_consent = data['user_consent']
