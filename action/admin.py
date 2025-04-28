@@ -1,5 +1,8 @@
 from django.contrib import admin
 from django.http import *
+import djhacker
+from django import forms
+from dal import autocomplete
 
 # Register your models here.
 
@@ -25,14 +28,20 @@ class GatheringWitnessAdmin(admin.ModelAdmin):
   ordering = ('-date',)
   search_fields = ['gathering__name', 'date', 'organization']
 
-
 admin.site.register(Gathering_Witness, GatheringWitnessAdmin)
 
 class LocationAdmin(admin.ModelAdmin):
   list_display = ('name', 'str_lat_lon', 'in_country', 'creation_details',)
   ordering = ('name',)
   search_fields = ['name']
-  autocomplete_fields = ['in_country', 'in_location']
+  #autocomplete_fields = ['in_country', 'in_location']
+  autocomplete_fields = ['in_location']
+
+#djhacker.formfield(
+#    Location.in_country,
+#    forms.ModelChoiceField,
+#    widget=autocomplete.ModelSelect2(url='country-autocomplete')
+#)
 
 class CountryAdmin(admin.ModelAdmin):
   list_display = ('name', 'code', 'flag')

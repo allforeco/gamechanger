@@ -459,6 +459,10 @@ def geo_update_post_gathering(request):
 
   print(f"GUPG {gathering.__dict__}")
   gathering.save()
+  belong = Gathering_Belong.objects.filter(regid = regid).first()
+  if not belong:
+    belong = Gathering_Belong(regid=regid, gathering=gathering)
+    belong.save()
 
   # Must be done after gathering.save()
   try:

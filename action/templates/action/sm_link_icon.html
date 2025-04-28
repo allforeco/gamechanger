@@ -1,0 +1,15 @@
+{% if link %}
+  <a target="_blank" href="{{ link }}">
+    {% if "facebook.com" in link or "scontent" in link %}
+      <img src="/static/icon_fb30.png"/>
+    {% elif "instagram.com" in link %}
+      <img src="/static/icon_insta30.png"/>
+    {% elif "twitter.com" in link %}
+      <img src="/static/icon_twitter30.png"/>
+    {% elif "youtube.com" in link %}
+      <img src="/static/icon_yt30.png"/>
+    {% else %}
+      <img src="/static/icon_pic.png"/>
+    {% endif %}
+  </a>
+{% endif %}

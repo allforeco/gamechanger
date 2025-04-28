@@ -1,0 +1,47 @@
+{% extends "base_generic.html" %}
+
+{% load static %}
+
+{% block content %}
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/js/select2.full.js"></script>
+    <h1>Create {{createsubmit_title}}</h1>
+
+    <form action="{{search_formaction_url}}" method="post">
+        {% csrf_token %}
+        <div>
+            <label for="id_name">Name:</label>
+            <input type="text" name="name" value="{{search_name}}" maxlength="100" required id="id_name">            
+        </div>
+        <input type="submit" value="Search for similarly named locations"/>
+    </form>
+    {% if similar_ones and total_similar_count %}
+        <ul>
+            <p>Here are some locations already in the database. Are you looking for any of them?</p>
+            {% for similar in similar_ones %}
+                <li><code style="background-color:beige">{{ similar }}</code>&nbsp;</li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        {% if not create_names %}
+            <p>There are no locations named similarly to what you are looking for in the database.</p>
+        {% endif %}        
+    {% endif %}
+    {% if create_names %}
+        <p>We found this location on Google Maps. Do you mean this location? </p>
+        <p><strong>{{ gloc_name }}</strong></p>
+        <p>More specifically {{ gloc_path }}{% if gloc_lat or gloc_lon %}<small> (at {{gloc_lat|floatformat:5}}, {{gloc_lon|floatformat:5}})</small>{% endif %}</p>
+        <p>{{create_names}} is not yet in the database. Create?</p>
+        <form action="{{search_formaction_url}}" method="post">
+            {% csrf_token %}
+            <input type="hidden" value="{{search_name}}" name="search_name"/>
+            <input type="hidden" value="{{create_names}}" name="create_names"/>
+            <input type="submit" value="Create this location in the database"/>
+        </form>
+    {% endif %}
+    {% if feedback %}
+        <p>{{feedback}}</p>
+    {% endif %}
+{% endblock %}

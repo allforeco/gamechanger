@@ -11,7 +11,7 @@ from .parsers import geoParser
 from dal import autocomplete
 import base64, hashlib, datetime, googlemaps, json, os
 
-from .models import Gathering, Organization, OrganizationContact, Location, Country, UserHome
+from .models import Gathering, Gathering_Belong, Organization, OrganizationContact, Location, Country, UserHome
 from .cookie_profile import CookieProfile
 
 publicuse = True
@@ -91,6 +91,11 @@ def GatheringCreate(request):
   gathering.address = address #= models.CharField(blank=True, max_length=64)
   gathering.time = time #= models.CharField(blank=True, max_length=32)
   gathering.save()
+  belong = Gathering_Belong.objects.filter(regid = regid).first()
+  if not belong:
+    belong = Gathering_Belong(regid=regid, gathering=gathering)
+    belong.save()
+
 
   print(gathering.data_all())
   return default_CreateSubmit_Response(request, GatheringCreateForm(), "Gathering", "create_gathering", "Gathering successfully created")
@@ -442,7 +447,7 @@ def LocationCreate(request):
     'createsubmit_title': "Location", 
     'search_formaction_url': "create_location", 
     'submit_formaction_url': "submit_location", 
-    'search_name': name,
+    'search_name': name if name else "",
     'feedback': feedback, 
     'similar_ones': locs,
     'total_similar_count': count_similar_locs,
