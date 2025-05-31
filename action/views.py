@@ -448,36 +448,84 @@ def download_post(request):
     #comment = '''
     t = datetime.datetime.fromisoformat(start_datetime+"+00:00")
     # Order so that most recently updated data comes last, i.e. overwrites earlier data
-    gupdates = Gathering_Witness.objects.filter(updated__gte=t).order_by('updated')
-    print(f"GUD0 cnt {len(gupdates)}")
+    gatherings = Gathering.objects.filter(updated_on__gte=t).order_by('updated_on')
+    print(f"GUD0 cnt {len(gatherings)}")
+    witnesses = Gathering_Witness.objects.filter(updated__gte=t).order_by('updated')
+    print(f"GUD1 cnt {len(witnesses)}")
+    witness_dates = {}
+    for witness in witnesses:
+      try:
+        witness_dates[(witness.gathering.regid, witness.date)] = 1
+      except:
+        print(f"GUD2 missing witness regid/date for {witness}")
 
     with io.StringIO(newline='') as csvfile:
       content = csv.writer(csvfile, quoting=csv.QUOTE_MINIMAL)
-      for gupdate in gupdates:
-        gupdate_belong = None
+      for gathering in gatherings:
+        if witness_dates.get((gathering.regid, gathering.start_date)):
+          # Don't mention a Gathering and Witness for the same date
+          print(f"GUD3 not mentioning {(gathering.regid, gathering.start_date)}")
+          continue
+        content.writerow([
+          'CG',                             # 0 Record format
+          gathering.regid,                  # 1 RID
+          gathering.created_on or gathering.start_date, # 2 RCREATED
+          gathering.updated_on or gathering.start_date, # 3 RUPD
+          gathering.start_date,             # 4 EDATE
+          gathering.end_date,               # 5 EENDDATE
+          gathering.time,                   # 6 ETIME
+          gathering.address,                # 7 ELOCATION
+          gathering.location.in_country.name, # 8 ECOUNTRY
+          gathering.location.canonical_name(), # 9 GLOC
+          gathering.location.lat,           # 10 GLAT
+          gathering.location.lon,           # 11 GLON
+          gathering.gathering_type,         # 12 ETYPE
+          gathering.event_link_url,         # 13 ELINK
+          "|".join([org.name for org in gathering.organizations.all()]), # 14 CORG2
+          gathering.contact_email,          # 15 CEMAIL
+          gathering.expected_participants,  # 16 REVNUM
+          "",                               # 17 REVPROOF
+          gathering.coordinator,            # 18 SCOORD
+          gathering.steward,                # 19 SSTEWARD
+          gathering.guide,                  # 20 SGUIDE
+        ])
+
+      for witness in witnesses:
+        gathering = None
         try:
           try:
-            bels = Gathering_Belong.objects.filter(regid=gupdate.gathering.regid)
+            bels = Gathering_Belong.objects.filter(regid=witness.gathering.regid)
             bel = bels.first()
-            gupdate_belong = bel.gathering
+            gathering = bel.gathering
           except:
             pass
-          if not gupdate_belong:
-            print(f"GUD8 missing belong for {gupdate.gathering.regid}")
-            gupdate_belong = gupdate.gathering
-          if gupdate.gathering.regid != gupdate_belong.regid:
-            print(f"GUD9 belong {gupdate.gathering.regid} => {gupdate_belong}")
-          content.writerow(['Witness', 
-            gupdate_belong,
-            gupdate.date, 
-            gupdate.participants,
-            gupdate.proof_url, 
-            gupdate.creation_time,
-            gupdate.updated,
-            gupdate.organization.name if gupdate.organization else '',
-            gupdate.gathering.event_link_url,
-            gupdate.gathering.steward,
-            gupdate.gathering.guide,
+          if not gathering:
+            print(f"GUD8 missing belong for {witness.gathering.regid}")
+            gathering = witness.gathering
+          if witness.gathering.regid != gathering.regid:
+            print(f"GUD9 belong {witness.gathering.regid} => {gathering}")
+          content.writerow([
+            'CGW',                            # 0 Record Format
+            gathering.regid,                  # 1 RID
+            witness.creation_time,            # 2 RCREATED
+            witness.updated,                  # 3 RUPD
+            witness.date,                     # 4 EDATE
+            witness.date,                     # 5 EENDDATE
+            gathering.time,                   # 6 ETIME
+            gathering.address,                # 7 ELOCATION
+            gathering.location.in_country.name, # 8 ECOUNTRY
+            gathering.location.canonical_name(), # 9 GLOC
+            gathering.location.lat,           # 10 GLAT
+            gathering.location.lon,           # 11 GLON
+            gathering.gathering_type,         # 12 ETYPE
+            gathering.event_link_url,         # 13 ELINK
+            witness.organization.name if witness.organization else "", # 14 CORG2
+            gathering.contact_email,          # 15 CEMAIL
+            witness.participants,             # 16 REVNUM
+            witness.proof_url,                # 17 REVPROOF
+            witness.coordinator,              # 18 SCOORD
+            witness.steward,                  # 19 SSTEWARD
+            witness.guide,                    # 20 SGUIDE
           ])
         except Exception as e:
           print(f"GUDX {e}")

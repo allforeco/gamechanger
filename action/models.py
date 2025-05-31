@@ -25,18 +25,24 @@ import pycountry, datetime, random, string, itertools
 ___Database registered Locations
 '''
 class Location(models.Model):
-  def __str__(self):
+  def canonical_name(self, use_ccode=False):
     out = f"{self.name}"
     try:
       if self.id != self.country_location().id:
         if self.id != self.state_location().id:
           out += f", {self.state_location().name}"
       if self.in_country.id != Country.UNKNOWN:
-        out += f", {self.in_country.code}"
+        if use_ccode:
+          out += f", {self.in_country.code}"
+        else:
+          out += f", {self.in_country.name}"
     except:
       pass
     
     return out
+
+  def __str__(self):
+    return self.canonical_name(use_ccode=True)
 
   name = models.CharField(max_length=100)
   in_country = models.ForeignKey('Country', on_delete=models.CASCADE, blank=True, null=True)
@@ -997,6 +1003,9 @@ class Gathering(models.Model):
   contact_phone = models.CharField(blank=True, max_length=256)
   contact_notes = models.CharField(blank=True, max_length=256)
 
+  updated_on = models.DateTimeField(auto_now=True, null=True, editable=False)
+  created_on = models.DateTimeField(auto_now_add=True, null=True, editable=False)
+
   @staticmethod
   def generate_regid():
     return ''.join([random.choice(string.ascii_letters+string.digits) for n in range(8)])
@@ -1289,7 +1298,7 @@ class Gathering_Witness(models.Model):
   participants = models.PositiveIntegerField(blank=True, null=True, default=0)
   proof_url = models.URLField(max_length=500, blank=True)
   creation_time = models.DateTimeField(auto_now_add=True, editable=False)
-  updated = models.DateTimeField(auto_now_add=True, null=True, editable=False)
+  updated = models.DateTimeField(auto_now=True, null=True, editable=False)
   organization = models.ForeignKey(Organization, on_delete=models.SET_NULL, blank=True, null=True, editable=False)
   coordinator = models.ForeignKey(Steward, blank=True, null=True, on_delete=models.SET_NULL, related_name="coordinator_of_gwitness")
   steward = models.ForeignKey(Steward, blank=True, null=True, on_delete=models.SET_NULL, related_name="steward_of_gwitness")
