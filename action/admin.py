@@ -47,6 +47,17 @@ class CountryAdmin(admin.ModelAdmin):
   list_display = ('name', 'code', 'flag')
   ordering = ('name',)
   search_fields = ['name']
+  actions = ['generate_countries_action', 're_generate_countries_action']
+
+  @admin.action(description='Generate countries from location names')
+  def generate_countries_action(self, request, queryset):
+    Country.generate(option=0)
+    self.message_user(request, 'Country generation completed from the current location data.')
+
+  @admin.action(description='Re-generate countries from location names')
+  def re_generate_countries_action(self, request, queryset):
+    Country.generate(option=1)
+    self.message_user(request, 'Country re-generation completed from the current location data.')
 
 class Location_BelongAdmin(admin.ModelAdmin):
   #autocomplete_fields = ['prime', 'duplicate']
