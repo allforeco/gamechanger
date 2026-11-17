@@ -556,6 +556,8 @@ class Country(models.Model):
         pycy = pycountry.countries.get(name=name)
       elif pycountry.countries.get(official_name=name):
         pycy = pycountry.countries.get(official_name=name)
+      elif pycountry.countries.get(common_name=name):
+        pycy = pycountry.countries.get(common_name=name)
       elif pycountry.countries.search_fuzzy(name):
         #pycy = pycountry.countries.search_fuzzy(name)[0]
         pass
